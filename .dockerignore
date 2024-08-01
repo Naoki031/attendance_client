@@ -1,0 +1,9 @@
+.nuxt
+.output
+node_modules
+dist
+.git
+.nuxt
+.vscode
+.npm
+package-lock.json
