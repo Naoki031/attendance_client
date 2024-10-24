@@ -13,15 +13,15 @@
 </template>
 
 <script lang="ts" setup>
-/** 0. start import*/
-import { computed, ref, watch, PropType } from 'vue'
+/** START IMPORT */
+import { watch, PropType } from 'vue'
 import { CountryModel } from '@/interfaces/models/CountryModel'
-/* end import*/
+/* END IMPORT */
 
-/** 1. start import name component*/
-/* end import*/
+/** START DEFINE NAME COMPONENT */
+/* END  DEFINE */
 
-/** 2. start define property and emits */
+/** START DEFINE PROPERTY AND EMITS */
 const props = defineProps({
   item: {
     type: Object as PropType<CountryModel>,
@@ -33,18 +33,18 @@ const props = defineProps({
   },
 })
 const emit = defineEmits(['confirm-delete', 'close-delete'])
-/* end define property and emits*/
+/* END DEFINE PROPERTY AND EMITS */
 
-/** 3. start define validate */
-/* end define validate */
+/** START DEFINE VALIDATE */
+/* END DEFINE VALIDATE */
 
-/** 4. start defined state */
-/* end defined state */
+/** START DEFINE STATE */
+/* END DEFINE STATE */
 
-/** 5. start defined computed */
-/* end defined computed */
+/** START DEFINE COMPUTED */
+/* END DEFINE COMPUTED */
 
-/** 6. start defined methods */
+/** START DEFINE METHOD */
 const confirm = () => {
   emit('confirm-delete', props.item)
 }
@@ -52,9 +52,9 @@ const confirm = () => {
 const close = () => {
   emit('close-delete', null)
 }
-/* end defined methods */
+/* END DEFINE METHOD */
 
-/** 7. start define watcher */
+/** START DEFINE WATCHER */
 watch(
   () => props.dialog,
   (val) => {
@@ -64,10 +64,10 @@ watch(
   },
   { immediate: false },
 )
-/* end define life watcher */
+/* END DEFINE WATCHER */
 
-/** 8. start define life cycle hook */
-/* end define life cycle hook */
+/** START DEFINE LIFE CYCLE HOOK */
+/* END DEFINE LIFE CYCLE HOOK */
 </script>
 
 <style scoped></style>

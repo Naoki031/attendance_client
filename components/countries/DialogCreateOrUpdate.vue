@@ -2,18 +2,23 @@
   <v-dialog :model-value="dialog" :max-width="maxWidth" persistent>
     <v-card>
       <v-card-title class="text-h5">{{ title }}</v-card-title>
+
       <v-divider></v-divider>
 
       <v-card-text>
         <v-container>
+          <!-- Name field -->
           <v-text-field
             v-model="name"
             label="Name"
             :error-messages="errors.name"
             @blur="updateSlug"
           ></v-text-field>
+
+          <!-- Slug field -->
           <v-text-field v-model="slug" label="Slug" :error-messages="errors.slug"></v-text-field>
-          <v-text-field v-model="code" label="Code" :error-messages="errors.code"></v-text-field>
+
+          <!-- Capital field -->
           <v-text-field
             v-model="capital"
             label="Capital"
@@ -35,23 +40,25 @@
 </template>
 
 <script lang="ts" setup>
-/** 0. start import*/
-import { computed, ref, watch, PropType, watchEffect } from 'vue'
-import { CountryModel } from '@/interfaces/models/CountryModel'
+/** start import */
+import { computed, watch, PropType, watchEffect } from 'vue'
 import * as Yup from 'yup'
 import { useField, useForm } from 'vee-validate'
+import { CountryModel } from '@/interfaces/models/CountryModel'
 import CountryService from '@/services/CountryService'
-/* end import*/
+/* end import */
 
-/** 1. start import name component*/
-/* end import*/
+/** start import name component */
+/* end import */
 
-/** 2. start define property and emits */
+/** start define property and emits */
 const props = defineProps({
   item: {
     type: Object as PropType<CountryModel | null>,
     required: false,
+    default: null,
   },
+
   dialog: {
     type: Boolean,
     required: true,
@@ -60,19 +67,17 @@ const props = defineProps({
 const emit = defineEmits(['confirm', 'close-modal'])
 
 const form = {
-  country_id: null as number | null,
+  id: null as number | null,
   name: '' as string | null,
   slug: '' as string | null,
-  code: '' as string | null,
   capital: '' as string | null,
 }
-/* end define property and emits*/
+/* end define property and emits */
 
 /** 3. start define validate */
 const schema = Yup.object().shape({
   name: Yup.string().required('Name is required'),
   slug: Yup.string().required('Slug is required'),
-  code: Yup.string().nullable(),
   capital: Yup.string().nullable(),
 })
 
@@ -83,7 +88,6 @@ const { values, errors, handleSubmit, setFieldError, setFieldValue } = useForm({
 
 const { value: name } = useField<string>('name')
 const { value: slug } = useField<string>('slug')
-const { value: code } = useField<string | null>('code')
 const { value: capital } = useField<string | null>('capital')
 /* end define validate */
 
@@ -104,8 +108,8 @@ const maxWidth = computed(() => {
 const handleCreate = handleSubmit(async (form) => {
   await schema.validate(values, { abortEarly: false })
   CountryService.create(form)
-    .then((res) => {
-      emit('confirm', res.data)
+    .then((res: CountryModel) => {
+      emit('confirm', res)
     })
     .catch((error) => {
       console.error('Failed to add country:', error)
@@ -114,14 +118,13 @@ const handleCreate = handleSubmit(async (form) => {
 
 const handleUpdate = handleSubmit(async (form) => {
   await schema.validate(values, { abortEarly: false })
-  console.log(form)
-  // CountryService.update(props.item?.id as number, form)
-  //   .then((res) => {
-  //     emit('confirm', res.data)
-  //   })
-  //   .catch((error) => {
-  //     console.error('Failed to update country:', error)
-  //   })
+  CountryService.update(props.item?.id as number, form)
+    .then((res: CountryModel) => {
+      emit('confirm', res)
+    })
+    .catch((error) => {
+      console.error('Failed to update country:', error)
+    })
 })
 
 const confirm = () => {
@@ -141,7 +144,7 @@ const updateSlug = () => {
     'slug',
     name.value
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[\u0300-\u036F]/g, '') // Remove accents
       .toLowerCase() // Convert to lowercase
       .replace(/ /g, '-') // Replace spaces with hyphens
       .replace(/[^a-z0-9-]/g, ''), // Remove all non-alphanumeric characters except hyphens
@@ -164,11 +167,9 @@ watch(
 
 watchEffect(() => {
   if (props.item) {
-    console.log(props.item)
-    setFieldValue('country_id', props.item?.country_id)
+    setFieldValue('id', props.item?.id ?? null)
     setFieldValue('name', props.item?.name)
     setFieldValue('slug', props.item?.slug)
-    setFieldValue('code', String(props.item?.code))
     setFieldValue('capital', String(props.item?.capital))
   }
 })

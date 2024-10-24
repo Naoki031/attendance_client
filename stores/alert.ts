@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { AlertState } from '~/stores/types/alert/AlertState'
+import type { AlertState } from '@/stores/types/alert/AlertState'
 
 export const useAlertStore = defineStore('alert', {
   state: (): AlertState => {
@@ -17,10 +17,11 @@ export const useAlertStore = defineStore('alert', {
     async showAlert({ navigation, type, message }: AlertState) {
       this.navigation = navigation
       this.type = type
-      this.message = message
+      this.message = await message
       this.show = true
     },
-    async hideAlert() {
+
+    hideAlert() {
       this.message = ''
       this.show = false
     },

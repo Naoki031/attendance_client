@@ -8,64 +8,59 @@
         color="primary"
         :prepend-avatar="item.prependAvatar"
       >
-        <v-list-item-title v-text="item.title"></v-list-item-title>
+        <v-list-item-title>{{ item.title }}</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-navigation-drawer>
 </template>
 
 <script setup lang="ts">
-/** 0. start import*/
-import { computed } from "vue";
-// import { useUserStore } from "@/stores/user";
-/* end import*/
+/** START IMPORT */
+/* END IMPORT */
 
-/** 1. start import name component*/
-/* end import*/
+/** START DEFINE NAME COMPONENT */
+/* END  DEFINE */
 
-/** 2. start define property and emits */
-// const userStore = useUserStore();
-
+/** START DEFINE PROPERTY AND EMITS */
 const items = [
   {
-    prependAvatar: "https://cdn.vuetifyjs.com/images/lists/1.jpg",
-    title: "Brunch this weekend?",
+    prependAvatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
+    title: 'Brunch this weekend?',
   },
   {
-    prependAvatar: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
-    title: "Summer BBQ",
+    prependAvatar: 'https://cdn.vuetifyjs.com/images/lists/2.jpg',
+    title: 'Summer BBQ',
   },
   {
-    prependAvatar: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-    title: "Oui oui",
+    prependAvatar: 'https://cdn.vuetifyjs.com/images/lists/3.jpg',
+    title: 'Oui oui',
   },
   {
-    prependAvatar: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-    title: "Birthday gift",
+    prependAvatar: 'https://cdn.vuetifyjs.com/images/lists/4.jpg',
+    title: 'Birthday gift',
   },
   {
-    prependAvatar: "https://cdn.vuetifyjs.com/images/lists/5.jpg",
-    title: "Recipe to try",
+    prependAvatar: 'https://cdn.vuetifyjs.com/images/lists/5.jpg',
+    title: 'Recipe to try',
   },
-];
-/* end define property and emits*/
+]
+/* END DEFINE PROPERTY AND EMITS */
 
-/** 3. start define validate */
-/* end define validate */
+/** START DEFINE VALIDATE */
+/* END DEFINE VALIDATE */
 
-/** 4. start defined state */
-/* end defined state */
+/** START DEFINE STATE */
+/* END DEFINE STATE */
 
-/** 5. start defined computed */
-// const isAuthenticated = computed(() => userStore.isAuthenticated);
-/* end defined computed */
+/** START DEFINE COMPUTED */
+/* END DEFINE COMPUTED */
 
-/** 6. start defined methods */
-/* end defined methods */
+/** START DEFINE METHOD */
+/* END DEFINE METHOD */
 
-/** 7. start define watcher */
-/* end define life watcher */
+/** START DEFINE WATCHER */
+/* END DEFINE WATCHER */
 
-/** 8. start define life cycle hook */
-/* end define life cycle hook */
+/** START DEFINE LIFE CYCLE HOOK */
+/* END DEFINE LIFE CYCLE HOOK */
 </script>

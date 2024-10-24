@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
+import { useCookie } from '#app'
 import type { AuthState } from '~/stores/types/user/AuthState'
 import type { UserModel } from '@/interfaces/models/UserModel'
-import { AuthService } from '@/services/AuthService'
-import { useCookie } from '#app'
+import AuthService from '@/services/AuthService'
 
 const inBrowser = typeof window !== 'undefined'
-const token = useCookie<string>('token')
 
 export const useUserStore = defineStore('user', {
   state: (): AuthState => {
+    const token = useCookie<string>('token')
+
     return {
       isAuthenticated: (!!inBrowser && !!localStorage.getItem('token')) || !!token.value,
       user: null,
@@ -22,7 +23,7 @@ export const useUserStore = defineStore('user', {
      * @description Get authenticated user
      * @return Promise<UserModel>
      */
-    async getAuthUser(): Promise<UserModel> {
+    getUser(): Promise<UserModel> {
       return new Promise((resolve, reject) => {
         AuthService.getUser()
           .then((user) => {
@@ -40,11 +41,13 @@ export const useUserStore = defineStore('user', {
      * @description Logout user
      * @return Promise<boolean>
      */
-    async logout(): Promise<boolean> {
+    logout(): Promise<boolean> {
       AuthService.logout()
-      this.user = null
-      this.isAuthenticated = await false
-      return true
+      const token = useCookie('token')
+      this.isAuthenticated = false
+      token.value = null
+
+      return Promise.resolve(true)
     },
   },
 })

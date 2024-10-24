@@ -1,17 +1,17 @@
 <template>
-  <v-snackbar :model-value="show" color="red">
-    {{ message }}
-
-    <template #actions>
-      <v-btn variant="text"> Close </v-btn>
-    </template>
-  </v-snackbar>
+  <v-app>
+    <AppHeader />
+    <v-main>
+      <NuxtPage />
+    </v-main>
+    <AppFooter />
+  </v-app>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 /** START IMPORT */
-import { computed } from 'vue'
-import { useAlertStore } from '@/stores/alert'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -24,12 +24,9 @@ import { useAlertStore } from '@/stores/alert'
 /* END DEFINE VALIDATE */
 
 /** START DEFINE STATE */
-const alertStore = useAlertStore()
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
-const show = computed(() => alertStore.show)
-const message = computed(() => alertStore.message)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */

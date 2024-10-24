@@ -2,7 +2,7 @@
 FROM node:20.15-alpine as dependency-base
 
 # Create destination directory
-ENV WORKDIR=/home/client
+ENV WORKDIR=/home/attendance_client
 RUN mkdir -p $WORKDIR
 WORKDIR $WORKDIR
 

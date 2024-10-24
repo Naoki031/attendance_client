@@ -1,20 +1,25 @@
 <template>
-  <v-snackbar :model-value="show" color="red">
-    {{ message }}
-
-    <template #actions>
-      <v-btn variant="text"> Close </v-btn>
-    </template>
-  </v-snackbar>
+  <div>
+    <v-container>
+      <v-row>
+        <v-col cols="12">
+          <h1>Welcome to Nuxt 3 with Vuetify 3</h1>
+          <p>This is a simple layout example.</p>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { computed } from 'vue'
-import { useAlertStore } from '@/stores/alert'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
+definePageMeta({
+  layout: 'guest',
+  name: 'home',
+})
 /* END  DEFINE */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -24,12 +29,9 @@ import { useAlertStore } from '@/stores/alert'
 /* END DEFINE VALIDATE */
 
 /** START DEFINE STATE */
-const alertStore = useAlertStore()
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
-const show = computed(() => alertStore.show)
-const message = computed(() => alertStore.message)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */

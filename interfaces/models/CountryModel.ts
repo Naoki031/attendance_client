@@ -1,8 +1,7 @@
 export interface CountryModel {
-  country_id?: number | null
+  id?: number | null
   name: string
   slug: string
-  code?: string
   capital?: string
   latitude?: number
   longitude?: number

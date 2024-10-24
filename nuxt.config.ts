@@ -1,7 +1,4 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
-import { createResolver } from '@nuxt/kit'
-
-const { resolve } = createResolver(import.meta.url)
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
@@ -54,6 +51,9 @@ export default defineNuxtConfig({
   vite: {
     define: {
       'process.env.DEBUG': true,
+    },
+    ssr: {
+      noExternal: ['vuetify'],
     },
     server: {
       hmr: {

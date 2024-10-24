@@ -1,17 +1,18 @@
 <template>
-  <v-snackbar :model-value="show" color="red">
-    {{ message }}
-
-    <template #actions>
-      <v-btn variant="text"> Close </v-btn>
+  <v-app-bar app>
+    <v-toolbar-title>
+      <v-btn color="" variant="plain" to="/" :ripple="false" :active="false">Attendance</v-btn>
+    </v-toolbar-title>
+    <template #append>
+      <v-btn icon="mdi-logout" color="red" @click.prevent="logout"></v-btn>
     </template>
-  </v-snackbar>
+  </v-app-bar>
 </template>
 
-<script lang="ts" setup>
+<script setup lang="ts">
 /** START IMPORT */
-import { computed } from 'vue'
-import { useAlertStore } from '@/stores/alert'
+import { useUserStore } from '@/stores/user'
+import { navigateTo } from '#app'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -24,15 +25,18 @@ import { useAlertStore } from '@/stores/alert'
 /* END DEFINE VALIDATE */
 
 /** START DEFINE STATE */
-const alertStore = useAlertStore()
+const userStore = useUserStore()
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
-const show = computed(() => alertStore.show)
-const message = computed(() => alertStore.message)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+const logout = () => {
+  userStore.logout().then(() => {
+    navigateTo('/login')
+  })
+}
 /* END DEFINE METHOD */
 
 /** START DEFINE WATCHER */

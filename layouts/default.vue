@@ -1,20 +1,54 @@
 <template>
   <v-app>
-    <Header />
+    <AppHeader />
     <LeftSidebar />
     <v-main>
       <NuxtPage />
     </v-main>
     <RightSidebar />
-    <Footer />
+    <AppFooter />
   </v-app>
 </template>
 
 <script setup lang="ts">
-import Header from "~/components/layout/Header.vue";
-import Footer from "~/components/layout/Footer.vue";
-import RightSidebar from "~/components/layout/RightSidebar.vue";
-import LeftSidebar from "~/components/layout/LeftSidebar.vue";
+/** START IMPORT */
+import { onMounted } from 'vue'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import AppFooter from '@/components/layout/AppFooter.vue'
+import RightSidebar from '@/components/layout/RightSidebar.vue'
+import LeftSidebar from '@/components/layout/LeftSidebar.vue'
+import { useUserStore } from '@/stores/user'
+/* END IMPORT */
+
+/** START DEFINE NAME COMPONENT */
+/* END  DEFINE */
+
+/** START DEFINE PROPERTY AND EMITS */
+/* END DEFINE PROPERTY AND EMITS */
+
+/** START DEFINE VALIDATE */
+/* END DEFINE VALIDATE */
+
+/** START DEFINE STATE */
+const userStore = useUserStore()
+/* END DEFINE STATE */
+
+/** START DEFINE COMPUTED */
+/* END DEFINE COMPUTED */
+
+/** START DEFINE METHOD */
+/* END DEFINE METHOD */
+
+/** START DEFINE WATCHER */
+/* END DEFINE WATCHER */
+
+/** START DEFINE LIFE CYCLE HOOK */
+onMounted(() => {
+  if (userStore.isAuthenticated) {
+    userStore.getUser()
+  }
+})
+/* END DEFINE LIFE CYCLE HOOK */
 </script>
 
 <style scoped></style>

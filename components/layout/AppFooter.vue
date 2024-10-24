@@ -1,17 +1,11 @@
 <template>
-  <v-snackbar :model-value="show" color="red">
-    {{ message }}
-
-    <template #actions>
-      <v-btn variant="text"> Close </v-btn>
-    </template>
-  </v-snackbar>
+  <v-footer app>
+    <span>&copy; 2024 Nguyen Trung Truc</span>
+  </v-footer>
 </template>
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { computed } from 'vue'
-import { useAlertStore } from '@/stores/alert'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -24,12 +18,9 @@ import { useAlertStore } from '@/stores/alert'
 /* END DEFINE VALIDATE */
 
 /** START DEFINE STATE */
-const alertStore = useAlertStore()
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
-const show = computed(() => alertStore.show)
-const message = computed(() => alertStore.message)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
@@ -41,3 +32,5 @@ const message = computed(() => alertStore.message)
 /** START DEFINE LIFE CYCLE HOOK */
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
+
+<style scoped></style>

@@ -13,9 +13,9 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./*"],
-      "@/*": ["./*"],
-      "#app": ["./node_modules/nuxt/dist/app"],
+      "~/*": ["./*"], // Map '~' to the root directory
+      "@/*": ["./*"], // Map '@' to the root directory
+      "#app": ["./node_modules/nuxt/dist/app"]
     },
     "types": ["@types/node", "@nuxt/types"],
     "lib": ["dom", "esnext"]
