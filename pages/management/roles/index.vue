@@ -1,19 +1,12 @@
 <template>
   <div>
-    <v-data-table
-      v-model:sort-by="sortBy"
-      :headers="headers"
-      :items="countries"
-      :loading="isLoading"
-    >
+    <v-data-table v-model:sort-by="sortBy" :headers="headers" :items="roles" :loading="isLoading">
       <template #top>
         <v-toolbar flat>
-          <v-toolbar-title>List Countries</v-toolbar-title>
+          <v-toolbar-title>List roles</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="addCountry()">
-            New Country
-          </v-btn>
+          <v-btn rounded="xl" variant="tonal" color="success" @click="addRole()"> New Role </v-btn>
         </v-toolbar>
       </template>
       <template #item.actions="{ item }">
@@ -34,8 +27,8 @@
     />
 
     <DialogDelete
-      v-if="!!country"
-      :item="country"
+      v-if="!!role"
+      :item="role"
       :dialog="dialogDelete"
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
@@ -46,13 +39,16 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import { ref, watch, onMounted, nextTick } from 'vue'
-import DialogCreateOrUpdate from '~/components/countries/DialogCreateOrUpdate.vue'
-import DialogDelete from '@/components/countries/DialogDelete.vue'
-import type { CountryModel } from '@/interfaces/models/CountryModel'
-import CountryService from '@/services/CountryService'
+import DialogCreateOrUpdate from '~/components/roles/DialogCreateOrUpdate.vue'
+import DialogDelete from '@/components/roles/DialogDelete.vue'
+import type { RoleModel } from '@/interfaces/models/RoleModel'
+import RoleService from '@/services/RoleService'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
+definePageMeta({
+  name: 'admin.roles.index',
+})
 /* END  DEFINE */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -62,9 +58,9 @@ import CountryService from '@/services/CountryService'
 /* END DEFINE VALIDATE */
 
 /** START DEFINE STATE */
-const countries = ref<Array<CountryModel>>([])
+const roles = ref<Array<RoleModel>>([])
 const isLoading = ref(false)
-const country = ref<CountryModel | null>(null)
+const role = ref<RoleModel | null>(null)
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const sortBy = ref<Array<{ key: string; order: boolean | 'asc' | 'desc' | undefined }>>([
@@ -77,14 +73,14 @@ const headers = ref<Array<object>>([
     key: 'name',
   },
 
-  { title: 'Slug', key: 'slug' },
+  { title: 'Key', key: 'key' },
 
-  { title: 'Capital', key: 'capital' },
+  { title: 'Descriptions', key: 'descriptions' },
 
   { title: 'Actions', key: 'actions', sortable: false },
 ])
 const editedIndex = ref(-1)
-const editedItem = ref<CountryModel | null>(null)
+const editedItem = ref<RoleModel | null>(null)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -94,19 +90,19 @@ const editedItem = ref<CountryModel | null>(null)
 const onConfirm = async () => {
   try {
     onClose()
-    await getCountries()
+    await getRoles()
   } catch (error) {
-    console.error('Failed to add country:', error)
+    console.error('Failed to add role:', error)
   }
 }
 
-const addCountry = () => {
+const addRole = () => {
   editedItem.value = null
   dialog.value = true
 }
 
-const editItem = (item: CountryModel) => {
-  editedIndex.value = countries.value.indexOf(item)
+const editItem = (item: RoleModel) => {
+  editedIndex.value = roles.value.indexOf(item)
   editedItem.value = { ...item }
   dialog.value = true
 }
@@ -119,20 +115,20 @@ const onClose = () => {
   })
 }
 
-const onConfirmDelete = async (item: CountryModel) => {
+const onConfirmDelete = async (item: RoleModel) => {
   try {
     dialogDelete.value = false
     await nextTick()
 
     if (item.id) {
-      await CountryService.delete(item.id)
-      await getCountries()
-      country.value = null
+      await RoleService.delete(item.id)
+      await getRoles()
+      role.value = null
     } else {
       console.error('Invalid item id:', item.id)
     }
   } catch (error) {
-    console.error('Failed to delete country:', error)
+    console.error('Failed to delete role:', error)
   }
 }
 
@@ -140,28 +136,28 @@ const onCloseDelete = () => {
   dialogDelete.value = false
 
   nextTick(() => {
-    country.value = null
+    role.value = null
   })
 }
 
 const deleteItem = async (item: any) => {
-  country.value = await { ...item }
+  role.value = await { ...item }
   dialogDelete.value = true
 }
 
-const getCountries = async () => {
+const getRoles = async () => {
   if (isLoading.value) return
 
   try {
     isLoading.value = true
-    const data = await CountryService.getAll()
-    countries.value = Object.values(data)
+    const data = await RoleService.getAll()
+    roles.value = Object.values(data)
 
     setTimeout(() => {
       isLoading.value = false
     }, 1000)
   } catch (error) {
-    console.error('Failed to fetch countries:', error)
+    console.error('Failed to fetch roles:', error)
   }
 }
 /* END DEFINE METHOD */
@@ -180,7 +176,7 @@ watch(
 
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
-  getCountries()
+  getRoles()
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>

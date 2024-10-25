@@ -9,55 +9,102 @@
       </v-list-item>
     </v-list>
     <v-divider></v-divider>
+
     <!-- Sidebar list -->
     <v-list v-model="opened" :lines="false" density="compact" nav>
-      <template v-for="(item, i) in items">
-        <template v-if="item.type === 'divider'">
-          <v-divider :key="i" :inset="item.inset"></v-divider>
+      <template v-for="(route, i) in userRoutes">
+        <template v-if="route.type === 'divider'">
+          <v-divider :key="i" :inset="route.inset"></v-divider>
         </template>
-        <template v-else-if="item?.items">
-          <v-list-group :key="i" :value="item.active">
+
+        <template v-else-if="route?.children">
+          <v-list-group :key="i" :value="route.active">
             <template #activator="{ props }">
               <v-list-item
                 v-bind="props"
-                :prepend-icon="item.icon"
-                :title="item.text"
+                :prepend-icon="route.icon"
+                :title="route.text"
               ></v-list-item>
             </template>
             <v-list-item
-              v-for="(child, j) in item.items"
+              v-for="(child, j) in route.children"
               :key="j"
               color="primary"
-              :to="child.link"
-              :active="child.link === router.currentRoute.value.path"
+              :active="activeLink(child)"
               rounded="shaped"
               :prepend-icon="child.icon"
-              @click-once="() => router.push(child.link)"
+              @click-once="() => redirectTo(child)"
             >
               <v-list-item-title>{{ child.text }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
         </template>
+
         <template v-else>
           <v-list-item
             :key="i"
             color="primary"
-            :to="item.link"
-            :active="item.link === router.currentRoute.value.path"
+            :to="route.link"
+            :active="activeLink(route)"
             rounded="shaped"
-            @click-once="() => router.push(String(item.link))"
+            @click-once="redirectTo(route)"
           >
             <template #prepend>
-              <v-icon :icon="item.icon"></v-icon>
+              <v-icon :icon="route.icon"></v-icon>
             </template>
-            <v-list-item-title>{{ item.text }}</v-list-item-title>
+            <v-list-item-title>{{ route.text }}</v-list-item-title>
+          </v-list-item>
+        </template>
+      </template>
+
+      <v-list-subheader>MANAGEMENT</v-list-subheader>
+      <template v-for="(route, routeIndex) in adminRoutes">
+        <template v-if="route.type === 'divider'">
+          <v-divider :key="routeIndex" :inset="route.inset"></v-divider>
+        </template>
+
+        <template v-else-if="route?.children">
+          <v-list-group :key="routeIndex" :value="route.active">
+            <template #activator="{ props }">
+              <v-list-item
+                v-bind="props"
+                :prepend-icon="route.icon"
+                :title="route.text"
+              ></v-list-item>
+            </template>
+            <v-list-item
+              v-for="(child, j) in route.children"
+              :key="j"
+              color="primary"
+              :active="activeLink(child)"
+              rounded="shaped"
+              :prepend-icon="child.icon"
+              @click-once="redirectTo(child)"
+            >
+              <v-list-item-title>{{ child.text }}</v-list-item-title>
+            </v-list-item>
+          </v-list-group>
+        </template>
+
+        <template v-else>
+          <v-list-item
+            :key="routeIndex"
+            color="primary"
+            :active="activeLink(route)"
+            rounded="shaped"
+            @click-once="redirectTo(route)"
+          >
+            <template #prepend>
+              <v-icon :icon="route.icon"></v-icon>
+            </template>
+            <v-list-item-title>{{ route.text }}</v-list-item-title>
           </v-list-item>
         </template>
       </template>
     </v-list>
     <!-- logout -->
     <template #append>
-      <v-list-item color="primary" active @click-once="handleLogout">
+      <v-list-item color="red" active @click-once="handleLogout">
         <template #prepend>
           <v-icon :icon="btnLogout.icon"></v-icon>
         </template>
@@ -70,6 +117,8 @@
 /** START IMPORT */
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUserStore } from '@/stores/user'
+import { RouteType } from '@/types/index'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -81,32 +130,46 @@ const btnLogout = {
   text: 'Logout',
   link: '/logout',
 }
-const items = [
-  // { icon: 'mdi-book-open', text: 'Meeting Rooms', link: '/meeting-rooms' },
-  // {
-  //   icon: 'mdi-gamepad-variant',
-  //   text: 'Games',
-  //   link: '/games',
-  //   active: 'Games',
-  //   items: [
-  //     { icon: 'mdi-gamepad-variant', text: 'Wheel fortune', link: '/games/wheelfortune' },
-  //     { icon: 'mdi-gamepad-variant', text: 'Game one', link: '/games/2' },
-  //     { icon: 'mdi-gamepad-variant', text: 'Game two', link: '/games/3' },
-  //   ],
-  // },
-  // { icon: 'mdi-ballot', text: 'Tasks', link: '/tasks' },
+const userRoutes: RouteType = [
+  { icon: 'mdi-view-dashboard', text: 'Dashboard', link: '/dashboard' },
+  { icon: 'mdi-account', text: 'Profile', link: '/profile' },
+  { type: 'divider', inset: false },
+  { icon: 'mdi-cog-outline', text: 'Settings', link: '/settings' },
+]
+
+const adminRoutes: RouteType = [
   { type: 'divider', inset: false },
   {
     icon: 'mdi-map-marker',
     text: 'Location',
-    link: '/locations',
+    link: '',
     active: 'Location',
-    items: [
-      { icon: '', text: 'List City', link: '/cities' },
-      { icon: '', text: 'List Country', link: '/countries' },
+    children: [
+      // { icon: '', text: 'List City', link: '/management/cities', name: 'admin.cities.index' },
+      {
+        icon: '',
+        text: 'List Country',
+        link: '/management/countries',
+        name: 'admin.countries.index',
+      },
     ],
   },
-  { icon: 'mdi-cog-outline', text: 'Settings', link: '/settings' },
+  {
+    icon: 'mdi-account-group',
+    text: 'Roles & Permissions',
+    link: '',
+    active: 'Management',
+    children: [
+      { icon: '', text: 'Role', link: '/management/roles', name: 'admin.roles.index' },
+
+      // {
+      //   icon: '',
+      //   text: 'Permission',
+      //   link: '/management/permissions',
+      //   name: 'admin.permission.index',
+      // },
+    ],
+  },
 ]
 /* END DEFINE PROPERTY AND EMITS */
 
@@ -115,6 +178,7 @@ const items = [
 
 /** START DEFINE STATE */
 const router = useRouter()
+const userStore = useUserStore()
 const opened = ref([])
 /* END DEFINE STATE */
 
@@ -128,12 +192,29 @@ const onChange = (val: boolean) => {
   }
 }
 
-const handleLogout = () => {
-  // await userStore.logout()
-  const inBrowser = typeof window !== 'undefined'
-  if (inBrowser) {
-    window.location.href = '/login'
+const activeLink = (route: RouteType) => {
+  let resolvedPath = route.link
+
+  if (route.name) {
+    const resolvedRoute = router.resolve({ name: route.name })
+    resolvedPath = resolvedRoute.path
   }
+
+  return resolvedPath === router.currentRoute.value.path
+}
+
+const redirectTo = (route: RouteType) => {
+  if (child.name) {
+    router.push({ name: child.name })
+  } else {
+    router.push(child.link)
+  }
+}
+
+const handleLogout = () => {
+  userStore.logout().then(() => {
+    router.replace({ name: 'login' })
+  })
 }
 /* END DEFINE METHOD */
 
