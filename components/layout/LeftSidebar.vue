@@ -163,12 +163,12 @@ const adminRoutes: RouteType = [
     children: [
       { icon: '', text: 'Role', link: '/management/roles', name: 'admin.roles.index' },
 
-      // {
-      //   icon: '',
-      //   text: 'Permission',
-      //   link: '/management/permissions',
-      //   name: 'admin.permission.index',
-      // },
+      {
+        icon: '',
+        text: 'Permission',
+        link: '/management/permissions',
+        name: 'admin.permissions.index',
+      },
     ],
   },
 ]
