@@ -22,6 +22,8 @@ module.exports = {
     'vue', // Plugin for Vue
     '@typescript-eslint', // Plugin for TypeScript
     'prettier', // Plugin for Prettier
+    'eslint-plugin-vue', // Plugin for Vue
+    'eslint-plugin-nuxt', // Plugin for Nuxt.js
   ],
   rules: {
     'prettier/prettier': ['error', { singleQuote: true, semi: false }], // Prettier rules for single quotes and no semicolons
@@ -30,12 +32,12 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn', // Warn when using any type
     'vue/no-multiple-template-root': 'off', // Allow multiple root elements in Vue template
     'vue/valid-v-slot': 'off', // Allow shorthand syntax for v-slot
-    'vue/no-v-model-argument': 'off', // Error when using argument in v-model
   },
   overrides: [
     {
       files: ['*.vue'],
       rules: {
+        'vue/no-v-model-argument': 'off', // Disable no-v-model-argument for .vue files
         'vue/valid-v-slot': 'off',
         'vue/v-slot-style': [
           'error',
@@ -44,7 +46,6 @@ module.exports = {
             default: 'shorthand',
           },
         ],
-        'vue/no-v-model-argument': 'off',
       },
     },
   ],
