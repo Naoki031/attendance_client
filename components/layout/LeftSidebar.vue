@@ -102,6 +102,7 @@
         </template>
       </template>
     </v-list>
+
     <!-- logout -->
     <template #append>
       <v-list-item color="red" active @click-once="handleLogout">
@@ -204,10 +205,10 @@ const activeLink = (route: RouteType) => {
 }
 
 const redirectTo = (route: RouteType) => {
-  if (child.name) {
-    router.push({ name: child.name })
+  if (route.name) {
+    router.push({ name: route.name })
   } else {
-    router.push(child.link)
+    router.push(route.link)
   }
 }
 
