@@ -8,3 +8,8 @@ export type RouteType = {
   inset?: boolean
   name?: string
 }
+
+export type DividerType = {
+  type: 'divider'
+  inset: boolean
+}

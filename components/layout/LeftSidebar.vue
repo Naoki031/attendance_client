@@ -17,7 +17,7 @@
           <v-divider :key="i" :inset="route.inset"></v-divider>
         </template>
 
-        <template v-else-if="route?.children">
+        <template v-else-if="isRouteType(route) && route.children">
           <v-list-group :key="i" :value="route.active">
             <template #activator="{ props }">
               <v-list-item
@@ -33,21 +33,21 @@
               :active="activeLink(child)"
               rounded="shaped"
               :prepend-icon="child.icon"
-              @click-once="() => redirectTo(child)"
+              @click="redirectTo(child)"
             >
               <v-list-item-title>{{ child.text }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
         </template>
 
-        <template v-else>
+        <template v-else-if="isRouteType(route)">
           <v-list-item
             :key="i"
             color="primary"
             :to="route.link"
             :active="activeLink(route)"
             rounded="shaped"
-            @click-once="redirectTo(route)"
+            @click="redirectTo(route)"
           >
             <template #prepend>
               <v-icon :icon="route.icon"></v-icon>
@@ -63,7 +63,7 @@
           <v-divider :key="routeIndex" :inset="route.inset"></v-divider>
         </template>
 
-        <template v-else-if="route?.children">
+        <template v-else-if="isRouteType(route) && route.children">
           <v-list-group :key="routeIndex" :value="route.active">
             <template #activator="{ props }">
               <v-list-item
@@ -79,20 +79,20 @@
               :active="activeLink(child)"
               rounded="shaped"
               :prepend-icon="child.icon"
-              @click-once="redirectTo(child)"
+              @click="redirectTo(child)"
             >
               <v-list-item-title>{{ child.text }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
         </template>
 
-        <template v-else>
+        <template v-else-if="isRouteType(route)">
           <v-list-item
             :key="routeIndex"
             color="primary"
             :active="activeLink(route)"
             rounded="shaped"
-            @click-once="redirectTo(route)"
+            @click="redirectTo(route)"
           >
             <template #prepend>
               <v-icon :icon="route.icon"></v-icon>
@@ -105,7 +105,7 @@
 
     <!-- logout -->
     <template #append>
-      <v-list-item color="red" active @click-once="handleLogout">
+      <v-list-item color="red" active @click="handleLogout">
         <template #prepend>
           <v-icon :icon="btnLogout.icon"></v-icon>
         </template>
@@ -119,7 +119,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { RouteType } from '@/types/index'
+import { RouteType, DividerType } from '@/types/index'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -131,14 +131,15 @@ const btnLogout = {
   text: 'Logout',
   link: '/logout',
 }
-const userRoutes: RouteType = [
+
+const userRoutes: Array<RouteType | DividerType> = [
   { icon: 'mdi-view-dashboard', text: 'Dashboard', link: '/dashboard' },
   { icon: 'mdi-account', text: 'Profile', link: '/profile' },
   { type: 'divider', inset: false },
   { icon: 'mdi-cog-outline', text: 'Settings', link: '/settings' },
 ]
 
-const adminRoutes: RouteType = [
+const adminRoutes: Array<RouteType | DividerType> = [
   { type: 'divider', inset: false },
   {
     icon: 'mdi-map-marker',
@@ -169,6 +170,13 @@ const adminRoutes: RouteType = [
         link: '/management/permissions',
         name: 'admin.permissions.index',
       },
+
+      {
+        icon: '',
+        text: 'Permission Group',
+        link: '/management/permission-groups',
+        name: 'admin.permission_groups.index',
+      }
     ],
   },
 ]
@@ -187,6 +195,10 @@ const opened = ref([])
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+const isRouteType = (route: RouteType | DividerType): route is RouteType => {
+  return (route as RouteType).link !== undefined;
+}
+
 const onChange = (val: boolean) => {
   if (val) {
     opened.value = []
