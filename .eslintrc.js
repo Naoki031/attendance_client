@@ -50,12 +50,14 @@ module.exports = {
     'vue/v-on-event-hyphenation': 'off',
     'vue/multi-word-component-names': 'off',
     'vue/no-multiple-template-root': 'off',
+    'vue/valid-v-slot': 'off',
     'vue/no-v-model-argument': 'off',
   },
   overrides: [
     {
       files: ['*.vue'],
       rules: {
+        'vue/valid-v-slot': 'off',
         'vue/no-v-model-argument': 'off',
         'vue/v-slot-style': [
           'error',

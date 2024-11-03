@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     public: {
       apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1',
       NUXT_HOST: String(process.env.NUXT_HOST || 'localhost'),
-      NUXT_PORT: String(process.env.NUXT_PORT || 3000),
+      NUXT_PORT: String(process.env.NUXT_PORT || 3010),
     },
   },
 
