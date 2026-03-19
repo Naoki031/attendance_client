@@ -1,6 +1,4 @@
-import { useCookie, navigateTo } from '#app'
-
-const baseURL = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1'
+import { useCookie, navigateTo, useRuntimeConfig } from '#app'
 
 export const apiClient = {
   get<T>(url: string, params?: Record<string, string>): Promise<T> {
@@ -38,6 +36,8 @@ export const apiClient = {
     params?: Record<string, unknown>,
   ): Promise<T> {
     try {
+      const config = useRuntimeConfig()
+      const baseURL = config.public.apiBaseUrl as string
       let token = useCookie('token')
       const response = await $fetch<T>(url, {
         method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
@@ -45,7 +45,7 @@ export const apiClient = {
         body,
         params,
 
-        onRequest({ options }) {
+        onRequest({ options }: { options: { headers?: HeadersInit } }) {
           if (token.value) {
             let headers: HeadersInit = options.headers || {}
 
@@ -60,14 +60,14 @@ export const apiClient = {
           }
         },
 
-        onResponse({ response }) {
+        onResponse({ response }: { response: Response }) {
           if (response.status === 401) {
             token.value = null
             navigateTo('/login')
           }
         },
 
-        onResponseError({ response }) {
+        onResponseError({ response }: { response: Response }) {
           if (response.status === 500) {
             console.error('Server Error: Please try again later.')
           }
