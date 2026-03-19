@@ -2,10 +2,7 @@
   <v-navigation-drawer rail expand-on-hover @update:rail="onChange">
     <!-- User information -->
     <v-list>
-      <v-list-item
-        prepend-avatar="https://avatars.githubusercontent.com/u/132861531?v=4"
-        title="abasd"
-      >
+      <v-list-item prepend-avatar="https://avatars.githubusercontent.com/u/132861531?v=4" title="abasd">
       </v-list-item>
     </v-list>
     <v-divider></v-divider>
@@ -20,35 +17,18 @@
         <template v-else-if="isRouteType(route) && route.children">
           <v-list-group :key="i" :value="route.active">
             <template #activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                :prepend-icon="route.icon"
-                :title="route.text"
-              ></v-list-item>
+              <v-list-item v-bind="props" :prepend-icon="route.icon" :title="route.text"></v-list-item>
             </template>
-            <v-list-item
-              v-for="(child, j) in route.children"
-              :key="j"
-              color="primary"
-              :active="activeLink(child)"
-              rounded="shaped"
-              :prepend-icon="child.icon"
-              @click="redirectTo(child)"
-            >
+            <v-list-item v-for="(child, j) in route.children" :key="j" color="primary" :active="activeLink(child)"
+              rounded="shaped" :prepend-icon="child.icon" @click="redirectTo(child)">
               <v-list-item-title>{{ child.text }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
         </template>
 
         <template v-else-if="isRouteType(route)">
-          <v-list-item
-            :key="i"
-            color="primary"
-            :to="route.link"
-            :active="activeLink(route)"
-            rounded="shaped"
-            @click="redirectTo(route)"
-          >
+          <v-list-item :key="i" color="primary" :to="route.link" :active="activeLink(route)" rounded="shaped"
+            @click="redirectTo(route)">
             <template #prepend>
               <v-icon :icon="route.icon"></v-icon>
             </template>
@@ -66,34 +46,18 @@
         <template v-else-if="isRouteType(route) && route.children">
           <v-list-group :key="routeIndex" :value="route.active">
             <template #activator="{ props }">
-              <v-list-item
-                v-bind="props"
-                :prepend-icon="route.icon"
-                :title="route.text"
-              ></v-list-item>
+              <v-list-item v-bind="props" :prepend-icon="route.icon" :title="route.text"></v-list-item>
             </template>
-            <v-list-item
-              v-for="(child, j) in route.children"
-              :key="j"
-              color="primary"
-              :active="activeLink(child)"
-              rounded="shaped"
-              :prepend-icon="child.icon"
-              @click="redirectTo(child)"
-            >
+            <v-list-item v-for="(child, j) in route.children" :key="j" color="primary" :active="activeLink(child)"
+              rounded="shaped" :prepend-icon="child.icon" @click="redirectTo(child)">
               <v-list-item-title>{{ child.text }}</v-list-item-title>
             </v-list-item>
           </v-list-group>
         </template>
 
         <template v-else-if="isRouteType(route)">
-          <v-list-item
-            :key="routeIndex"
-            color="primary"
-            :active="activeLink(route)"
-            rounded="shaped"
-            @click="redirectTo(route)"
-          >
+          <v-list-item :key="routeIndex" color="primary" :active="activeLink(route)" rounded="shaped"
+            @click="redirectTo(route)">
             <template #prepend>
               <v-icon :icon="route.icon"></v-icon>
             </template>
@@ -162,6 +126,7 @@ const adminRoutes: Array<RouteType | DividerType> = [
     link: '',
     active: 'Management',
     children: [
+      { icon: '', text: 'User', link: '/management/users', name: 'admin.users.index' },
       { icon: '', text: 'Role', link: '/management/roles', name: 'admin.roles.index' },
 
       {
@@ -176,7 +141,7 @@ const adminRoutes: Array<RouteType | DividerType> = [
         text: 'Permission Group',
         link: '/management/permission-groups',
         name: 'admin.permission_groups.index',
-      }
+      },
     ],
   },
 ]
@@ -196,7 +161,7 @@ const opened = ref([])
 
 /** START DEFINE METHOD */
 const isRouteType = (route: RouteType | DividerType): route is RouteType => {
-  return (route as RouteType).link !== undefined;
+  return (route as RouteType).link !== undefined
 }
 
 const onChange = (val: boolean) => {

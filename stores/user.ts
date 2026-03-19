@@ -20,6 +20,18 @@ export const useUserStore = defineStore('user', {
 
   actions: {
     /**
+     * @description Login user, store token in cookie and update state
+     * @return Promise<void>
+     */
+    async login(email: string, password: string): Promise<void> {
+      const response = await AuthService.login(email, password)
+      const token = useCookie<string>('token')
+      token.value = response.access_token
+      this.isAuthenticated = true
+      await this.getUser()
+    },
+
+    /**
      * @description Get authenticated user
      * @return Promise<UserModel>
      */
@@ -41,11 +53,15 @@ export const useUserStore = defineStore('user', {
      * @description Logout user
      * @return Promise<boolean>
      */
-    logout(): Promise<boolean> {
-      AuthService.logout()
+    async logout(): Promise<boolean> {
+      await AuthService.logout()
       const token = useCookie('token')
       this.isAuthenticated = false
+      this.user = null
       token.value = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token')
+      }
 
       return Promise.resolve(true)
     },

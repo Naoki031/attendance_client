@@ -79,12 +79,10 @@
 import { ref } from 'vue'
 import * as Yup from 'yup'
 import { useField, useForm } from 'vee-validate'
-import { useRouter } from 'vue-router'
-import AuthService from '@/services/AuthService'
+import { navigateTo } from '#app'
 import { useUserStore } from '@/stores/user'
 import { useAlertStore } from '@/stores/alert'
-import { HTTP_UNPROCESSABLE_ENTITY } from '@/constants/http'
-import { useCookie, navigateTo } from '#app'
+import { HTTP_UNPROCESSABLE_ENTITY, HTTP_BAD_REQUEST } from '@/constants/http'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -96,8 +94,8 @@ definePageMeta({
   name: 'login',
 })
 const form = {
-  email: 'trucnguyen.dofuu@gmail.com',
-  password: 'admin123',
+  email: '',
+  password: '',
 }
 /* END DEFINE PROPERTY AND EMITS */
 
@@ -116,12 +114,11 @@ const { handleSubmit, isSubmitting } = useForm({
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const alertStore = useAlertStore()
-const router = useRouter()
+const visible = ref(false)
+const errorMessages = ref<string | null>(null)
+const alert = ref(false)
 const email = useField('email')
 const password = useField('password')
-const visible = ref(false)
-const errorMessages = ref(null)
-const alert = ref(false)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -129,27 +126,20 @@ const alert = ref(false)
 
 /** START DEFINE METHOD */
 const onSubmit = handleSubmit(async (values) => {
-  // Simulates a 2 second delay
   try {
-    const response = await AuthService.login(values.email, values.password)
+    alert.value = false
+    errorMessages.value = null
+    await userStore.login(values.email, values.password)
+    navigateTo('/home')
+  } catch (error: any) {
+    const status = error?.status ?? error?._data?.statusCode
+    const message = error?._data?.message ?? error?.message ?? 'Login failed'
 
-    if (response) {
-      const tokenCookie = await useCookie('token')
-      tokenCookie.value = await response.access_token
-      setTimeout(() => {
-        userStore.getUser().then(() => {
-          navigateTo('/')
-        })
-      }, 500)
-    }
-  } catch (error) {
-    if ((error as any).status === HTTP_UNPROCESSABLE_ENTITY) {
-      errorMessages.value = (error as any)._data.message
+    if (status === HTTP_UNPROCESSABLE_ENTITY || status === HTTP_BAD_REQUEST) {
+      errorMessages.value = message
       alert.value = true
     } else {
-      const message = (error as any)._data.message
-      const navigation = router.currentRoute.value.path
-      alertStore.showAlert({ navigation, type: 'error', message })
+      alertStore.showAlert({ navigation: '/login', type: 'error', message })
     }
   }
 })

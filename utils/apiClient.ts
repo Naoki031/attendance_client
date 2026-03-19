@@ -37,50 +37,36 @@ export const apiClient = {
     body?: Record<string, unknown>,
     params?: Record<string, unknown>,
   ): Promise<T> {
-    try {
-      let token = useCookie('token')
-      const response = await $fetch<T>(url, {
-        method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
-        baseURL,
-        body,
-        params,
+    const token = useCookie('token')
 
-        onRequest({ options }) {
-          if (token.value) {
-            let headers: HeadersInit = options.headers || {}
+    const response = await $fetch<T>(url, {
+      method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
+      baseURL,
+      body,
+      params,
 
-            if (headers instanceof Headers) {
-              headers.set('Authorization', `Bearer ${token.value}`)
-            } else if (typeof headers === 'object') {
-              headers = headers as Record<string, string>
-              headers.Authorization = `Bearer ${token.value}`
-            }
+      onRequest({ options }) {
+        if (token.value) {
+          const headers = new Headers(options.headers as HeadersInit | undefined)
+          headers.set('Authorization', `Bearer ${token.value}`)
+          options.headers = headers
+        }
+      },
 
-            options.headers = new Headers(headers)
-          }
-        },
+      onResponseError({ response: res }) {
+        if (res.status === 401) {
+          token.value = null
+          navigateTo('/login')
+        }
 
-        onResponse({ response }) {
-          if (response.status === 401) {
-            token.value = null
-            navigateTo('/login')
-          }
-        },
+        if (res.status === 500) {
+          console.error('Server Error: Please try again later.')
+        }
 
-        onResponseError({ response }) {
-          if (response.status === 500) {
-            console.error('Server Error: Please try again later.')
-          }
+        throw res
+      },
+    })
 
-          throw response
-        },
-      })
-
-      return response
-    } catch (error) {
-      console.error('Failed to fetch:', error)
-
-      throw error
-    }
+    return response
   },
 }

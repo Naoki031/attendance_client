@@ -1,19 +1,12 @@
 <template>
   <div>
-    <v-data-table
-      v-model:sort-by="sortBy"
-      :headers="headers"
-      :items="permissions"
-      :loading="isLoading"
-    >
+    <v-data-table v-model:sort-by="sortBy" :headers="headers" :items="users" :loading="isLoading">
       <template #top>
         <v-toolbar flat>
-          <v-toolbar-title>List Permissions</v-toolbar-title>
+          <v-toolbar-title>List users</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="add()">
-            New Permission
-          </v-btn>
+          <v-btn rounded="xl" variant="tonal" color="success" @click="addRole()"> New User </v-btn>
         </v-toolbar>
       </template>
       <template #item.actions="{ item }">
@@ -34,8 +27,8 @@
     />
 
     <DialogDelete
-      v-if="!!permission"
-      :item="permission"
+      v-if="!!role"
+      :item="role"
       :dialog="dialogDelete"
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
@@ -46,15 +39,15 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import { ref, watch, onMounted, nextTick } from 'vue'
-import DialogCreateOrUpdate from '~/components/permissions/DialogCreateOrUpdate.vue'
-import DialogDelete from '@/components/permissions/DialogDelete.vue'
-import type { PermissionModel } from '@/interfaces/models/PermissionModel'
-import PermissionService from '@/services/PermissionService'
+import DialogCreateOrUpdate from '~/components/users/DialogCreateOrUpdate.vue'
+import DialogDelete from '@/components/users/DialogDelete.vue'
+import type { UserModel } from '@/interfaces/models/UserModel'
+import UserService from '@/services/UserService'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
 definePageMeta({
-  name: 'admin.permissions.index',
+  name: 'admin.users.index',
 })
 /* END  DEFINE */
 
@@ -65,9 +58,9 @@ definePageMeta({
 /* END DEFINE VALIDATE */
 
 /** START DEFINE STATE */
-const permissions = ref<Array<PermissionModel>>([])
+const users = ref<Array<UserModel>>([])
 const isLoading = ref(false)
-const permission = ref<PermissionModel | null>(null)
+const user = ref<UserModel | null>(null)
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const sortBy = ref<Array<{ key: string; order: boolean | 'asc' | 'desc' | undefined }>>([
@@ -77,17 +70,21 @@ const headers = ref<Array<object>>([
   {
     title: 'Name',
     align: 'start',
-    key: 'name',
+    key: 'full_name',
   },
 
-  { title: 'Key', key: 'key' },
+  { title: 'Position', key: 'position' },
 
-  { title: 'Descriptions', key: 'descriptions' },
+  { title: 'Phone', key: 'phone_number' },
+
+  { title: 'Email', key: 'email' },
+
+  { title: 'Active', key: 'is_active' },
 
   { title: 'Actions', key: 'actions', sortable: false },
 ])
 const editedIndex = ref(-1)
-const editedItem = ref<PermissionModel | null>(null)
+const editedItem = ref<UserModel | null>(null)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -97,19 +94,19 @@ const editedItem = ref<PermissionModel | null>(null)
 const onConfirm = async () => {
   try {
     onClose()
-    await getPermissions()
+    await getUsers()
   } catch (error) {
-    console.error('Failed to add permission:', error)
+    console.error('Failed to add user:', error)
   }
 }
 
-const add = () => {
+const addRole = () => {
   editedItem.value = null
   dialog.value = true
 }
 
-const editItem = (item: PermissionModel) => {
-  editedIndex.value = permissions.value.indexOf(item)
+const editItem = (item: UserModel) => {
+  editedIndex.value = users.value.indexOf(item)
   editedItem.value = { ...item }
   dialog.value = true
 }
@@ -122,20 +119,20 @@ const onClose = () => {
   })
 }
 
-const onConfirmDelete = async (item: PermissionModel) => {
+const onConfirmDelete = async (item: UserModel) => {
   try {
     dialogDelete.value = false
     await nextTick()
 
     if (item.id) {
-      await PermissionService.delete(item.id)
-      await getPermissions()
-      permission.value = null
+      await UserService.delete(item.id)
+      await getUsers()
+      user.value = null
     } else {
       console.error('Invalid item id:', item.id)
     }
   } catch (error) {
-    console.error('Failed to delete permission:', error)
+    console.error('Failed to delete user:', error)
   }
 }
 
@@ -143,28 +140,28 @@ const onCloseDelete = () => {
   dialogDelete.value = false
 
   nextTick(() => {
-    permission.value = null
+    user.value = null
   })
 }
 
 const deleteItem = async (item: any) => {
-  permission.value = await { ...item }
+  user.value = await { ...item }
   dialogDelete.value = true
 }
 
-const getPermissions = async () => {
+const getUsers = async () => {
   if (isLoading.value) return
 
   try {
     isLoading.value = true
-    const data = await PermissionService.getAll()
-    permissions.value = Object.values(data)
+    const data = await UserService.getAll()
+    users.value = Object.values(data)
 
     setTimeout(() => {
       isLoading.value = false
     }, 1000)
   } catch (error) {
-    console.error('Failed to fetch permissions:', error)
+    console.error('Failed to fetch users:', error)
   }
 }
 /* END DEFINE METHOD */
@@ -172,8 +169,8 @@ const getPermissions = async () => {
 /** START DEFINE WATCHER */
 watch(
   () => dialog,
-  (val) => {
-    if (!val) {
+  (newValue: boolean) => {
+    if (!newValue) {
       close()
     }
   },
@@ -183,7 +180,7 @@ watch(
 
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
-  getPermissions()
+  getUsers()
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
