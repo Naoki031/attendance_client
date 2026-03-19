@@ -45,7 +45,6 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { ref, watch, onMounted, nextTick } from 'vue'
 import DialogCreateOrUpdate from '~/components/permissions/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/permissions/DialogDelete.vue'
 import type { PermissionModel } from '@/interfaces/models/PermissionModel'

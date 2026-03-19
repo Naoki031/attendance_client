@@ -49,12 +49,11 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { computed, watch, PropType, watchEffect } from 'vue'
+import type { PropType } from 'vue'
 import * as Yup from 'yup'
-import { useField, useForm } from 'vee-validate'
-import { RoleModel } from '@/interfaces/models/RoleModel'
+import type { RoleModel } from '@/interfaces/models/RoleModel'
 import RoleService from '@/services/RoleService'
-import { RoleFormType } from '@/types/index'
+import type { RoleFormType } from '@/types/index'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

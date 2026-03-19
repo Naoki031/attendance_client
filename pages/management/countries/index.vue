@@ -45,7 +45,6 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { ref, watch, onMounted, nextTick } from 'vue'
 import DialogCreateOrUpdate from '~/components/countries/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/countries/DialogDelete.vue'
 import type { CountryModel } from '@/interfaces/models/CountryModel'

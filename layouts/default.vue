@@ -12,12 +12,10 @@
 
 <script setup lang="ts">
 /** START IMPORT */
-import { onMounted } from 'vue'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 import RightSidebar from '@/components/layout/RightSidebar.vue'
 import LeftSidebar from '@/components/layout/LeftSidebar.vue'
-import { useUserStore } from '@/stores/user'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

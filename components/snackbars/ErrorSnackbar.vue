@@ -10,8 +10,6 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { computed } from 'vue'
-import { useAlertStore } from '@/stores/alert'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

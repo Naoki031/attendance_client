@@ -14,8 +14,8 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { watch, PropType } from 'vue'
-import { CountryModel } from '@/interfaces/models/CountryModel'
+import type { PropType } from 'vue'
+import type { CountryModel } from '@/interfaces/models/CountryModel'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

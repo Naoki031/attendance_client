@@ -80,10 +80,7 @@
 </template>
 <script setup lang="ts">
 /** START IMPORT */
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { RouteType, DividerType } from '@/types/index'
+import type { RouteType, DividerType } from '@/types/index'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

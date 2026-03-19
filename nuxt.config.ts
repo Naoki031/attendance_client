@@ -3,6 +3,17 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  compatibilityDate: '2025-01-01',
+
+  imports: {
+    presets: [
+      {
+        from: 'vee-validate',
+        imports: ['useField', 'useForm'],
+      },
+    ],
+  },
+
   nitro: {
     preset: 'node-server',
     devProxy: {
@@ -19,15 +30,20 @@ export default defineNuxtConfig({
     typeCheck: true,
   },
 
+  // Nuxt automatically overrides runtimeConfig values from env vars:
+  // apiBaseUrl → NUXT_PUBLIC_API_BASE_URL
+  // NUXT_HOST  → NUXT_PUBLIC_NUXT_HOST
+  // NUXT_PORT  → NUXT_PUBLIC_NUXT_PORT
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1',
-      NUXT_HOST: String(process.env.NUXT_HOST || 'localhost'),
-      NUXT_PORT: String(process.env.NUXT_PORT || 3010),
+      apiBaseUrl: 'http://localhost:3001/api/v1',
+      NUXT_HOST: 'localhost',
+      NUXT_PORT: '3000',
     },
   },
 
-  css: ['vuetify/lib/styles/main.sass', '@mdi/font/css/materialdesignicons.min.css'],
+  // Vuetify 4: import path changed from 'vuetify/lib/styles/main.sass'
+  css: ['vuetify/styles', '@mdi/font/css/materialdesignicons.min.css'],
 
   build: {
     transpile: ['vuetify'],
@@ -36,8 +52,9 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxt/devtools',
+    '@nuxt/eslint',
     (_options: any, nuxt: any) => {
-      nuxt.hooks.hook('vite:extendConfig', (config) => {
+      nuxt.hooks.hook('vite:extendConfig', (config: any) => {
         config.plugins.push(vuetify({ autoImport: true }))
       })
     },
@@ -50,14 +67,14 @@ export default defineNuxtConfig({
 
   vite: {
     define: {
-      'process.env.DEBUG': true,
+      'process.env.DEBUG': false,
     },
     ssr: {
       noExternal: ['vuetify'],
     },
     server: {
       hmr: {
-        host: 'localhost',
+        host: '0.0.0.0',
         protocol: 'ws',
         port: 24678,
       },
@@ -68,6 +85,4 @@ export default defineNuxtConfig({
       },
     },
   },
-
-  compatibilityDate: '2024-07-18',
 })

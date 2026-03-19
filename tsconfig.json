@@ -1,24 +1,8 @@
 {
+  // Nuxt generates .nuxt/tsconfig.json during `nuxt prepare` (runs via postinstall).
+  // All compiler options, path aliases, and type references are managed there.
+  "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
-    "strict": true,
-    "jsx": "preserve",
-    "importHelpers": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "isolatedModules": true,
-    "baseUrl": ".",
-    "paths": {
-      "~/*": ["./*"], // Map '~' to the root directory
-      "@/*": ["./*"], // Map '@' to the root directory
-      "#app": ["./node_modules/nuxt/dist/app"]
-    },
-    "types": ["@types/node", "@nuxt/types"],
-    "lib": ["dom", "esnext"]
-  },
-  "exclude": ["node_modules", ".nuxt", "dist", "nuxt.config.ts"]
+    "skipLibCheck": true
+  }
 }

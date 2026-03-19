@@ -1,6 +1,4 @@
-import { useCookie, navigateTo } from '#app'
-
-const baseURL = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api/v1'
+import { useCookie, navigateTo, useRuntimeConfig } from '#app'
 
 export const apiClient = {
   get<T>(url: string, params?: Record<string, string>): Promise<T> {
@@ -37,31 +35,42 @@ export const apiClient = {
     body?: Record<string, unknown>,
     params?: Record<string, unknown>,
   ): Promise<T> {
-    const token = useCookie('token')
+    try {
+      const config = useRuntimeConfig()
+      const baseURL = config.public.apiBaseUrl as string
+      let token = useCookie('token')
+      const response = await $fetch<T>(url, {
+        method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
+        baseURL,
+        body,
+        params,
 
-    const response = await $fetch<T>(url, {
-      method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
-      baseURL,
-      body,
-      params,
+        onRequest({ options }: { options: { headers?: HeadersInit } }) {
+          if (token.value) {
+            let headers: HeadersInit = options.headers || {}
 
-      onRequest({ options }) {
-        if (token.value) {
-          const headers = new Headers(options.headers as HeadersInit | undefined)
-          headers.set('Authorization', `Bearer ${token.value}`)
-          options.headers = headers
-        }
-      },
+            if (headers instanceof Headers) {
+              headers.set('Authorization', `Bearer ${token.value}`)
+            } else if (typeof headers === 'object') {
+              headers = headers as Record<string, string>
+              headers.Authorization = `Bearer ${token.value}`
+            }
 
-      onResponseError({ response: res }) {
-        if (res.status === 401) {
-          token.value = null
-          navigateTo('/login')
-        }
+            options.headers = new Headers(headers)
+          }
+        },
 
-        if (res.status === 500) {
-          console.error('Server Error: Please try again later.')
-        }
+        onResponse({ response }: { response: Response }) {
+          if (response.status === 401) {
+            token.value = null
+            navigateTo('/login')
+          }
+        },
+
+        onResponseError({ response }: { response: Response }) {
+          if (response.status === 500) {
+            console.error('Server Error: Please try again later.')
+          }
 
         throw res
       },
