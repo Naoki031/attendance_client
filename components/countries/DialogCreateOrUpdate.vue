@@ -41,10 +41,9 @@
 
 <script lang="ts" setup>
 /** start import */
-import { computed, watch, PropType, watchEffect } from 'vue'
+import type { PropType } from 'vue'
 import * as Yup from 'yup'
-import { useField, useForm } from 'vee-validate'
-import { CountryModel } from '@/interfaces/models/CountryModel'
+import type { CountryModel } from '@/interfaces/models/CountryModel'
 import CountryService from '@/services/CountryService'
 /* end import */
 

@@ -53,14 +53,13 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { computed, ref, nextTick, watch, PropType, watchEffect, onMounted } from 'vue'
+import type { PropType } from 'vue'
 import * as Yup from 'yup'
-import { useField, useForm } from 'vee-validate'
-import { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
-import { PermissionModel } from '@/interfaces/models/PermissionModel'
+import type { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
+import type { PermissionModel } from '@/interfaces/models/PermissionModel'
 import PermissionGroupService from '@/services/PermissionGroupService'
 import PermissionService from '@/services/PermissionService'
-import { PermissionGroupFormType } from '@/types/index'
+import type { PermissionGroupFormType } from '@/types/index'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

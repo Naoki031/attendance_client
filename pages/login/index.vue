@@ -76,15 +76,9 @@
 </template>
 <script lang="ts" setup>
 /** START IMPORT */
-import { ref } from 'vue'
 import * as Yup from 'yup'
-import { useField, useForm } from 'vee-validate'
-import { useRouter } from 'vue-router'
 import AuthService from '@/services/AuthService'
-import { useUserStore } from '@/stores/user'
-import { useAlertStore } from '@/stores/alert'
 import { HTTP_UNPROCESSABLE_ENTITY } from '@/constants/http'
-import { useCookie, navigateTo } from '#app'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

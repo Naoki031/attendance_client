@@ -14,8 +14,8 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { watch, PropType } from 'vue'
-import { RoleModel } from '@/interfaces/models/RoleModel'
+import type { PropType } from 'vue'
+import type { RoleModel } from '@/interfaces/models/RoleModel'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

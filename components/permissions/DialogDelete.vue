@@ -14,8 +14,8 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { watch, PropType } from 'vue'
-import { PermissionModel } from '@/interfaces/models/PermissionModel'
+import type { PropType } from 'vue'
+import type { PermissionModel } from '@/interfaces/models/PermissionModel'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

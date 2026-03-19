@@ -11,8 +11,6 @@
 
 <script setup lang="ts">
 /** START IMPORT */
-import { useUserStore } from '@/stores/user'
-import { navigateTo } from '#app'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */

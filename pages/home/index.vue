@@ -17,7 +17,7 @@
 
 /** START DEFINE NAME COMPONENT */
 definePageMeta({
-  layout: 'guest',
+  layout: 'default',
   name: 'home',
 })
 /* END  DEFINE */
