@@ -158,6 +158,12 @@ const adminRoutes: Array<RouteType | DividerType> = [
     name: 'admin.companies.index',
   },
   {
+    icon: 'mdi-account-multiple',
+    text: 'Department',
+    link: '/management/departments',
+    name: 'admin.departments.index',
+  },
+  {
     icon: 'mdi-map-marker',
     text: 'Location',
     link: '',
