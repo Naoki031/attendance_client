@@ -157,7 +157,7 @@ const adminRoutes: Array<RouteType | DividerType> = [
     link: '',
     active: 'Location',
     children: [
-      // { icon: '', text: 'List City', link: '/management/cities', name: 'admin.cities.index' },
+      { icon: '', text: 'List City', link: '/management/cities', name: 'admin.cities.index' },
       {
         icon: '',
         text: 'List Country',
@@ -219,7 +219,7 @@ const sidebarInitials = computed(() => {
   const last = parts[parts.length - 1]?.[0] ?? ''
   if (parts.length >= 2) return (first + last).toUpperCase()
   if (parts.length === 1) return first.toUpperCase() || 'U'
-  
+
   return 'U'
 })
 /* END DEFINE COMPUTED */
