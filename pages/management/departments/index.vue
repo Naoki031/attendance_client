@@ -16,10 +16,22 @@
           </v-btn>
         </v-toolbar>
       </template>
+
       <template #item.actions="{ item }">
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          color="primary"
+          :to="`/management/departments/${item.id}/users`"
+        >
+          <v-icon>mdi-account-group</v-icon>
+          <v-tooltip activator="parent">Manage Users</v-tooltip>
+        </v-btn>
         <v-icon class="me-2" small @click="editItem(item)">mdi-pencil</v-icon>
         <v-icon small @click="deleteItem(item)">mdi-delete</v-icon>
       </template>
+
       <template #loading>
         <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
       </template>
@@ -79,7 +91,6 @@ const editedItem = ref<DepartmentModel | null>(null)
 /** START DEFINE METHOD */
 const getDepartments = async () => {
   if (isLoading.value) return
-
   try {
     isLoading.value = true
     const data = await DepartmentService.getAll()
@@ -127,13 +138,10 @@ const onConfirmDelete = async (item: DepartmentModel) => {
   try {
     dialogDelete.value = false
     await nextTick()
-
     if (item.id) {
       await DepartmentService.delete(item.id)
       await getDepartments()
       deletedItem.value = null
-    } else {
-      console.error('Invalid item id:', item.id)
     }
   } catch (error) {
     console.error('Failed to delete department:', error)
@@ -152,9 +160,7 @@ const onCloseDelete = () => {
 watch(
   () => dialog,
   (newValue) => {
-    if (!newValue) {
-      onClose()
-    }
+    if (!newValue) onClose()
   },
   { immediate: false },
 )

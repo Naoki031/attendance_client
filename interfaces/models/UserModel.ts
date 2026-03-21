@@ -1,3 +1,5 @@
+import type { UserDepartmentModel } from '@/interfaces/models/UserDepartmentModel'
+
 export interface UserModel {
   id: number
   username: string
@@ -20,4 +22,5 @@ export interface UserModel {
   contract_type?: string
   contract_count?: number
   user_group_permissions?: { permission_group_id: number; permission_group?: { name: string } }[]
+  user_departments?: UserDepartmentModel[]
 }

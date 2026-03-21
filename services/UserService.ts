@@ -19,6 +19,10 @@ export default class UserService {
     return apiClient.get<UserModel[]>('users')
   }
 
+  public static async search(query: string): Promise<UserModel[]> {
+    return apiClient.get<UserModel[]>(`users?search=${encodeURIComponent(query)}`)
+  }
+
   public static async create(form: UserFormType): Promise<UserModel> {
     return apiClient.post<UserModel>('/users', toPayload(form))
   }
