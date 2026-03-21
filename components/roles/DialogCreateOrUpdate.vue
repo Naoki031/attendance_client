@@ -1,6 +1,6 @@
 <template>
   <v-dialog :model-value="dialog" :max-width="maxWidth" persistent>
-    <v-card>
+    <v-card @keydown.enter="handleCardEnter">
       <v-card-title class="text-h5">{{ title }}</v-card-title>
 
       <v-divider></v-divider>
@@ -89,7 +89,13 @@ const schema = Yup.object().shape({
   descriptions: Yup.string().nullable(),
 })
 
-const { values, errors, handleSubmit, setFieldError, setFieldValue } = useForm({
+const {
+  values,
+  errors,
+  handleSubmit,
+  setFieldError: _setFieldError,
+  setFieldValue,
+} = useForm({
   validationSchema: schema,
   initialValues: form,
 })
@@ -117,8 +123,8 @@ const maxWidth = computed(() => {
 const handleCreate = handleSubmit(async (form: RoleFormType) => {
   await schema.validate(values, { abortEarly: false })
   RoleService.create(form)
-    .then((res: RoleModel) => {
-      emit('confirm', res)
+    .then((result: RoleModel) => {
+      emit('confirm', result)
     })
     .catch((error) => {
       console.error('Failed to add role:', error)
@@ -128,8 +134,8 @@ const handleCreate = handleSubmit(async (form: RoleFormType) => {
 const handleUpdate = handleSubmit(async (form) => {
   await schema.validate(values, { abortEarly: false })
   RoleService.update(props.item?.id as number, form)
-    .then((res: RoleModel) => {
-      emit('confirm', res)
+    .then((result: RoleModel) => {
+      emit('confirm', result)
     })
     .catch((error) => {
       console.error('Failed to update role:', error)
@@ -146,6 +152,13 @@ const confirm = () => {
 
 const close = () => {
   emit('close-modal', null)
+}
+
+// Submit on Enter key unless the focused element is a textarea
+const handleCardEnter = (event: KeyboardEvent) => {
+  if ((event.target as HTMLElement).tagName === 'TEXTAREA') return
+  event.preventDefault()
+  confirm()
 }
 
 const updateKey = () => {
@@ -165,8 +178,8 @@ const updateKey = () => {
 watch(
   () => props.dialog,
 
-  (val) => {
-    if (!val) {
+  (value) => {
+    if (!value) {
       close()
     }
   },

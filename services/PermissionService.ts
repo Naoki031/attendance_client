@@ -32,17 +32,20 @@ export default class PermissionService {
    * @param data - An object containing the fields to update in the permission record.
    * @returns A promise that resolves to the updated PermissionModel.
    */
-  public static async update(id: number, data: Record<string, unknown>): Promise<PermissionModel> {
-    return await apiClient.put<PermissionModel>(`${this.resource}/${id}`, data)
+  public static async update(
+    permissionId: number,
+    data: Record<string, unknown>,
+  ): Promise<PermissionModel> {
+    return await apiClient.put<PermissionModel>(`${this.resource}/${permissionId}`, data)
   }
 
   /**
    * Deletes a resource by its ID.
    *
-   * @param {number} id - The ID of the resource to delete.
+   * @param {number} permissionId - The ID of the resource to delete.
    * @returns {Promise<boolean>} A promise that resolves to a boolean indicating whether the deletion was successful.
    */
-  public static async delete(id: number): Promise<boolean> {
-    return (await apiClient.delete(`${this.resource}/${id}`)) as boolean
+  public static async delete(permissionId: number): Promise<boolean> {
+    return (await apiClient.delete(`${this.resource}/${permissionId}`)) as boolean
   }
 }

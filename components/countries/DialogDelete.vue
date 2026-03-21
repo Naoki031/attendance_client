@@ -57,8 +57,8 @@ const close = () => {
 /** START DEFINE WATCHER */
 watch(
   () => props.dialog,
-  (val) => {
-    if (!val) {
+  (value) => {
+    if (!value) {
       close()
     }
   },

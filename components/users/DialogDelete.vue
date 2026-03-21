@@ -1,7 +1,9 @@
 <template>
   <v-dialog :model-value="dialog" max-width="500px">
     <v-card>
-      <v-card-title class="text-h5">Are you sure you want to delete {{ item.name }}?</v-card-title>
+      <v-card-title class="text-h5">
+        Are you sure you want to delete {{ item.full_name }}?
+      </v-card-title>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="blue-darken-1" variant="text" @click="close">Cancel</v-btn>
@@ -14,8 +16,8 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { watch, PropType } from 'vue'
-import { RoleModel } from '@/interfaces/models/RoleModel'
+import type { PropType } from 'vue'
+import type { UserModel } from '@/interfaces/models/UserModel'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -24,7 +26,7 @@ import { RoleModel } from '@/interfaces/models/RoleModel'
 /** START DEFINE PROPERTY AND EMITS */
 const props = defineProps({
   item: {
-    type: Object as PropType<RoleModel>,
+    type: Object as PropType<UserModel>,
     required: true,
   },
   dialog: {
@@ -57,8 +59,8 @@ const close = () => {
 /** START DEFINE WATCHER */
 watch(
   () => props.dialog,
-  (val) => {
-    if (!val) {
+  (value) => {
+    if (!value) {
       close()
     }
   },

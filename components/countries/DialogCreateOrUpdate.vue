@@ -1,6 +1,6 @@
 <template>
   <v-dialog :model-value="dialog" :max-width="maxWidth" persistent>
-    <v-card>
+    <v-card @keydown.enter.prevent="confirm">
       <v-card-title class="text-h5">{{ title }}</v-card-title>
 
       <v-divider></v-divider>
@@ -80,7 +80,13 @@ const schema = Yup.object().shape({
   capital: Yup.string().nullable(),
 })
 
-const { values, errors, handleSubmit, setFieldError, setFieldValue } = useForm({
+const {
+  values,
+  errors,
+  handleSubmit,
+  setFieldError: _setFieldError,
+  setFieldValue,
+} = useForm({
   validationSchema: schema,
   initialValues: form,
 })
@@ -107,8 +113,8 @@ const maxWidth = computed(() => {
 const handleCreate = handleSubmit(async (form) => {
   await schema.validate(values, { abortEarly: false })
   CountryService.create(form)
-    .then((res: CountryModel) => {
-      emit('confirm', res)
+    .then((result: CountryModel) => {
+      emit('confirm', result)
     })
     .catch((error) => {
       console.error('Failed to add country:', error)
@@ -118,8 +124,8 @@ const handleCreate = handleSubmit(async (form) => {
 const handleUpdate = handleSubmit(async (form) => {
   await schema.validate(values, { abortEarly: false })
   CountryService.update(props.item?.id as number, form)
-    .then((res: CountryModel) => {
-      emit('confirm', res)
+    .then((result: CountryModel) => {
+      emit('confirm', result)
     })
     .catch((error) => {
       console.error('Failed to update country:', error)
@@ -155,8 +161,8 @@ const updateSlug = () => {
 watch(
   () => props.dialog,
 
-  (val) => {
-    if (!val) {
+  (value) => {
+    if (!value) {
       close()
     }
   },

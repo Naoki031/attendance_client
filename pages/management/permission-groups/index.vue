@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-data-table
-      :sort-by.sync="sortBy"
+      v-model:sort-by="sortBy"
       :headers="headers"
       :items="permissionGroups"
       :loading="isLoading"
@@ -171,8 +171,8 @@ const getPermissionGroups = async () => {
 /** START DEFINE WATCHER */
 watch(
   () => dialog,
-  (val) => {
-    if (!val) {
+  (newValue) => {
+    if (!newValue) {
       close()
     }
   },
