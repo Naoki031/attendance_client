@@ -6,7 +6,7 @@ import AuthService from '@/services/AuthService'
 
 const inBrowser = typeof window !== 'undefined'
 
-/** Key used to persist the user's highest role level in localStorage. */
+/** Key used to persist the user's highest role level in localStorage and cookie. */
 const ROLE_LEVEL_KEY = 'role_level'
 
 export const useUserStore = defineStore('user', {
@@ -22,8 +22,8 @@ export const useUserStore = defineStore('user', {
   getters: {
     /**
      * Returns the user's highest role level.
-     * Reads from the loaded profile first; falls back to the localStorage value
-     * persisted from the last successful profile load (no JWT decoding).
+     * Reads from the loaded profile first; falls back to localStorage (client)
+     * or cookie (server-side SSR on page refresh).
      */
     highestRole(state): 'super_admin' | 'admin' | 'user' {
       if (state.user?.highest_role) return state.user.highest_role
@@ -31,6 +31,13 @@ export const useUserStore = defineStore('user', {
       if (inBrowser) {
         const stored = localStorage.getItem(ROLE_LEVEL_KEY)
         if (stored === 'super_admin' || stored === 'admin') return stored
+      }
+
+      // Server-side fallback: read from cookie so SSR middleware can check admin status
+      const roleLevelCookie = useCookie<string>(ROLE_LEVEL_KEY)
+
+      if (roleLevelCookie.value === 'super_admin' || roleLevelCookie.value === 'admin') {
+        return roleLevelCookie.value
       }
 
       return 'user'
@@ -86,6 +93,12 @@ export const useUserStore = defineStore('user', {
               localStorage.setItem(ROLE_LEVEL_KEY, user.highest_role)
             }
 
+            // Also persist in cookie so SSR middleware can read it on page refresh
+            if (user.highest_role) {
+              const roleLevelCookie = useCookie<string | null>(ROLE_LEVEL_KEY)
+              roleLevelCookie.value = user.highest_role
+            }
+
             resolve(user)
           })
           .catch((error) => {
@@ -109,6 +122,9 @@ export const useUserStore = defineStore('user', {
         localStorage.removeItem('token')
         localStorage.removeItem(ROLE_LEVEL_KEY)
       }
+
+      const roleLevelCookie = useCookie<string | null>(ROLE_LEVEL_KEY)
+      roleLevelCookie.value = null
 
       return Promise.resolve(true)
     },
