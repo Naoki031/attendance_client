@@ -6,8 +6,50 @@
           <v-toolbar-title>List Users</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
+          <v-btn
+            :color="isFilterActive ? 'primary' : undefined"
+            variant="tonal"
+            prepend-icon="mdi-filter"
+            class="mr-2"
+            @click="filterExpanded = !filterExpanded"
+          >
+            Filter
+            <v-badge
+              v-if="activeFilterCount > 0"
+              :content="activeFilterCount"
+              color="primary"
+              floating
+            ></v-badge>
+          </v-btn>
           <v-btn rounded="xl" variant="tonal" color="success" @click="addUser()">New User</v-btn>
         </v-toolbar>
+
+        <!-- Filter panel -->
+        <UserFilterPanel
+          v-model="filters"
+          :expanded="filterExpanded"
+          :departments="availableDepartments"
+          :roles="availableRoles"
+          @reset="resetFilters"
+        />
+      </template>
+
+      <template #item.id="{ item }">
+        <nuxt-link
+          :to="`/management/users/${item.id}`"
+          class="text-decoration-none text-medium-emphasis"
+        >
+          {{ item.id }}
+        </nuxt-link>
+      </template>
+
+      <template #item.full_name="{ item }">
+        <nuxt-link
+          :to="`/management/users/${item.id}`"
+          class="text-decoration-none font-weight-medium"
+        >
+          {{ item.full_name }}
+        </nuxt-link>
       </template>
 
       <template #item.departments="{ item }">
@@ -92,8 +134,13 @@
 import DialogCreateOrUpdate from '~/components/users/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/users/DialogDelete.vue'
 import DialogManageDepartments from '@/components/users/DialogManageDepartments.vue'
+import UserFilterPanel from '@/components/users/UserFilterPanel.vue'
 import type { UserModel } from '@/interfaces/models/UserModel'
+import type { DepartmentModel } from '@/interfaces/models/DepartmentModel'
+import type { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
 import UserService from '@/services/UserService'
+import DepartmentService from '@/services/DepartmentService'
+import PermissionGroupService from '@/services/PermissionGroupService'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -105,6 +152,20 @@ definePageMeta({
 /** START DEFINE STATE */
 const users = ref<UserModel[]>([])
 const isLoading = ref(false)
+const availableDepartments = ref<DepartmentModel[]>([])
+const availableRoles = ref<PermissionGroupModel[]>([])
+const filterExpanded = ref(false)
+const filters = ref({
+  id: '',
+  name: '',
+  position: '',
+  email: '',
+  departmentId: null as number | null,
+  role: '',
+  status: '' as '' | 'active' | 'inactive',
+  contractType: '',
+})
+
 const selectedUser = ref<UserModel | null>(null)
 const dialog = ref(false)
 const dialogDelete = ref(false)
@@ -115,27 +176,87 @@ const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
   { key: 'first_name', order: 'asc' },
 ])
 const headers = ref([
+  { title: 'ID', key: 'id', sortable: true },
   { title: 'Name', align: 'start' as const, key: 'full_name' },
   { title: 'Position', key: 'position' },
   { title: 'Email', key: 'email' },
   { title: 'Departments', key: 'departments', sortable: false },
   { title: 'Roles', key: 'roles', sortable: false },
+  { title: 'Contract Type', key: 'contract_type', sortable: true },
   { title: 'Join Date', key: 'join_date' },
   { title: 'Status', key: 'is_activated' },
   { title: 'Actions', key: 'actions', sortable: false },
 ])
+
+let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null
 /* END DEFINE STATE */
+
+/** START DEFINE COMPUTED */
+const activeFilterCount = computed(() => {
+  const filterValues = filters.value
+  return [
+    filterValues.id,
+    filterValues.name,
+    filterValues.position,
+    filterValues.email,
+    filterValues.departmentId,
+    filterValues.role,
+    filterValues.status,
+    filterValues.contractType,
+  ].filter((filterValue) => filterValue !== '' && filterValue !== null).length
+})
+
+const isFilterActive = computed(() => activeFilterCount.value > 0)
+
+/* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
 const getUsers = async () => {
   if (isLoading.value) return
+
   try {
     isLoading.value = true
-    users.value = await UserService.getAll()
+    const filterValues = filters.value
+    const hasFilter =
+      filterValues.id ||
+      filterValues.name ||
+      filterValues.position ||
+      filterValues.email ||
+      filterValues.departmentId ||
+      filterValues.role ||
+      filterValues.status ||
+      filterValues.contractType
+    if (hasFilter) {
+      users.value = await UserService.filter({
+        id: filterValues.id || undefined,
+        name: filterValues.name || undefined,
+        position: filterValues.position || undefined,
+        email: filterValues.email || undefined,
+        departmentId: filterValues.departmentId,
+        role: filterValues.role || undefined,
+        status: filterValues.status || undefined,
+        contractType: filterValues.contractType || undefined,
+      })
+    } else {
+      users.value = await UserService.getAll()
+    }
   } catch (error) {
     console.error('Failed to fetch users:', error)
   } finally {
     isLoading.value = false
+  }
+}
+
+const resetFilters = () => {
+  filters.value = {
+    id: '',
+    name: '',
+    position: '',
+    email: '',
+    departmentId: null,
+    role: '',
+    status: '',
+    contractType: '',
   }
 }
 
@@ -197,9 +318,28 @@ const onCloseDelete = () => {
 }
 /* END DEFINE METHOD */
 
+/** START DEFINE WATCHER */
+watch(
+  filters,
+  () => {
+    if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
+    filterDebounceTimer = setTimeout(() => {
+      getUsers()
+    }, 300)
+  },
+  { deep: true },
+)
+/* END DEFINE WATCHER */
+
 /** START DEFINE LIFE CYCLE HOOK */
-onMounted(() => {
-  getUsers()
+onMounted(async () => {
+  const [departments, roles] = await Promise.all([
+    DepartmentService.getAll(),
+    PermissionGroupService.getAll(),
+  ])
+  availableDepartments.value = Object.values(departments)
+  availableRoles.value = Object.values(roles)
+  await getUsers()
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
