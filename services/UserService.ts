@@ -19,8 +19,36 @@ export default class UserService {
     return apiClient.get<UserModel[]>('users')
   }
 
+  public static async getOne(userId: number): Promise<UserModel> {
+    return apiClient.get<UserModel>(`users/${userId}`)
+  }
+
   public static async search(query: string): Promise<UserModel[]> {
     return apiClient.get<UserModel[]>(`users?search=${encodeURIComponent(query)}`)
+  }
+
+  public static async filter(parameters: {
+    id?: string
+    name?: string
+    position?: string
+    email?: string
+    departmentId?: number | null
+    role?: string
+    status?: string
+    contractType?: string
+  }): Promise<UserModel[]> {
+    const searchParameters = new URLSearchParams()
+    if (parameters.id) searchParameters.set('id', parameters.id)
+    if (parameters.name) searchParameters.set('name', parameters.name)
+    if (parameters.position) searchParameters.set('position', parameters.position)
+    if (parameters.email) searchParameters.set('email', parameters.email)
+    if (parameters.departmentId)
+      searchParameters.set('department_id', String(parameters.departmentId))
+    if (parameters.role) searchParameters.set('role', parameters.role)
+    if (parameters.status) searchParameters.set('status', parameters.status)
+    if (parameters.contractType) searchParameters.set('contract_type', parameters.contractType)
+
+    return apiClient.get<UserModel[]>(`users?${searchParameters.toString()}`)
   }
 
   public static async create(form: UserFormType): Promise<UserModel> {
