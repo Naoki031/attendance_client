@@ -10,6 +10,24 @@
         </v-toolbar>
       </template>
 
+      <template #item.departments="{ item }">
+        <div class="d-flex flex-wrap gap-1 py-1">
+          <v-chip
+            v-for="assignment in item.user_departments"
+            :key="assignment.id"
+            size="x-small"
+            color="teal"
+            variant="tonal"
+            link
+            :to="`/management/departments/${assignment.department_id}/users`"
+            >{{ assignment.department?.name }}</v-chip
+          >
+          <span v-if="!item.user_departments?.length" class="text-medium-emphasis text-caption"
+            >—</span
+          >
+        </div>
+      </template>
+
       <template #item.roles="{ item }">
         <div class="d-flex flex-wrap gap-1 py-1">
           <v-chip
@@ -32,6 +50,9 @@
 
       <template #item.actions="{ item }">
         <v-icon class="me-2" size="small" @click="editItem(item)">mdi-pencil</v-icon>
+        <v-icon class="me-2" size="small" color="teal" @click="manageDepartments(item)"
+          >mdi-office-building</v-icon
+        >
         <v-icon size="small" color="error" @click="deleteItem(item)">mdi-delete</v-icon>
       </template>
 
@@ -55,6 +76,14 @@
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
     />
+
+    <DialogManageDepartments
+      v-if="!!selectedUserForDepartments"
+      :user="selectedUserForDepartments"
+      :dialog="dialogDepartments"
+      @close-modal="dialogDepartments = false"
+      @changed="getUsers"
+    />
   </div>
 </template>
 
@@ -62,6 +91,7 @@
 /** START IMPORT */
 import DialogCreateOrUpdate from '~/components/users/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/users/DialogDelete.vue'
+import DialogManageDepartments from '@/components/users/DialogManageDepartments.vue'
 import type { UserModel } from '@/interfaces/models/UserModel'
 import UserService from '@/services/UserService'
 /* END IMPORT */
@@ -78,6 +108,8 @@ const isLoading = ref(false)
 const selectedUser = ref<UserModel | null>(null)
 const dialog = ref(false)
 const dialogDelete = ref(false)
+const dialogDepartments = ref(false)
+const selectedUserForDepartments = ref<UserModel | null>(null)
 const editedItem = ref<UserModel | null>(null)
 const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
   { key: 'first_name', order: 'asc' },
@@ -86,6 +118,7 @@ const headers = ref([
   { title: 'Name', align: 'start' as const, key: 'full_name' },
   { title: 'Position', key: 'position' },
   { title: 'Email', key: 'email' },
+  { title: 'Departments', key: 'departments', sortable: false },
   { title: 'Roles', key: 'roles', sortable: false },
   { title: 'Join Date', key: 'join_date' },
   { title: 'Status', key: 'is_activated' },
@@ -130,6 +163,11 @@ const onClose = () => {
   nextTick(() => {
     editedItem.value = null
   })
+}
+
+const manageDepartments = (item: UserModel) => {
+  selectedUserForDepartments.value = { ...item }
+  dialogDepartments.value = true
 }
 
 const deleteItem = (item: UserModel) => {
