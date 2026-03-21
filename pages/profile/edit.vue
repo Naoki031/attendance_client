@@ -2,7 +2,7 @@
   <v-container class="py-8" max-width="800">
     <!-- Page header -->
     <div class="d-flex align-center gap-3 mb-6">
-      <v-btn icon="mdi-arrow-left" variant="text" :to="{ name: 'profile.index' }"></v-btn>
+      <v-btn icon="mdi-arrow-left" variant="text" to="/profile"></v-btn>
       <div>
         <div class="text-h5 font-weight-bold">Edit Profile</div>
         <div class="text-body-2 text-medium-emphasis mt-1">
@@ -120,7 +120,7 @@
             </v-row>
 
             <div class="d-flex justify-end gap-3 mt-4">
-              <v-btn variant="text" :to="{ name: 'profile.index' }">Cancel</v-btn>
+              <v-btn variant="text" to="/profile">Cancel</v-btn>
               <v-btn color="primary" :loading="profileLoading" @click="submitProfile">
                 Save Changes
               </v-btn>
