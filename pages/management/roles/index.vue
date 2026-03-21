@@ -164,8 +164,8 @@ const getRoles = async () => {
 /** START DEFINE WATCHER */
 watch(
   () => dialog,
-  (val) => {
-    if (!val) {
+  (newValue) => {
+    if (!newValue) {
       close()
     }
   },

@@ -33,20 +33,22 @@ export default class PermissionGroupService {
    * @returns A promise that resolves to the updated PermissionGroupModel.
    */
   public static async update(
-    id: number,
+    permissionGroupId: number,
     data: Record<string, unknown>,
   ): Promise<PermissionGroupModel> {
-    return apiClient.put<PermissionGroupModel>(`${this.resource}/${id}`, data)
+    return apiClient.put<PermissionGroupModel>(`${this.resource}/${permissionGroupId}`, data)
   }
 
   /**
    * Deletes a permission group by its ID.
    *
-   * @param {number} id - The ID of the permission group to delete.
+   * @param {number} permissionGroupId - The ID of the permission group to delete.
    * @returns {Promise<boolean>} A promise that resolves to a boolean indicating whether the deletion was successful.
    */
-  public static async delete(id: number): Promise<boolean> {
-    const response = await apiClient.delete<{ status: number }>(`${this.resource}/${id}`)
+  public static async delete(permissionGroupId: number): Promise<boolean> {
+    const response = await apiClient.delete<{ status: number }>(
+      `${this.resource}/${permissionGroupId}`,
+    )
 
     return response.status === 200
   }

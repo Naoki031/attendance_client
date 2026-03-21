@@ -1,12 +1,19 @@
 <template>
   <div>
-    <v-data-table v-model:sort-by="sortBy" :headers="headers" :items="permissions" :loading="isLoading">
+    <v-data-table
+      v-model:sort-by="sortBy"
+      :headers="headers"
+      :items="permissions"
+      :loading="isLoading"
+    >
       <template #top>
         <v-toolbar flat>
           <v-toolbar-title>List Permissions</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="add()"> New Permission </v-btn>
+          <v-btn rounded="xl" variant="tonal" color="success" @click="add()">
+            New Permission
+          </v-btn>
         </v-toolbar>
       </template>
       <template #item.actions="{ item }">
@@ -164,8 +171,8 @@ const getPermissions = async () => {
 /** START DEFINE WATCHER */
 watch(
   () => dialog,
-  (val) => {
-    if (!val) {
+  (newValue) => {
+    if (!newValue) {
       close()
     }
   },

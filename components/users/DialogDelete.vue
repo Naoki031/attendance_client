@@ -1,7 +1,9 @@
 <template>
   <v-dialog :model-value="dialog" max-width="500px">
     <v-card>
-      <v-card-title class="text-h5">Are you sure you want to delete {{ item.name }}?</v-card-title>
+      <v-card-title class="text-h5">
+        Are you sure you want to delete {{ item.full_name }}?
+      </v-card-title>
       <v-card-actions>
         <v-spacer></v-spacer>
         <v-btn color="blue-darken-1" variant="text" @click="close">Cancel</v-btn>
@@ -15,7 +17,7 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import type { PropType } from 'vue'
-import type { PermissionModel } from '@/interfaces/models/PermissionModel'
+import type { UserModel } from '@/interfaces/models/UserModel'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -24,7 +26,7 @@ import type { PermissionModel } from '@/interfaces/models/PermissionModel'
 /** START DEFINE PROPERTY AND EMITS */
 const props = defineProps({
   item: {
-    type: Object as PropType<PermissionModel>,
+    type: Object as PropType<UserModel>,
     required: true,
   },
   dialog: {

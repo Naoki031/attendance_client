@@ -6,7 +6,12 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   if (!userStore.isAuthenticated && to?.name !== 'login') {
-    abortNavigation()
     return navigateTo('/login')
+  }
+
+  // Protect management routes: only Admin and Super Admin may access /management/**
+  // Role is sourced from the API profile response (stored in localStorage), not from JWT decoding.
+  if (to.path.startsWith('/management') && !userStore.isAdmin) {
+    return navigateTo('/home')
   }
 })

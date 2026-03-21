@@ -24,5 +24,5 @@
   </template>
 </template>
 <script setup lang="ts">
-const active = ref<boolean>(true);
+const active = ref<boolean>(true)
 </script>

@@ -12,11 +12,11 @@ export default class RoleService {
     return await apiClient.post<RoleModel>('/roles', data)
   }
 
-  public static async update(id: number, data: Record<string, unknown>): Promise<RoleModel> {
-    return await apiClient.put<RoleModel>(`/roles/${id}`, data)
+  public static async update(roleId: number, data: Record<string, unknown>): Promise<RoleModel> {
+    return await apiClient.put<RoleModel>(`/roles/${roleId}`, data)
   }
 
-  public static async delete(id: number): Promise<boolean> {
-    return (await apiClient.delete(`/roles/${id}`)) as boolean
+  public static async delete(roleId: number): Promise<boolean> {
+    return (await apiClient.delete(`/roles/${roleId}`)) as boolean
   }
 }

@@ -1,86 +1,48 @@
-import { useCookie, navigateTo, useRuntimeConfig } from '#app'
-
 export const apiClient = {
-  get<T>(url: string, params?: Record<string, string>): Promise<T> {
-    return this.request<T>(url, 'GET', undefined, params)
+  get<T>(url: string, parameters?: Record<string, string>): Promise<T> {
+    return this.request<T>(url, 'GET', undefined, parameters)
   },
 
   post<T>(
     url: string,
     body: Record<string, unknown>,
-    params?: Record<string, unknown>,
+    parameters?: Record<string, unknown>,
   ): Promise<T> {
-    return this.request<T>(url, 'POST', body, params)
+    return this.request<T>(url, 'POST', body, parameters)
   },
 
-  put<T>(url: string, body: Record<string, unknown>, params?: Record<string, unknown>): Promise<T> {
-    return this.request<T>(url, 'PUT', body, params)
+  put<T>(
+    url: string,
+    body: Record<string, unknown>,
+    parameters?: Record<string, unknown>,
+  ): Promise<T> {
+    return this.request<T>(url, 'PUT', body, parameters)
   },
 
   patch<T>(
     url: string,
     body: Record<string, unknown>,
-    params?: Record<string, unknown>,
+    parameters?: Record<string, unknown>,
   ): Promise<T> {
-    return this.request<T>(url, 'PATCH', body, params)
+    return this.request<T>(url, 'PATCH', body, parameters)
   },
 
-  delete<T>(url: string, params?: Record<string, string>): Promise<T> {
-    return this.request<T>(url, 'DELETE', undefined, params)
+  delete<T>(url: string, parameters?: Record<string, string>): Promise<T> {
+    return this.request<T>(url, 'DELETE', undefined, parameters)
   },
 
-  async request<T>(
+  request<T>(
     url: string,
     method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     body?: Record<string, unknown>,
-    params?: Record<string, unknown>,
+    parameters?: Record<string, unknown>,
   ): Promise<T> {
-    try {
-      const config = useRuntimeConfig()
-      const baseURL = config.public.apiBaseUrl as string
-      let token = useCookie('token')
-      const response = await $fetch<T>(url, {
-        method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
-        baseURL,
-        body,
-        params,
+    const { $apiFetch } = useNuxtApp()
 
-        onRequest({ options }: { options: { headers?: HeadersInit } }) {
-          if (token.value) {
-            let headers: HeadersInit = options.headers || {}
-
-            if (headers instanceof Headers) {
-              headers.set('Authorization', `Bearer ${token.value}`)
-            } else if (typeof headers === 'object') {
-              headers = headers as Record<string, string>
-              headers.Authorization = `Bearer ${token.value}`
-            }
-
-            options.headers = new Headers(headers)
-          }
-        },
-
-        onResponse({ response }: { response: Response }) {
-          if (response.status === 401) {
-            token.value = null
-            navigateTo('/login')
-          }
-        },
-
-        onResponseError({ response }: { response: Response }) {
-          if (response.status === 500) {
-            console.error('Server Error: Please try again later.')
-          }
-
-          throw response
-        },
-      })
-
-      return response
-    } catch (error) {
-      console.error('Failed to fetch:', error)
-
-      throw error
-    }
+    return ($apiFetch as typeof $fetch)<T>(url, {
+      method: method as 'GET' | 'POST' | 'PUT' | 'PATCH',
+      body,
+      params: parameters,
+    })
   },
 }

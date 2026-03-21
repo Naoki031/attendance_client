@@ -1,3 +1,5 @@
+// $fetch is a Nuxt global (provided by ofetch) — available after `nuxt prepare`
+import type { $Fetch } from 'ofetch'
 interface PageMeta {
   validate?: (
     route: RouteLocationNormalized,
@@ -21,9 +23,4 @@ interface PageMeta {
 }
 
 declare function definePageMeta(meta: PageMeta): void
-
-// $fetch is a Nuxt global (provided by ofetch) — available after `nuxt prepare`
-declare function $fetch<T = unknown>(
-  url: string,
-  options?: Record<string, unknown>,
-): Promise<T>
+declare const $fetch: $Fetch

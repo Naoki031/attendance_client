@@ -12,11 +12,14 @@ export default class CountryService {
     return await apiClient.post<CountryModel>('/countries', data)
   }
 
-  public static async update(id: number, data: Record<string, unknown>): Promise<CountryModel> {
-    return await apiClient.put<CountryModel>(`/countries/${id}`, data)
+  public static async update(
+    countryId: number,
+    data: Record<string, unknown>,
+  ): Promise<CountryModel> {
+    return await apiClient.put<CountryModel>(`/countries/${countryId}`, data)
   }
 
-  public static async delete(id: number): Promise<boolean> {
-    return (await apiClient.delete(`/countries/${id}`)) as boolean
+  public static async delete(countryId: number): Promise<boolean> {
+    return (await apiClient.delete(`/countries/${countryId}`)) as boolean
   }
 }

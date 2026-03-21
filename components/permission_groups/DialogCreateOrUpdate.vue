@@ -1,6 +1,6 @@
 <template>
   <v-dialog :model-value="dialog" :max-width="maxWidth" persistent>
-    <v-card>
+    <v-card @keydown.enter="handleCardEnter">
       <v-card-title class="text-h5">{{ title }}</v-card-title>
 
       <v-divider></v-divider>
@@ -95,7 +95,13 @@ const schema = Yup.object().shape({
   descriptions: Yup.string().nullable(),
 })
 
-const { values, errors, handleSubmit, setFieldError, setFieldValue } = useForm({
+const {
+  values,
+  errors,
+  handleSubmit,
+  setFieldError: _setFieldError,
+  setFieldValue,
+} = useForm({
   validationSchema: schema,
   initialValues: form,
 })
@@ -154,6 +160,13 @@ const confirm = () => {
 
 const close = () => {
   emit('close-modal', null)
+}
+
+// Submit on Enter key unless the focused element is a textarea
+const handleCardEnter = (event: KeyboardEvent) => {
+  if ((event.target as HTMLElement).tagName === 'TEXTAREA') return
+  event.preventDefault()
+  confirm()
 }
 
 const getPermissions = async () => {
