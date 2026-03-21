@@ -9,7 +9,7 @@ export type UserFormType = {
   password: string | null
   confirm_password: string | null
   is_active: boolean | null
-  roles: string[] | null
+  permission_group_ids: number[] | null
   date_of_birth: string | null
   join_date: string | null
   contract_signed_date: string | null

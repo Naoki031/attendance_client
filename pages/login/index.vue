@@ -1,37 +1,45 @@
 <template>
-  <v-sheet class="pa-12" rounded>
-    <v-img
-      class="mx-auto my-6"
-      max-width="228"
-      src="https://cdn.vuetifyjs.com/docs/images/logos/vuetify-logo-v3-slim-text-light.svg"
-    ></v-img>
+  <v-sheet class="d-flex align-center justify-center" min-height="100vh">
+    <v-card
+      class="pa-8 pb-6"
+      elevation="8"
+      width="440"
+      rounded="lg"
+      @keydown.enter.prevent="onSubmit"
+    >
+      <!-- Logo & Title -->
+      <div class="text-center mb-6">
+        <v-icon icon="mdi-briefcase-clock-outline" size="52" color="primary" class="mb-3"></v-icon>
+        <div class="text-h5 font-weight-bold">Attendance System</div>
+        <div class="text-body-2 text-medium-emphasis mt-1">Sign in to your account</div>
+      </div>
 
-    <v-card class="mx-auto pa-12 pb-8" elevation="8" max-width="448" rounded="lg">
-      <v-alert v-model="alert" border="start" variant="tonal" type="error" class="mb-8">
+      <!-- Error alert -->
+      <v-alert
+        v-if="alert"
+        type="error"
+        variant="tonal"
+        border="start"
+        class="mb-5"
+        closable
+        @click:close="alert = false"
+      >
         {{ errorMessages }}
       </v-alert>
+
       <!-- Email -->
       <v-text-field
         v-model="email.value.value"
         density="compact"
         label="Email"
-        placeholder="Email address"
+        placeholder="Enter your email"
         prepend-inner-icon="mdi-email-outline"
         variant="outlined"
+        autocomplete="email"
         :error-messages="email.errorMessage.value"
         :autofocus="true"
+        class="mb-1"
       ></v-text-field>
-
-      <div class="text-subtitle-1 text-medium-emphasis text-right">
-        <a
-          class="text-caption text-decoration-none text-blue"
-          href="#"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          Forgot login password?
-        </a>
-      </div>
 
       <!-- Password -->
       <v-text-field
@@ -43,42 +51,33 @@
         placeholder="Enter your password"
         prepend-inner-icon="mdi-lock-outline"
         variant="outlined"
+        autocomplete="current-password"
         :error-messages="password.errorMessage.value"
+        class="mb-1"
         @click:append-inner="visible = !visible"
       ></v-text-field>
 
+      <!-- Submit -->
       <v-btn
         block
-        class="mb-8"
-        color="blue"
+        class="mt-4 mb-2"
+        color="primary"
         size="large"
-        variant="tonal"
+        variant="elevated"
         type="submit"
         :loading="isSubmitting"
         @click.prevent="onSubmit"
       >
-        Log In
+        Sign In
       </v-btn>
-
-      <v-card-text class="text-center">
-        <a
-          class="text-blue text-decoration-none"
-          href="/register"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          Sign up now
-          <v-icon icon="mdi-chevron-right"></v-icon>
-        </a>
-      </v-card-text>
     </v-card>
   </v-sheet>
 </template>
+
 <script lang="ts" setup>
 /** START IMPORT */
 import * as Yup from 'yup'
-import AuthService from '@/services/AuthService'
-import { HTTP_UNPROCESSABLE_ENTITY } from '@/constants/http'
+import { HTTP_UNAUTHORIZED, HTTP_UNPROCESSABLE_ENTITY, HTTP_BAD_REQUEST } from '@/constants/http'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -97,8 +96,10 @@ const form = {
 
 /** START DEFINE VALIDATE */
 const schema = Yup.object().shape({
-  email: Yup.string().required().email(),
-  password: Yup.string().required().min(4),
+  email: Yup.string().required('Email is required').email('Invalid email address'),
+  password: Yup.string()
+    .required('Password is required')
+    .min(4, 'Password must be at least 4 characters'),
 })
 
 const { handleSubmit, isSubmitting } = useForm({
@@ -128,10 +129,14 @@ const onSubmit = handleSubmit(async (values) => {
     await userStore.login(values.email, values.password)
     navigateTo('/home')
   } catch (error: any) {
-    const status = error?.status ?? error?._data?.statusCode
-    const message = error?._data?.message ?? error?.message ?? 'Login failed'
+    const status = error?.status ?? error?.data?.statusCode
+    const message = error?.data?.message ?? error?.message ?? 'Login failed. Please try again.'
 
-    if (status === HTTP_UNPROCESSABLE_ENTITY || status === HTTP_BAD_REQUEST) {
+    if (
+      status === HTTP_UNAUTHORIZED ||
+      status === HTTP_UNPROCESSABLE_ENTITY ||
+      status === HTTP_BAD_REQUEST
+    ) {
       errorMessages.value = message
       alert.value = true
     } else {

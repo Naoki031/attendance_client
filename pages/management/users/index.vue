@@ -3,16 +3,38 @@
     <v-data-table v-model:sort-by="sortBy" :headers="headers" :items="users" :loading="isLoading">
       <template #top>
         <v-toolbar flat>
-          <v-toolbar-title>List users</v-toolbar-title>
+          <v-toolbar-title>List Users</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="addRole()"> New User </v-btn>
+          <v-btn rounded="xl" variant="tonal" color="success" @click="addUser()">New User</v-btn>
         </v-toolbar>
       </template>
-      <template #item.actions="{ item }">
-        <v-icon class="me-2" small @click="editItem(item)">mdi-pencil</v-icon>
-        <v-icon small @click="deleteItem(item)">mdi-delete</v-icon>
+
+      <template #item.roles="{ item }">
+        <div class="d-flex flex-wrap gap-1 py-1">
+          <v-chip
+            v-for="role in item.roles"
+            :key="role"
+            size="x-small"
+            color="primary"
+            variant="tonal"
+            >{{ role }}</v-chip
+          >
+          <span v-if="!item.roles?.length" class="text-medium-emphasis text-caption">—</span>
+        </div>
       </template>
+
+      <template #item.is_activated="{ item }">
+        <v-chip :color="item.is_activated ? 'success' : 'error'" size="small">
+          {{ item.is_activated ? 'Active' : 'Inactive' }}
+        </v-chip>
+      </template>
+
+      <template #item.actions="{ item }">
+        <v-icon class="me-2" size="small" @click="editItem(item)">mdi-pencil</v-icon>
+        <v-icon size="small" color="error" @click="deleteItem(item)">mdi-delete</v-icon>
+      </template>
+
       <template #loading>
         <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
       </template>
@@ -27,8 +49,8 @@
     />
 
     <DialogDelete
-      v-if="!!role"
-      :item="role"
+      v-if="!!selectedUser"
+      :item="selectedUser"
       :dialog="dialogDelete"
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
@@ -38,7 +60,6 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { ref, watch, onMounted, nextTick } from 'vue'
 import DialogCreateOrUpdate from '~/components/users/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/users/DialogDelete.vue'
 import type { UserModel } from '@/interfaces/models/UserModel'
@@ -51,132 +72,92 @@ definePageMeta({
 })
 /* END  DEFINE */
 
-/** START DEFINE PROPERTY AND EMITS */
-/* END DEFINE PROPERTY AND EMITS */
-
-/** START DEFINE VALIDATE */
-/* END DEFINE VALIDATE */
-
 /** START DEFINE STATE */
-const users = ref<Array<UserModel>>([])
+const users = ref<UserModel[]>([])
 const isLoading = ref(false)
-const user = ref<UserModel | null>(null)
+const selectedUser = ref<UserModel | null>(null)
 const dialog = ref(false)
 const dialogDelete = ref(false)
-const sortBy = ref<Array<{ key: string; order: boolean | 'asc' | 'desc' | undefined }>>([
-  { key: 'name', order: 'asc' },
+const editedItem = ref<UserModel | null>(null)
+const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
+  { key: 'first_name', order: 'asc' },
 ])
-const headers = ref<Array<object>>([
-  {
-    title: 'Name',
-    align: 'start',
-    key: 'full_name',
-  },
-
+const headers = ref([
+  { title: 'Name', align: 'start' as const, key: 'full_name' },
   { title: 'Position', key: 'position' },
-
-  { title: 'Phone', key: 'phone_number' },
-
   { title: 'Email', key: 'email' },
-
-  { title: 'Active', key: 'is_active' },
-
+  { title: 'Roles', key: 'roles', sortable: false },
+  { title: 'Join Date', key: 'join_date' },
+  { title: 'Status', key: 'is_activated' },
   { title: 'Actions', key: 'actions', sortable: false },
 ])
-const editedIndex = ref(-1)
-const editedItem = ref<UserModel | null>(null)
 /* END DEFINE STATE */
 
-/** START DEFINE COMPUTED */
-/* END DEFINE COMPUTED */
-
 /** START DEFINE METHOD */
-const onConfirm = async () => {
+const getUsers = async () => {
+  if (isLoading.value) return
   try {
-    onClose()
-    await getUsers()
+    isLoading.value = true
+    users.value = await UserService.getAll()
   } catch (error) {
-    console.error('Failed to add user:', error)
+    console.error('Failed to fetch users:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 
-const addRole = () => {
+const addUser = () => {
   editedItem.value = null
   dialog.value = true
 }
 
 const editItem = (item: UserModel) => {
-  editedIndex.value = users.value.indexOf(item)
   editedItem.value = { ...item }
   dialog.value = true
 }
 
+const onConfirm = async () => {
+  try {
+    onClose()
+    await getUsers()
+  } catch (error) {
+    console.error('Failed to save user:', error)
+  }
+}
+
 const onClose = () => {
   dialog.value = false
-
   nextTick(() => {
-    editedIndex.value = -1
+    editedItem.value = null
   })
+}
+
+const deleteItem = (item: UserModel) => {
+  selectedUser.value = { ...item }
+  dialogDelete.value = true
 }
 
 const onConfirmDelete = async (item: UserModel) => {
   try {
     dialogDelete.value = false
-    await nextTick()
-
     if (item.id) {
       await UserService.delete(item.id)
       await getUsers()
-      user.value = null
-    } else {
-      console.error('Invalid item id:', item.id)
     }
   } catch (error) {
     console.error('Failed to delete user:', error)
+  } finally {
+    selectedUser.value = null
   }
 }
 
 const onCloseDelete = () => {
   dialogDelete.value = false
-
   nextTick(() => {
-    user.value = null
+    selectedUser.value = null
   })
 }
-
-const deleteItem = async (item: any) => {
-  user.value = await { ...item }
-  dialogDelete.value = true
-}
-
-const getUsers = async () => {
-  if (isLoading.value) return
-
-  try {
-    isLoading.value = true
-    const data = await UserService.getAll()
-    users.value = Object.values(data)
-
-    setTimeout(() => {
-      isLoading.value = false
-    }, 1000)
-  } catch (error) {
-    console.error('Failed to fetch users:', error)
-  }
-}
 /* END DEFINE METHOD */
-
-/** START DEFINE WATCHER */
-watch(
-  () => dialog,
-  (newValue: boolean) => {
-    if (!newValue) {
-      close()
-    }
-  },
-  { immediate: false },
-)
-/* END DEFINE WATCHER */
 
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
