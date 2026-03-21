@@ -13,6 +13,7 @@
             prepend-inner-icon="mdi-alphabetical-variant"
             label="Name"
             :error-messages="errors.name"
+            autocomplete="off"
           ></v-text-field>
 
           <!-- Permission field -->
@@ -35,6 +36,7 @@
             label="Descriptions"
             :error-messages="errors.descriptions"
             clearable
+            autocomplete="off"
           ></v-textarea>
         </v-container>
       </v-card-text>

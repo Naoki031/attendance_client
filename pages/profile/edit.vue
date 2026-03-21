@@ -64,6 +64,7 @@
                   variant="outlined"
                   density="compact"
                   :error-messages="profileErrors.first_name"
+                  autocomplete="off"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
@@ -74,6 +75,7 @@
                   variant="outlined"
                   density="compact"
                   :error-messages="profileErrors.last_name"
+                  autocomplete="off"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
@@ -84,6 +86,7 @@
                   variant="outlined"
                   density="compact"
                   :error-messages="profileErrors.position"
+                  autocomplete="off"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
@@ -94,6 +97,7 @@
                   variant="outlined"
                   density="compact"
                   :error-messages="profileErrors.phone_number"
+                  autocomplete="off"
                 ></v-text-field>
               </v-col>
               <v-col cols="12">
@@ -104,6 +108,7 @@
                   variant="outlined"
                   density="compact"
                   :error-messages="profileErrors.address"
+                  autocomplete="off"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="6">
@@ -115,6 +120,7 @@
                   density="compact"
                   type="date"
                   :error-messages="profileErrors.date_of_birth"
+                  autocomplete="off"
                 ></v-text-field>
               </v-col>
             </v-row>

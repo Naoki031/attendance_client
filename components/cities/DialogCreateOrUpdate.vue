@@ -34,11 +34,17 @@
             v-model="name"
             label="Name"
             :error-messages="errors.name"
+            autocomplete="off"
             @blur="updateSlug"
           ></v-text-field>
 
           <!-- Slug field -->
-          <v-text-field v-model="slug" label="Slug" :error-messages="errors.slug"></v-text-field>
+          <v-text-field
+            v-model="slug"
+            label="Slug"
+            :error-messages="errors.slug"
+            autocomplete="off"
+          ></v-text-field>
         </v-container>
       </v-card-text>
 

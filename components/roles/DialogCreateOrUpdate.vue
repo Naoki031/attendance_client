@@ -13,6 +13,7 @@
             prepend-inner-icon="mdi-alphabetical-variant"
             label="Name"
             :error-messages="errors.name"
+            autocomplete="off"
             @blur="updateKey"
           ></v-text-field>
 
@@ -22,6 +23,7 @@
             prepend-inner-icon="mdi-key"
             label="Key"
             :error-messages="errors.key"
+            autocomplete="off"
           ></v-text-field>
 
           <!-- Descriptions field -->
@@ -31,6 +33,7 @@
             label="Descriptions"
             :error-messages="errors.descriptions"
             clearable
+            autocomplete="off"
           ></v-textarea>
         </v-container>
       </v-card-text>

@@ -12,11 +12,17 @@
             v-model="name"
             label="Name"
             :error-messages="errors.name"
+            autocomplete="off"
             @blur="updateSlug"
           ></v-text-field>
 
           <!-- Slug field -->
-          <v-text-field v-model="slug" label="Slug" :error-messages="errors.slug"></v-text-field>
+          <v-text-field
+            v-model="slug"
+            label="Slug"
+            :error-messages="errors.slug"
+            autocomplete="off"
+          ></v-text-field>
 
           <!-- Country select -->
           <v-select
@@ -47,19 +53,31 @@
             v-model="address"
             label="Address"
             :error-messages="errors.address"
+            autocomplete="off"
           ></v-text-field>
 
           <!-- Phone field -->
-          <v-text-field v-model="phone" label="Phone" :error-messages="errors.phone"></v-text-field>
+          <v-text-field
+            v-model="phone"
+            label="Phone"
+            :error-messages="errors.phone"
+            autocomplete="off"
+          ></v-text-field>
 
           <!-- Email field -->
-          <v-text-field v-model="email" label="Email" :error-messages="errors.email"></v-text-field>
+          <v-text-field
+            v-model="email"
+            label="Email"
+            :error-messages="errors.email"
+            autocomplete="off"
+          ></v-text-field>
 
           <!-- Website field -->
           <v-text-field
             v-model="website"
             label="Website"
             :error-messages="errors.website"
+            autocomplete="off"
           ></v-text-field>
         </v-container>
       </v-card-text>

@@ -16,6 +16,7 @@
                 label="First Name"
                 :error-messages="errors.first_name"
                 required
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -27,6 +28,7 @@
                 label="Last Name"
                 :error-messages="errors.last_name"
                 required
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -38,6 +40,7 @@
                 label="Email"
                 :error-messages="errors.email"
                 required
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -49,6 +52,7 @@
                 label="Position"
                 :error-messages="errors.position"
                 required
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -60,6 +64,7 @@
                 label="Phone Number"
                 :error-messages="errors.phone_number"
                 required
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -71,6 +76,7 @@
                 label="Address"
                 :error-messages="errors.address"
                 required
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -85,6 +91,7 @@
                     label="Date of Birth"
                     :error-messages="errors.date_of_birth"
                     readonly
+                    autocomplete="off"
                   />
                 </template>
                 <v-date-picker
@@ -111,6 +118,7 @@
                     label="Join Date"
                     :error-messages="errors.join_date"
                     readonly
+                    autocomplete="off"
                   />
                 </template>
                 <v-date-picker
@@ -170,6 +178,7 @@
                 prepend-inner-icon="mdi-file-document"
                 label="Contract Type"
                 :error-messages="errors.contract_type"
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -181,6 +190,7 @@
                 label="Contract Count"
                 type="number"
                 :error-messages="errors.contract_count"
+                autocomplete="off"
               ></v-text-field>
             </v-col>
 
@@ -195,6 +205,7 @@
                     label="Contract Signed Date"
                     :error-messages="errors.contract_signed_date"
                     readonly
+                    autocomplete="off"
                   />
                 </template>
                 <v-date-picker
@@ -221,6 +232,7 @@
                     label="Contract Expired Date"
                     :error-messages="errors.contract_expired_date"
                     readonly
+                    autocomplete="off"
                   />
                 </template>
                 <v-date-picker
