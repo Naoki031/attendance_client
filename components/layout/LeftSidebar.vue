@@ -152,6 +152,12 @@ const userRoutes: Array<RouteType | DividerType> = [
 const adminRoutes: Array<RouteType | DividerType> = [
   { type: 'divider', inset: false },
   {
+    icon: 'mdi-office-building',
+    text: 'Company',
+    link: '/management/companies',
+    name: 'admin.companies.index',
+  },
+  {
     icon: 'mdi-map-marker',
     text: 'Location',
     link: '',
