@@ -152,13 +152,19 @@ const userRoutes: Array<RouteType | DividerType> = [
 const adminRoutes: Array<RouteType | DividerType> = [
   { type: 'divider', inset: false },
   {
+    icon: 'mdi-account-multiple',
+    text: 'User Management',
+    link: '/management/users',
+    name: 'admin.users.index',
+  },
+  {
     icon: 'mdi-office-building',
     text: 'Company',
     link: '/management/companies',
     name: 'admin.companies.index',
   },
   {
-    icon: 'mdi-account-multiple',
+    icon: 'mdi-account-supervisor',
     text: 'Department',
     link: '/management/departments',
     name: 'admin.departments.index',
@@ -184,16 +190,13 @@ const adminRoutes: Array<RouteType | DividerType> = [
     link: '',
     active: 'Management',
     children: [
-      { icon: '', text: 'User', link: '/management/users', name: 'admin.users.index' },
       { icon: '', text: 'Role', link: '/management/roles', name: 'admin.roles.index' },
-
       {
         icon: '',
         text: 'Permission',
         link: '/management/permissions',
         name: 'admin.permissions.index',
       },
-
       {
         icon: '',
         text: 'Permission Group',
