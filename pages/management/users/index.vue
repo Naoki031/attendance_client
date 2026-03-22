@@ -1,107 +1,151 @@
 <template>
-  <div>
-    <v-data-table v-model:sort-by="sortBy" :headers="headers" :items="users" :loading="isLoading">
-      <template #top>
-        <v-toolbar flat>
-          <v-toolbar-title>List Users</v-toolbar-title>
-          <v-divider class="mx-4" inset vertical></v-divider>
-          <v-spacer></v-spacer>
-          <v-btn
-            :color="isFilterActive ? 'primary' : undefined"
-            variant="tonal"
-            prepend-icon="mdi-filter"
-            class="mr-2"
-            @click="filterExpanded = !filterExpanded"
-          >
-            Filter
-            <v-badge
-              v-if="activeFilterCount > 0"
-              :content="activeFilterCount"
-              color="primary"
-              floating
-            ></v-badge>
-          </v-btn>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="addUser()">New User</v-btn>
-        </v-toolbar>
-
-        <!-- Filter panel -->
-        <UserFilterPanel
-          v-model="filters"
-          :expanded="filterExpanded"
-          :departments="availableDepartments"
-          :roles="availableRoles"
-          @reset="resetFilters"
-        />
-      </template>
-
-      <template #item.id="{ item }">
-        <nuxt-link
-          :to="`/management/users/${item.id}`"
-          class="text-decoration-none text-medium-emphasis"
-        >
-          {{ item.id }}
-        </nuxt-link>
-      </template>
-
-      <template #item.full_name="{ item }">
-        <nuxt-link
-          :to="`/management/users/${item.id}`"
-          class="text-decoration-none font-weight-medium"
-        >
-          {{ item.full_name }}
-        </nuxt-link>
-      </template>
-
-      <template #item.departments="{ item }">
-        <div class="d-flex flex-wrap gap-1 py-1">
-          <v-chip
-            v-for="assignment in item.user_departments"
-            :key="assignment.id"
-            size="x-small"
-            color="teal"
-            variant="tonal"
-            link
-            :to="`/management/departments/${assignment.department_id}/users`"
-            >{{ assignment.department?.name }}</v-chip
-          >
-          <span v-if="!item.user_departments?.length" class="text-medium-emphasis text-caption"
-            >—</span
-          >
+  <v-container fluid class="py-6 px-6">
+    <!-- Page header -->
+    <div class="d-flex align-center justify-space-between mb-5">
+      <div>
+        <div class="text-h5 font-weight-bold">User Management</div>
+        <div class="text-body-2 text-medium-emphasis mt-1">
+          Manage staff accounts, roles, and department assignments
         </div>
-      </template>
+      </div>
+      <v-btn color="primary" prepend-icon="mdi-account-plus" rounded="lg" @click="addUser()">
+        New User
+      </v-btn>
+    </div>
 
-      <template #item.roles="{ item }">
-        <div class="d-flex flex-wrap gap-1 py-1">
-          <v-chip
-            v-for="role in item.roles"
-            :key="role"
-            size="x-small"
+    <!-- Table card -->
+    <v-card rounded="xl" elevation="0" border>
+      <!-- Toolbar -->
+      <div class="d-flex align-center px-4 py-3 ga-2 border-b table-toolbar">
+        <v-btn
+          :color="isFilterActive ? 'primary' : undefined"
+          :variant="isFilterActive ? 'tonal' : 'text'"
+          prepend-icon="mdi-filter-outline"
+          size="small"
+          @click="filterExpanded = !filterExpanded"
+        >
+          Filters
+          <v-badge
+            v-if="activeFilterCount > 0"
+            :content="activeFilterCount"
             color="primary"
-            variant="tonal"
-            >{{ role }}</v-chip
-          >
-          <span v-if="!item.roles?.length" class="text-medium-emphasis text-caption">—</span>
-        </div>
-      </template>
+            floating
+          ></v-badge>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <span class="text-caption text-medium-emphasis">{{ users.length }} users</span>
+      </div>
 
-      <template #item.is_activated="{ item }">
-        <v-chip :color="item.is_activated ? 'success' : 'error'" size="small">
-          {{ item.is_activated ? 'Active' : 'Inactive' }}
-        </v-chip>
-      </template>
+      <!-- Filter panel -->
+      <UserFilterPanel
+        v-model="filters"
+        :expanded="filterExpanded"
+        :departments="availableDepartments"
+        :roles="availableRoles"
+        @reset="resetFilters"
+      />
 
-      <template #item.actions="{ item }">
-        <v-icon class="me-2" size="small" @click="editItem(item)">mdi-pencil</v-icon>
-        <v-icon class="me-2" size="small" color="teal" @click="manageDepartments(item)"
-          >mdi-office-building</v-icon
-        >
-        <v-icon size="small" color="error" @click="deleteItem(item)">mdi-delete</v-icon>
-      </template>
+      <!-- Data table -->
+      <v-data-table
+        v-model:sort-by="sortBy"
+        :headers="headers"
+        :items="users"
+        :loading="isLoading"
+        :hover="true"
+      >
+        <!-- ID: link to detail -->
+        <template #item.id="{ item }">
+          <nuxt-link :to="`/management/users/${item.id}`" class="row-link">
+            {{ item.id }}
+          </nuxt-link>
+        </template>
 
-      <template #loading>
-        <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
-      </template>
-    </v-data-table>
+        <!-- Name: avatar + full name -->
+        <template #item.full_name="{ item }">
+          <div class="d-flex align-center ga-3 py-2">
+            <v-avatar size="34" color="primary" rounded="lg">
+              <span class="text-caption text-white font-weight-bold">{{ getInitials(item) }}</span>
+            </v-avatar>
+            <nuxt-link :to="`/management/users/${item.id}`" class="row-link font-weight-medium">
+              {{ item.full_name }}
+            </nuxt-link>
+          </div>
+        </template>
+
+        <!-- Departments -->
+        <template #item.departments="{ item }">
+          <div class="d-flex flex-wrap ga-1 py-1">
+            <v-chip
+              v-for="assignment in item.user_departments"
+              :key="assignment.id"
+              size="x-small"
+              color="primary"
+              variant="tonal"
+              link
+              :to="`/management/departments/${assignment.department_id}/users`"
+              >{{ assignment.department?.name }}</v-chip
+            >
+            <span v-if="!item.user_departments?.length" class="text-medium-emphasis text-caption"
+              >—</span
+            >
+          </div>
+        </template>
+
+        <!-- Roles -->
+        <template #item.roles="{ item }">
+          <div class="d-flex flex-wrap ga-1 py-1">
+            <v-chip
+              v-for="role in item.roles"
+              :key="role"
+              size="x-small"
+              color="primary"
+              variant="outlined"
+              >{{ role }}</v-chip
+            >
+            <span v-if="!item.roles?.length" class="text-medium-emphasis text-caption">—</span>
+          </div>
+        </template>
+
+        <!-- Status: dot indicator -->
+        <template #item.is_activated="{ item }">
+          <div class="d-flex align-center ga-2">
+            <span
+              class="status-dot"
+              :class="item.is_activated ? 'status-dot--active' : 'status-dot--inactive'"
+            ></span>
+            <span class="text-body-2">{{ item.is_activated ? 'Active' : 'Inactive' }}</span>
+          </div>
+        </template>
+
+        <!-- Actions: icon buttons with tooltip -->
+        <template #item.actions="{ item }">
+          <div class="d-flex align-center ga-1">
+            <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
+              <v-icon size="16">mdi-pencil-outline</v-icon>
+              <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+            </v-btn>
+            <v-btn
+              icon
+              size="x-small"
+              variant="text"
+              color="primary"
+              @click="manageDepartments(item)"
+            >
+              <v-icon size="16">mdi-office-building-outline</v-icon>
+              <v-tooltip activator="parent" location="top">Manage Departments</v-tooltip>
+            </v-btn>
+            <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
+              <v-icon size="16">mdi-delete-outline</v-icon>
+              <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+            </v-btn>
+          </div>
+        </template>
+
+        <template #loading>
+          <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+        </template>
+      </v-data-table>
+    </v-card>
 
     <DialogCreateOrUpdate
       v-if="dialog"
@@ -126,7 +170,7 @@
       @close-modal="dialogDepartments = false"
       @changed="getUsers"
     />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -177,7 +221,7 @@ const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
 ])
 const headers = ref([
   { title: 'ID', key: 'id', sortable: true },
-  { title: 'Name', align: 'start' as const, key: 'full_name' },
+  { title: 'Name', align: 'start' as const, key: 'full_name', minWidth: '220px' },
   { title: 'Position', key: 'position' },
   { title: 'Email', key: 'email' },
   { title: 'Departments', key: 'departments', sortable: false },
@@ -245,6 +289,15 @@ const getUsers = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const getInitials = (item: UserModel): string => {
+  const name = item.full_name ?? ''
+  const parts = name.trim().split(' ').filter(Boolean)
+  const first = parts[0]?.[0] ?? ''
+  const last = parts[parts.length - 1]?.[0] ?? ''
+  if (parts.length >= 2) return (first + last).toUpperCase()
+  return first.toUpperCase() || '?'
 }
 
 const resetFilters = () => {
@@ -344,4 +397,33 @@ onMounted(async () => {
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
 
-<style scoped></style>
+<style scoped>
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.status-dot--active {
+  background-color: #388e3c;
+}
+
+.status-dot--inactive {
+  background-color: #9e9e9e;
+}
+
+.table-toolbar {
+  background-color: #f5ede4;
+}
+
+.row-link {
+  color: #bf6e3a;
+  text-decoration: none;
+}
+
+.row-link:hover {
+  text-decoration: underline;
+}
+</style>

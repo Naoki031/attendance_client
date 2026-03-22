@@ -1,13 +1,24 @@
 <template>
-  <v-dialog :model-value="dialog" max-width="500px">
-    <v-card>
-      <v-card-title class="text-h5">Are you sure you want to delete {{ item.name }}?</v-card-title>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue-darken-1" variant="text" @click="close">Cancel</v-btn>
-        <v-btn color="blue-darken-1" variant="text" @click="confirm">OK</v-btn>
-        <v-spacer></v-spacer>
-      </v-card-actions>
+  <v-dialog :model-value="dialog" max-width="420px">
+    <v-card rounded="xl" elevation="2" class="text-center pa-6">
+      <div class="d-flex justify-center mb-4">
+        <div class="warning-icon-wrap">
+          <v-icon color="error" size="28">mdi-alert</v-icon>
+        </div>
+      </div>
+      <div class="text-h6 font-weight-bold mb-2">Delete Permission?</div>
+      <div class="text-body-2 text-medium-emphasis mb-6 px-4">
+        Are you sure you want to delete <strong>{{ item.name }}</strong
+        >? This action cannot be undone.
+      </div>
+      <div class="d-flex justify-center ga-3">
+        <v-btn variant="text" color="default" rounded="lg" min-width="100" @click="close">
+          Cancel
+        </v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" min-width="100" @click="confirm">
+          Delete
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>

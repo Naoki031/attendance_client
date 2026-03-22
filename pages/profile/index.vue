@@ -14,7 +14,7 @@
     <!-- Avatar & identity card -->
     <v-card rounded="lg" class="mb-4">
       <v-card-text class="pa-6">
-        <div class="d-flex align-center gap-5">
+        <div class="d-flex align-center ga-8">
           <v-avatar color="primary" size="88">
             <span class="text-h4 text-white font-weight-bold">{{ initials }}</span>
           </v-avatar>
@@ -29,7 +29,7 @@
                 user?.username
               }}
             </div>
-            <div class="d-flex flex-wrap gap-1 mt-2">
+            <div class="d-flex flex-wrap ga-1 mt-2">
               <v-chip
                 v-for="role in user?.roles"
                 :key="role"
@@ -50,7 +50,8 @@
       <v-col cols="12" md="6">
         <v-card rounded="lg" height="100%">
           <v-card-title class="pa-5 pb-3 text-body-1 font-weight-bold">
-            <v-icon size="18" class="mr-2">mdi-account-outline</v-icon>Personal Information
+            <v-icon size="18" color="primary" class="mr-2">mdi-account-outline</v-icon>Personal
+            Information
           </v-card-title>
           <v-divider></v-divider>
           <v-list density="compact" class="pa-2">
@@ -105,7 +106,8 @@
       <v-col cols="12" md="6">
         <v-card rounded="lg" height="100%">
           <v-card-title class="pa-5 pb-3 text-body-1 font-weight-bold">
-            <v-icon size="18" class="mr-2">mdi-briefcase-outline</v-icon>Employment Information
+            <v-icon size="18" color="primary" class="mr-2">mdi-briefcase-outline</v-icon>Employment
+            Information
           </v-card-title>
           <v-divider></v-divider>
           <v-list density="compact" class="pa-2">

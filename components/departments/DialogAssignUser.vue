@@ -1,13 +1,20 @@
 <template>
   <v-dialog :model-value="dialog" max-width="500px" persistent>
-    <v-card @keydown.enter.prevent="confirm">
-      <v-card-title class="text-h5">Assign User to Department</v-card-title>
+    <v-card rounded="xl" elevation="2" @keydown.enter.prevent="confirm">
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">Assign User to Department</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            Select a user and their company to assign.
+          </div>
+        </div>
+        <v-btn icon variant="text" size="small" @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
 
-      <v-divider></v-divider>
-
-      <v-card-text>
-        <v-container>
-          <!-- API error alert -->
+      <v-card-text class="px-6 py-0">
+        <v-container class="pa-0">
           <v-alert
             v-if="apiError"
             type="error"
@@ -19,13 +26,16 @@
             {{ apiError }}
           </v-alert>
 
-          <!-- User select: search server-side, no full list loaded upfront -->
+          <div class="field-label">USER</div>
           <v-autocomplete
             v-model="userId"
-            label="User"
             :items="searchedUsers"
             item-title="full_name"
             item-value="id"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
             :loading="isSearchingUsers"
             :error-messages="errors.user_id"
             no-filter
@@ -35,13 +45,16 @@
             @update:search="onUserSearch"
           ></v-autocomplete>
 
-          <!-- Company select -->
+          <div class="field-label">COMPANY</div>
           <v-autocomplete
             v-model="companyId"
-            label="Company"
             :items="companies"
             item-title="name"
             item-value="id"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
             :error-messages="errors.company_id"
             clearable
             autocomplete="off"
@@ -49,14 +62,10 @@
         </v-container>
       </v-card-text>
 
-      <v-divider></v-divider>
-
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue-grey-darken-4" variant="text" @click="close">Cancel</v-btn>
-        <v-btn color="blue-darken-1" variant="elevated" @click="confirm">Assign</v-btn>
-        <v-spacer></v-spacer>
-      </v-card-actions>
+      <div class="d-flex justify-end ga-3 px-6 py-4">
+        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Assign</v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>

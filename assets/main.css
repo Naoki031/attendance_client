@@ -1,0 +1,94 @@
+/* ============================================================
+   Global CSS overrides for Vuetify components
+   Theme: Warm beige / brown palette
+   Primary: #BF6E3A  |  Background: #FAF5F0
+   ============================================================ */
+
+/* ----------------------------------------------------------
+   v-data-table: header row — cover all Vuetify 3 selectors
+   ---------------------------------------------------------- */
+.v-data-table thead tr th,
+.v-data-table thead tr,
+.v-data-table .v-data-table__thead th,
+.v-data-table .v-data-table__thead tr,
+.v-data-table .v-data-table-header th,
+.v-data-table > .v-table__wrapper > table > thead > tr > th {
+  background-color: #f5ede4 !important;
+  color: #5c3d2a !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #e0ccba !important;
+}
+
+/* Sort icon color in header */
+.v-data-table thead th .v-data-table-header__sort-icon,
+.v-data-table thead th .v-icon {
+  color: #9a6642 !important;
+}
+
+/* ----------------------------------------------------------
+   v-data-table: footer (pagination bar)
+   ---------------------------------------------------------- */
+.v-data-table .v-data-table-footer,
+.v-data-table-footer {
+  background-color: #f5ede4 !important;
+  border-top: 1px solid #e0ccba !important;
+  color: #5c3d2a !important;
+}
+
+/* Footer text (rows per page label, page info) */
+.v-data-table-footer .v-data-table-footer__info,
+.v-data-table-footer .v-field__input,
+.v-data-table-footer .v-select__selection-text,
+.v-data-table-footer span,
+.v-data-table-footer .v-btn {
+  color: #5c3d2a !important;
+}
+
+/* ----------------------------------------------------------
+   v-data-table: body rows — subtle hover
+   ---------------------------------------------------------- */
+.v-data-table .v-data-table__tr:hover td {
+  background-color: #fdf7f2 !important;
+}
+
+/* ============================================================
+   Shared dialog styles — used across all Dialog components
+   ============================================================ */
+
+/* Header row: title + close button */
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+/* Uppercase label above each form field */
+.field-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #7a6555;
+  margin-bottom: 4px;
+}
+
+/* Section divider label (CONTRACT, PASSWORD, etc.) */
+.section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #bf6e3a;
+  border-bottom: 1px solid #e0ccba;
+  padding-bottom: 6px;
+  margin-top: 4px;
+}
+
+/* Warning icon circle used in all Delete dialogs */
+.warning-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #fdecea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

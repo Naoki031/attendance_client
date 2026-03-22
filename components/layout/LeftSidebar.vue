@@ -4,6 +4,8 @@
     :rail="mdAndUp ? true : undefined"
     :expand-on-hover="mdAndUp"
     :temporary="!mdAndUp"
+    color="#FFFAF6"
+    border="e"
     @update:rail="onChange"
   >
     <!-- User information -->

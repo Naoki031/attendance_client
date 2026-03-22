@@ -1,19 +1,35 @@
 <template>
   <v-dialog :model-value="dialog" :max-width="maxWidth" persistent scrollable>
-    <v-card @keydown.enter.prevent="confirm">
-      <v-card-title class="text-h5">{{ title }}</v-card-title>
+    <v-card rounded="xl" elevation="2" @keydown.enter.prevent="confirm">
+      <!-- Header -->
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">{{ title }}</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            {{
+              props.item
+                ? 'Update profile information and system permissions.'
+                : 'Fill in details to create a new user account.'
+            }}
+          </div>
+        </div>
+        <v-btn icon variant="text" size="small" @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
 
-      <v-divider></v-divider>
-
-      <v-card-text>
-        <v-container>
+      <v-card-text class="px-6 py-0">
+        <v-container class="pa-0">
           <v-row>
             <!-- First Name -->
             <v-col cols="12" md="6">
+              <div class="field-label">FIRST NAME</div>
               <v-text-field
                 v-model="first_name"
-                prepend-inner-icon="mdi-account"
-                label="First Name"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.first_name"
                 required
                 autocomplete="off"
@@ -22,10 +38,13 @@
 
             <!-- Last Name -->
             <v-col cols="12" md="6">
+              <div class="field-label">LAST NAME</div>
               <v-text-field
                 v-model="last_name"
-                prepend-inner-icon="mdi-account"
-                label="Last Name"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.last_name"
                 required
                 autocomplete="off"
@@ -34,10 +53,13 @@
 
             <!-- Email -->
             <v-col cols="12" md="6">
+              <div class="field-label">EMAIL ADDRESS</div>
               <v-text-field
                 v-model="email"
-                prepend-inner-icon="mdi-email"
-                label="Email"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.email"
                 required
                 autocomplete="off"
@@ -46,10 +68,13 @@
 
             <!-- Position -->
             <v-col cols="12" md="6">
+              <div class="field-label">POSITION</div>
               <v-text-field
                 v-model="position"
-                prepend-inner-icon="mdi-briefcase"
-                label="Position"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.position"
                 required
                 autocomplete="off"
@@ -58,10 +83,13 @@
 
             <!-- Phone Number -->
             <v-col cols="12" md="6">
+              <div class="field-label">PHONE NUMBER</div>
               <v-text-field
                 v-model="phone_number"
-                prepend-inner-icon="mdi-phone"
-                label="Phone Number"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.phone_number"
                 required
                 autocomplete="off"
@@ -70,10 +98,13 @@
 
             <!-- Address -->
             <v-col cols="12" md="6">
+              <div class="field-label">ADDRESS</div>
               <v-text-field
                 v-model="address"
-                prepend-inner-icon="mdi-map-marker"
-                label="Address"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.address"
                 required
                 autocomplete="off"
@@ -82,13 +113,17 @@
 
             <!-- Date of Birth -->
             <v-col cols="12" md="6">
+              <div class="field-label">DATE OF BIRTH</div>
               <v-menu v-model="menuDateOfBirth" :close-on-content-click="false">
                 <template #activator="{ props: menuProps }">
                   <v-text-field
                     v-bind="menuProps"
                     :model-value="date_of_birth"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
                     prepend-inner-icon="mdi-calendar"
-                    label="Date of Birth"
                     :error-messages="errors.date_of_birth"
                     readonly
                     autocomplete="off"
@@ -109,13 +144,17 @@
 
             <!-- Join Date -->
             <v-col cols="12" md="6">
+              <div class="field-label">JOIN DATE</div>
               <v-menu v-model="menuJoinDate" :close-on-content-click="false">
                 <template #activator="{ props: menuProps }">
                   <v-text-field
                     v-bind="menuProps"
                     :model-value="join_date"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
                     prepend-inner-icon="mdi-calendar-check"
-                    label="Join Date"
                     :error-messages="errors.join_date"
                     readonly
                     autocomplete="off"
@@ -136,13 +175,16 @@
 
             <!-- Roles -->
             <v-col cols="12" md="6">
+              <div class="field-label">ASSIGNED ROLE</div>
               <v-select
                 v-model="permission_group_ids"
                 :items="availableRoles"
                 item-title="name"
                 item-value="id"
-                label="Roles"
-                prepend-inner-icon="mdi-shield-account"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.permission_group_ids"
                 :loading="isLoadingRoles"
                 multiple
@@ -158,25 +200,33 @@
             </v-col>
 
             <!-- Status -->
-            <v-col cols="12" md="6" class="d-flex align-center">
-              <v-switch
-                v-model="is_active"
-                label="Active"
-                color="success"
-                :error-messages="errors.is_active"
-              ></v-switch>
+            <v-col cols="12" md="6">
+              <div class="field-label">ACCESS STATUS</div>
+              <div class="d-flex align-center mt-2">
+                <v-switch
+                  v-model="is_active"
+                  color="primary"
+                  hide-details
+                  :error-messages="errors.is_active"
+                ></v-switch>
+                <span class="ml-2 text-body-2">{{ is_active ? 'Active' : 'Inactive' }}</span>
+              </div>
             </v-col>
 
-            <v-col cols="12"
-              ><v-divider><template #default>Contract</template></v-divider></v-col
-            >
+            <!-- Contract section -->
+            <v-col cols="12">
+              <div class="section-label">CONTRACT</div>
+            </v-col>
 
             <!-- Contract Type -->
             <v-col cols="12" md="6">
+              <div class="field-label">CONTRACT TYPE</div>
               <v-text-field
                 v-model="contract_type"
-                prepend-inner-icon="mdi-file-document"
-                label="Contract Type"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :error-messages="errors.contract_type"
                 autocomplete="off"
               ></v-text-field>
@@ -184,10 +234,13 @@
 
             <!-- Contract Count -->
             <v-col cols="12" md="6">
+              <div class="field-label">CONTRACT COUNT</div>
               <v-text-field
                 v-model="contract_count"
-                prepend-inner-icon="mdi-counter"
-                label="Contract Count"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 type="number"
                 :error-messages="errors.contract_count"
                 autocomplete="off"
@@ -196,13 +249,17 @@
 
             <!-- Contract Signed Date -->
             <v-col cols="12" md="6">
+              <div class="field-label">CONTRACT SIGNED DATE</div>
               <v-menu v-model="menuContractSignedDate" :close-on-content-click="false">
                 <template #activator="{ props: menuProps }">
                   <v-text-field
                     v-bind="menuProps"
                     :model-value="contract_signed_date"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
                     prepend-inner-icon="mdi-calendar-edit"
-                    label="Contract Signed Date"
                     :error-messages="errors.contract_signed_date"
                     readonly
                     autocomplete="off"
@@ -223,13 +280,17 @@
 
             <!-- Contract Expired Date -->
             <v-col cols="12" md="6">
+              <div class="field-label">CONTRACT EXPIRED DATE</div>
               <v-menu v-model="menuContractExpiredDate" :close-on-content-click="false">
                 <template #activator="{ props: menuProps }">
                   <v-text-field
                     v-bind="menuProps"
                     :model-value="contract_expired_date"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
                     prepend-inner-icon="mdi-calendar-remove"
-                    label="Contract Expired Date"
                     :error-messages="errors.contract_expired_date"
                     readonly
                     autocomplete="off"
@@ -248,16 +309,20 @@
               </v-menu>
             </v-col>
 
-            <v-col cols="12"
-              ><v-divider><template #default>Password</template></v-divider></v-col
-            >
+            <!-- Password section -->
+            <v-col cols="12">
+              <div class="section-label">PASSWORD</div>
+            </v-col>
 
             <!-- Password -->
             <v-col cols="12" md="6">
+              <div class="field-label">PASSWORD</div>
               <v-text-field
                 v-model="password"
-                prepend-inner-icon="mdi-lock"
-                label="Password"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :placeholder="props.item ? 'Leave blank to keep current' : ''"
                 :error-messages="errors.password"
                 type="password"
@@ -268,10 +333,13 @@
 
             <!-- Confirm Password -->
             <v-col cols="12" md="6">
+              <div class="field-label">CONFIRM PASSWORD</div>
               <v-text-field
                 v-model="confirm_password"
-                prepend-inner-icon="mdi-lock-check"
-                label="Confirm Password"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
                 :placeholder="props.item ? 'Leave blank to keep current' : ''"
                 :error-messages="errors.confirm_password"
                 type="password"
@@ -283,16 +351,19 @@
         </v-container>
       </v-card-text>
 
-      <v-divider></v-divider>
-
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue-grey-darken-4" variant="text" @click="close">Cancel</v-btn>
-        <v-btn color="blue-darken-1" variant="elevated" :loading="isSubmitting" @click="confirm"
-          >OK</v-btn
+      <!-- Footer -->
+      <div class="d-flex justify-end ga-3 px-6 py-4">
+        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          rounded="lg"
+          :loading="isSubmitting"
+          @click="confirm"
         >
-        <v-spacer></v-spacer>
-      </v-card-actions>
+          Save Changes
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>
@@ -566,3 +637,5 @@ onMounted(() => {
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
+
+<style scoped></style>

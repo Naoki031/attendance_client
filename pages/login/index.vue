@@ -1,15 +1,17 @@
 <template>
-  <v-sheet class="d-flex align-center justify-center" min-height="100vh">
+  <v-sheet class="login-bg d-flex align-center justify-center" min-height="100vh">
     <v-card
       class="pa-8 pb-6"
-      elevation="8"
+      elevation="12"
       width="440"
-      rounded="lg"
+      rounded="xl"
       @keydown.enter.prevent="onSubmit"
     >
       <!-- Logo & Title -->
       <div class="text-center mb-6">
-        <v-icon icon="mdi-briefcase-clock-outline" size="52" color="primary" class="mb-3"></v-icon>
+        <v-avatar color="primary" size="64" class="mb-4" rounded="lg">
+          <v-icon icon="mdi-briefcase-clock-outline" size="36" color="white"></v-icon>
+        </v-avatar>
         <div class="text-h5 font-weight-bold">Attendance System</div>
         <div class="text-body-2 text-medium-emphasis mt-1">Sign in to your account</div>
       </div>
@@ -152,3 +154,9 @@ const onSubmit = handleSubmit(async (values) => {
 /** START DEFINE LIFE CYCLE HOOK */
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
+
+<style scoped>
+.login-bg {
+  background: linear-gradient(135deg, #e8c9a8 0%, #d4a87a 50%, #c49060 100%);
+}
+</style>

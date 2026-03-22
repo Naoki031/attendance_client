@@ -12,6 +12,20 @@ export default defineNuxtPlugin((nuxtApp) => {
     directives,
     theme: {
       defaultTheme: 'light',
+      themes: {
+        light: {
+          colors: {
+            primary: '#BF6E3A',
+            secondary: '#E8A870',
+            background: '#FAF5F0',
+            surface: '#FFFFFF',
+            error: '#D32F2F',
+            success: '#388E3C',
+            warning: '#F57C00',
+            info: '#0288D1',
+          },
+        },
+      },
     },
     icons: {
       defaultSet: 'mdi',

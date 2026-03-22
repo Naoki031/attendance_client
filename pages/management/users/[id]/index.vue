@@ -1,86 +1,155 @@
 <template>
-  <div>
-    <!-- Back button + title -->
-    <v-row class="mb-4 align-center" no-gutters>
-      <v-btn icon variant="text" class="mr-2" to="/management/users">
+  <v-container fluid class="py-6 px-6">
+    <!-- Page header -->
+    <div class="d-flex align-center ga-3 mb-6">
+      <v-btn icon variant="text" size="small" to="/management/users">
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
-      <span class="text-h6 font-weight-bold">{{ user?.full_name ?? 'User Detail' }}</span>
-      <v-spacer></v-spacer>
-      <v-chip v-if="user" :color="user.is_activated ? 'success' : 'error'" size="small">
-        {{ user.is_activated ? 'Active' : 'Inactive' }}
-      </v-chip>
-    </v-row>
 
-    <!-- Loading -->
+      <v-skeleton-loader
+        v-if="isLoading"
+        type="list-item-avatar"
+        class="flex-grow-1"
+      ></v-skeleton-loader>
+
+      <div v-else-if="user" class="d-flex align-center ga-4 flex-grow-1" style="min-width: 0">
+        <v-avatar size="52" color="primary" class="flex-shrink-0">
+          <span class="text-subtitle-1 text-white font-weight-bold">{{ getInitials(user) }}</span>
+        </v-avatar>
+        <div class="flex-grow-1" style="min-width: 0">
+          <div class="text-h5 font-weight-bold text-truncate">{{ user.full_name }}</div>
+          <div class="text-body-2 text-medium-emphasis text-truncate">
+            {{ [user.position, user.email].filter(Boolean).join(' · ') }}
+          </div>
+        </div>
+        <v-chip
+          :color="user.is_activated ? 'success' : 'default'"
+          size="small"
+          variant="tonal"
+          class="flex-shrink-0"
+        >
+          {{ user.is_activated ? 'Active' : 'Inactive' }}
+        </v-chip>
+      </div>
+    </div>
+
+    <!-- Loading skeleton cards -->
     <v-row v-if="isLoading">
-      <v-col cols="12">
-        <v-skeleton-loader type="article"></v-skeleton-loader>
+      <v-col cols="12" md="7">
+        <v-skeleton-loader type="card" rounded="xl"></v-skeleton-loader>
+      </v-col>
+      <v-col cols="12" md="5">
+        <v-skeleton-loader type="card" rounded="xl"></v-skeleton-loader>
       </v-col>
     </v-row>
 
     <template v-else-if="user">
       <v-row>
         <!-- Basic information -->
-        <v-col cols="12" md="6">
-          <v-card class="mb-4" height="100%">
-            <v-card-title>Basic Information</v-card-title>
-            <v-divider></v-divider>
-            <v-list density="compact">
-              <v-list-item title="ID" :subtitle="String(user.id)"></v-list-item>
-              <v-list-item title="Email" :subtitle="user.email"></v-list-item>
-              <v-list-item title="Position" :subtitle="user.position ?? '—'"></v-list-item>
-              <v-list-item title="Phone" :subtitle="user.phone_number ?? '—'"></v-list-item>
-              <v-list-item title="Address" :subtitle="user.address ?? '—'"></v-list-item>
-              <v-list-item
-                title="Date of Birth"
-                :subtitle="user.date_of_birth ?? '—'"
-              ></v-list-item>
-              <v-list-item title="Join Date" :subtitle="user.join_date ?? '—'"></v-list-item>
-            </v-list>
+        <v-col cols="12" md="7">
+          <v-card rounded="xl" elevation="0" border class="mb-4">
+            <div class="px-5 pt-5 pb-2">
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-4">
+                BASIC INFORMATION
+              </div>
+              <v-row dense>
+                <v-col cols="6">
+                  <div class="info-label">ID</div>
+                  <div class="info-value">{{ user.id }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">POSITION</div>
+                  <div class="info-value">{{ user.position ?? '—' }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <div class="info-label">EMAIL</div>
+                  <div class="info-value">{{ user.email }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">PHONE</div>
+                  <div class="info-value">{{ user.phone_number ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">DATE OF BIRTH</div>
+                  <div class="info-value">{{ user.date_of_birth ?? '—' }}</div>
+                </v-col>
+                <v-col cols="12">
+                  <div class="info-label">ADDRESS</div>
+                  <div class="info-value">{{ user.address ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">JOIN DATE</div>
+                  <div class="info-value">{{ user.join_date ?? '—' }}</div>
+                </v-col>
+              </v-row>
+            </div>
           </v-card>
         </v-col>
 
-        <!-- Contract -->
-        <v-col cols="12" md="6">
-          <v-card class="mb-4" height="100%">
-            <v-card-title>Contract</v-card-title>
-            <v-divider></v-divider>
-            <v-list density="compact">
-              <v-list-item title="Type" :subtitle="user.contract_type ?? '—'"></v-list-item>
-              <v-list-item
-                title="Count"
-                :subtitle="user.contract_count != null ? String(user.contract_count) : '—'"
-              ></v-list-item>
-              <v-list-item
-                title="Signed Date"
-                :subtitle="user.contract_signed_date ?? '—'"
-              ></v-list-item>
-              <v-list-item
-                title="Expired Date"
-                :subtitle="user.contract_expired_date ?? '—'"
-              ></v-list-item>
-            </v-list>
+        <!-- Right column -->
+        <v-col cols="12" md="5">
+          <!-- Contract -->
+          <v-card rounded="xl" elevation="0" border class="mb-4">
+            <div class="px-5 pt-5 pb-2">
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-4">CONTRACT</div>
+              <v-row dense>
+                <v-col cols="6">
+                  <div class="info-label">TYPE</div>
+                  <div class="info-value">{{ user.contract_type ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">COUNT</div>
+                  <div class="info-value">
+                    {{ user.contract_count != null ? String(user.contract_count) : '—' }}
+                  </div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">SIGNED DATE</div>
+                  <div class="info-value">{{ user.contract_signed_date ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">EXPIRED DATE</div>
+                  <div class="info-value">{{ user.contract_expired_date ?? '—' }}</div>
+                </v-col>
+              </v-row>
+            </div>
           </v-card>
-        </v-col>
 
-        <!-- Departments -->
-        <v-col cols="12" md="6">
-          <v-card class="mb-4">
-            <v-card-title>Departments</v-card-title>
-            <v-divider></v-divider>
-            <v-card-text>
-              <div class="d-flex flex-wrap gap-2">
+          <!-- Roles -->
+          <v-card rounded="xl" elevation="0" border class="mb-4">
+            <div class="px-5 pt-5 pb-4">
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">ROLES</div>
+              <div class="d-flex flex-wrap ga-2">
+                <v-chip
+                  v-for="role in user.roles"
+                  :key="role"
+                  color="primary"
+                  variant="tonal"
+                  size="small"
+                >
+                  {{ role }}
+                </v-chip>
+                <span v-if="!user.roles?.length" class="text-medium-emphasis text-body-2">—</span>
+              </div>
+            </div>
+          </v-card>
+
+          <!-- Departments -->
+          <v-card rounded="xl" elevation="0" border>
+            <div class="px-5 pt-5 pb-4">
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">DEPARTMENTS</div>
+              <div class="d-flex flex-wrap ga-2">
                 <v-chip
                   v-for="assignment in user.user_departments"
                   :key="assignment.id"
-                  color="teal"
-                  variant="tonal"
+                  color="primary"
+                  variant="outlined"
+                  size="small"
                   link
                   :to="`/management/departments/${assignment.department_id}/users`"
                 >
                   {{ assignment.department?.name }}
-                  <span v-if="assignment.company" class="text-medium-emphasis ml-1">
+                  <span v-if="assignment.company" class="ml-1 text-medium-emphasis">
                     ({{ assignment.company.name }})
                   </span>
                 </v-chip>
@@ -88,28 +157,12 @@
                   >—</span
                 >
               </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <!-- Roles -->
-        <v-col cols="12" md="6">
-          <v-card class="mb-4">
-            <v-card-title>Roles</v-card-title>
-            <v-divider></v-divider>
-            <v-card-text>
-              <div class="d-flex flex-wrap gap-2">
-                <v-chip v-for="role in user.roles" :key="role" color="primary" variant="tonal">{{
-                  role
-                }}</v-chip>
-                <span v-if="!user.roles?.length" class="text-medium-emphasis text-body-2">—</span>
-              </div>
-            </v-card-text>
+            </div>
           </v-card>
         </v-col>
       </v-row>
     </template>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
@@ -142,6 +195,15 @@ const loadUser = async () => {
     isLoading.value = false
   }
 }
+
+const getInitials = (item: UserModel): string => {
+  const name = item.full_name ?? ''
+  const parts = name.trim().split(' ').filter(Boolean)
+  const first = parts[0]?.[0] ?? ''
+  const last = parts[parts.length - 1]?.[0] ?? ''
+  if (parts.length >= 2) return (first + last).toUpperCase()
+  return first.toUpperCase() || '?'
+}
 /* END DEFINE METHOD */
 
 /** START DEFINE LIFE CYCLE HOOK */
@@ -151,4 +213,18 @@ onMounted(() => {
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
 
-<style scoped></style>
+<style scoped>
+.info-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  color: #9a7a65;
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #3a2a1e;
+  margin-bottom: 16px;
+}
+</style>

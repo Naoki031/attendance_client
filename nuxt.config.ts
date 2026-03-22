@@ -43,7 +43,7 @@ export default defineNuxtConfig({
   },
 
   // Vuetify 4: import path changed from 'vuetify/lib/styles/main.sass'
-  css: ['vuetify/styles', '@mdi/font/css/materialdesignicons.min.css'],
+  css: ['vuetify/styles', '@mdi/font/css/materialdesignicons.min.css', '~/assets/main.css'],
 
   build: {
     transpile: ['vuetify'],

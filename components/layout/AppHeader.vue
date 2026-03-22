@@ -1,12 +1,12 @@
 <template>
-  <v-app-bar app elevation="1">
+  <v-app-bar app elevation="0" color="primary">
     <!-- Hamburger button: visible on mobile only -->
     <v-app-bar-nav-icon class="d-flex d-md-none" @click="drawer.toggle()"></v-app-bar-nav-icon>
 
     <v-app-bar-title>
-      <div class="d-flex align-center gap-2">
-        <v-icon icon="mdi-briefcase-clock-outline" color="primary" size="24"></v-icon>
-        <span class="font-weight-bold">Attendance</span>
+      <div class="d-flex align-center ga-2">
+        <v-icon icon="mdi-briefcase-clock-outline" color="white" size="22"></v-icon>
+        <span class="font-weight-bold text-white text-body-1 ml-1">Attendance</span>
       </div>
     </v-app-bar-title>
 

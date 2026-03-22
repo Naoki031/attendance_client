@@ -1,7 +1,7 @@
 <template>
   <v-container class="py-8" max-width="800">
     <!-- Page header -->
-    <div class="d-flex align-center gap-3 mb-6">
+    <div class="d-flex align-center ga-3 mb-6">
       <v-btn icon="mdi-arrow-left" variant="text" to="/profile"></v-btn>
       <div>
         <div class="text-h5 font-weight-bold">Edit Profile</div>
@@ -125,7 +125,7 @@
               </v-col>
             </v-row>
 
-            <div class="d-flex justify-end gap-3 mt-4">
+            <div class="d-flex justify-end ga-3 mt-4">
               <v-btn variant="text" to="/profile">Cancel</v-btn>
               <v-btn color="primary" :loading="profileLoading" @click="submitProfile">
                 Save Changes

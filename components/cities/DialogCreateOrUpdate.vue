@@ -1,13 +1,18 @@
 <template>
   <v-dialog :model-value="dialog" max-width="560px" persistent>
-    <v-card @keydown.enter.prevent="confirm">
-      <v-card-title class="text-h5">{{ title }}</v-card-title>
+    <v-card rounded="xl" elevation="2" @keydown.enter.prevent="confirm">
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">{{ title }}</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">Create or update city record.</div>
+        </div>
+        <v-btn icon variant="text" size="small" @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
 
-      <v-divider></v-divider>
-
-      <v-card-text>
-        <v-container>
-          <!-- API error alert -->
+      <v-card-text class="px-6 py-0">
+        <v-container class="pa-0">
           <v-alert
             v-if="serverError"
             type="error"
@@ -19,43 +24,48 @@
             {{ serverError }}
           </v-alert>
 
-          <!-- Country select -->
+          <div class="field-label">COUNTRY</div>
           <v-select
             v-model="countryId"
             :items="countries"
             item-title="name"
             item-value="id"
-            label="Country"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
             :error-messages="errors.country_id"
           ></v-select>
 
-          <!-- Name field -->
+          <div class="field-label">NAME</div>
           <v-text-field
             v-model="name"
-            label="Name"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
             :error-messages="errors.name"
             autocomplete="off"
             @blur="updateSlug"
           ></v-text-field>
 
-          <!-- Slug field -->
+          <div class="field-label">SLUG</div>
           <v-text-field
             v-model="slug"
-            label="Slug"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
             :error-messages="errors.slug"
             autocomplete="off"
           ></v-text-field>
         </v-container>
       </v-card-text>
 
-      <v-divider></v-divider>
-
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue-grey-darken-4" variant="text" @click="close">Cancel</v-btn>
-        <v-btn color="blue-darken-1" variant="elevated" @click="confirm">OK</v-btn>
-        <v-spacer></v-spacer>
-      </v-card-actions>
+      <div class="d-flex justify-end ga-3 px-6 py-4">
+        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Save</v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>

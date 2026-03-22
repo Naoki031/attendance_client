@@ -1,44 +1,48 @@
 <template>
-  <div>
-    <!-- Back button + title -->
-    <v-row class="mb-4 align-center" no-gutters>
-      <v-btn icon variant="text" class="mr-2" :to="'/management/departments'">
-        <v-icon>mdi-arrow-left</v-icon>
+  <v-container fluid class="py-6 px-6">
+    <!-- Page header -->
+    <div class="d-flex align-center justify-space-between mb-5">
+      <div class="d-flex align-center ga-2">
+        <v-btn icon variant="text" size="small" :to="'/management/departments'">
+          <v-icon>mdi-arrow-left</v-icon>
+        </v-btn>
+        <div>
+          <div class="text-h5 font-weight-bold">{{ departmentName }}</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">Assigned users</div>
+        </div>
+      </div>
+      <v-btn color="primary" prepend-icon="mdi-account-plus" rounded="lg" @click="dialog = true">
+        Assign User
       </v-btn>
-      <span class="text-h6 font-weight-bold"> Users in Department: {{ departmentName }} </span>
-    </v-row>
+    </div>
 
-    <v-data-table :headers="headers" :items="assignments" :loading="isLoading">
-      <template #top>
-        <v-toolbar flat>
-          <v-toolbar-title>Assigned Users</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="dialog = true">
-            Assign User
+    <!-- Table card -->
+    <v-card rounded="xl" elevation="0" border>
+      <v-data-table :headers="headers" :items="assignments" :loading="isLoading" :hover="true">
+        <template #item.user="{ item }">
+          {{ item.user?.full_name ?? '-' }}
+        </template>
+
+        <template #item.email="{ item }">
+          {{ item.user?.email ?? '-' }}
+        </template>
+
+        <template #item.company="{ item }">
+          {{ item.company?.name ?? '-' }}
+        </template>
+
+        <template #item.actions="{ item }">
+          <v-btn icon size="x-small" variant="text" color="error" @click="confirmRemove(item)">
+            <v-icon size="16">mdi-delete-outline</v-icon>
+            <v-tooltip activator="parent" location="top">Remove</v-tooltip>
           </v-btn>
-        </v-toolbar>
-      </template>
+        </template>
 
-      <template #item.user="{ item }">
-        {{ item.user?.full_name ?? '-' }}
-      </template>
-
-      <template #item.email="{ item }">
-        {{ item.user?.email ?? '-' }}
-      </template>
-
-      <template #item.company="{ item }">
-        {{ item.company?.name ?? '-' }}
-      </template>
-
-      <template #item.actions="{ item }">
-        <v-icon color="error" small @click="confirmRemove(item)">mdi-delete</v-icon>
-      </template>
-
-      <template #loading>
-        <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
-      </template>
-    </v-data-table>
+        <template #loading>
+          <v-skeleton-loader type="table-row@5"></v-skeleton-loader>
+        </template>
+      </v-data-table>
+    </v-card>
 
     <!-- Confirm remove dialog -->
     <v-dialog v-model="dialogDelete" max-width="420px">
@@ -66,7 +70,7 @@
       @confirm="onAssigned"
       @close-modal="dialog = false"
     />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>

@@ -1,20 +1,25 @@
 <template>
   <v-dialog :model-value="dialog" max-width="520px" persistent>
-    <v-card>
-      <v-card-title class="text-h5">Manage Departments</v-card-title>
-      <v-card-subtitle>{{ user.full_name }}</v-card-subtitle>
+    <v-card rounded="xl" elevation="2">
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">Manage Departments</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">{{ user.full_name }}</div>
+        </div>
+        <v-btn icon variant="text" size="small" @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
 
-      <v-divider></v-divider>
-
-      <v-card-text>
-        <v-container>
+      <v-card-text class="px-6 py-0">
+        <v-container class="pa-0">
           <!-- Current assignments -->
-          <div class="d-flex flex-wrap gap-2 mb-4">
+          <div class="d-flex flex-wrap ga-2 mb-4">
             <v-chip
               v-for="assignment in departmentAssignments"
               :key="assignment.id"
               size="small"
-              color="teal"
+              color="primary"
               variant="tonal"
             >
               {{ assignment.department?.name }}
@@ -32,7 +37,6 @@
             >
           </div>
 
-          <!-- API error alert -->
           <v-alert
             v-if="departmentError"
             type="error"
@@ -44,71 +48,76 @@
             {{ departmentError }}
           </v-alert>
 
-          <v-divider class="mb-4"></v-divider>
+          <div class="section-label mb-3">ADD ASSIGNMENT</div>
 
-          <!-- Add assignment row -->
-          <v-row>
-            <v-col cols="12" md="12">
-              <v-autocomplete
-                v-model="newDepartmentId"
-                label="Department"
-                :items="availableDepartments"
-                item-title="name"
-                item-value="id"
-                clearable
-                autocomplete="off"
-              ></v-autocomplete>
-            </v-col>
+          <div class="field-label">DEPARTMENT</div>
+          <v-autocomplete
+            v-model="newDepartmentId"
+            :items="availableDepartments"
+            item-title="name"
+            item-value="id"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
+            clearable
+            autocomplete="off"
+          ></v-autocomplete>
 
-            <v-col cols="12" md="12">
-              <v-autocomplete
-                v-model="newCompanyId"
-                label="Company"
-                :items="availableCompanies"
-                item-title="name"
-                item-value="id"
-                clearable
-                autocomplete="off"
-              ></v-autocomplete>
-            </v-col>
+          <div class="field-label">COMPANY</div>
+          <v-autocomplete
+            v-model="newCompanyId"
+            :items="availableCompanies"
+            item-title="name"
+            item-value="id"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
+            clearable
+            autocomplete="off"
+          ></v-autocomplete>
 
-            <v-col cols="12" md="2" class="d-flex align-center">
-              <v-btn
-                color="success"
-                variant="tonal"
-                :loading="isAddingDepartment"
-                @click="addAssignment"
-                >Add</v-btn
-              >
-            </v-col>
-          </v-row>
+          <v-btn
+            color="primary"
+            variant="tonal"
+            rounded="lg"
+            :loading="isAddingDepartment"
+            class="mb-2"
+            @click="addAssignment"
+          >
+            Add
+          </v-btn>
         </v-container>
       </v-card-text>
 
-      <v-divider></v-divider>
-
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn color="blue-grey-darken-4" variant="elevated" @click="close">Close</v-btn>
-        <v-spacer></v-spacer>
-      </v-card-actions>
+      <div class="d-flex justify-end px-6 py-4">
+        <v-btn color="default" variant="elevated" rounded="lg" @click="close">Close</v-btn>
+      </div>
     </v-card>
   </v-dialog>
 
   <!-- Confirm remove dialog -->
-  <v-dialog v-model="dialogConfirmRemove" max-width="400px">
-    <v-card>
-      <v-card-title class="text-h6">Remove Department</v-card-title>
-      <v-card-text>
+  <v-dialog v-model="dialogConfirmRemove" max-width="420px">
+    <v-card rounded="xl" elevation="2" class="text-center pa-6">
+      <div class="d-flex justify-center mb-4">
+        <div class="warning-icon-wrap">
+          <v-icon color="error" size="28">mdi-alert</v-icon>
+        </div>
+      </div>
+      <div class="text-h6 font-weight-bold mb-2">Remove Department?</div>
+      <div class="text-body-2 text-medium-emphasis mb-6 px-4">
         Are you sure you want to remove
         <strong>{{ pendingRemoval?.department?.name }}</strong> from this user?
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn variant="text" @click="cancelRemove">Cancel</v-btn>
-        <v-btn color="error" variant="elevated" @click="executeRemove">Remove</v-btn>
-        <v-spacer></v-spacer>
-      </v-card-actions>
+      </div>
+      <div class="d-flex justify-center ga-3">
+        <v-btn variant="text" color="default" rounded="lg" min-width="100" @click="cancelRemove">
+          Cancel
+        </v-btn>
+        <v-btn color="error" variant="elevated" rounded="lg" min-width="100" @click="executeRemove">
+          Remove
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>

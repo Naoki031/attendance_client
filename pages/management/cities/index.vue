@@ -1,25 +1,43 @@
 <template>
-  <div>
-    <v-data-table v-model:sort-by="sortBy" :headers="headers" :items="cities" :loading="isLoading">
-      <template #top>
-        <v-toolbar flat>
-          <v-toolbar-title>List Cities</v-toolbar-title>
-          <v-divider class="mx-4" inset vertical></v-divider>
-          <v-spacer></v-spacer>
-          <v-btn rounded="xl" variant="tonal" color="success" @click="addCity()"> New City </v-btn>
-        </v-toolbar>
-      </template>
-      <template #item.country="{ item }">
-        {{ item.country?.name ?? '-' }}
-      </template>
-      <template #item.actions="{ item }">
-        <v-icon class="me-2" small @click="editItem(item)">mdi-pencil</v-icon>
-        <v-icon small @click="deleteItem(item)">mdi-delete</v-icon>
-      </template>
-      <template #loading>
-        <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
-      </template>
-    </v-data-table>
+  <v-container fluid class="py-6 px-6">
+    <div class="d-flex align-center justify-space-between mb-5">
+      <div>
+        <div class="text-h5 font-weight-bold">Cities</div>
+        <div class="text-body-2 text-medium-emphasis mt-1">Manage city records</div>
+      </div>
+      <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="addCity()">
+        New City
+      </v-btn>
+    </div>
+
+    <v-card rounded="xl" elevation="0" border>
+      <v-data-table
+        v-model:sort-by="sortBy"
+        :headers="headers"
+        :items="cities"
+        :loading="isLoading"
+        :hover="true"
+      >
+        <template #item.country="{ item }">
+          {{ item.country?.name ?? '-' }}
+        </template>
+        <template #item.actions="{ item }">
+          <div class="d-flex align-center ga-1">
+            <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
+              <v-icon size="16">mdi-pencil-outline</v-icon>
+              <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+            </v-btn>
+            <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
+              <v-icon size="16">mdi-delete-outline</v-icon>
+              <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+            </v-btn>
+          </div>
+        </template>
+        <template #loading>
+          <v-skeleton-loader type="table-row@10"></v-skeleton-loader>
+        </template>
+      </v-data-table>
+    </v-card>
 
     <DialogCreateOrUpdate
       v-if="dialog"
@@ -36,7 +54,7 @@
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
     />
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
