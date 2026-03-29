@@ -228,7 +228,16 @@
     "contract": "契約",
     "count": "回数",
     "signedDate": "署名日",
-    "expiredDate": "満了日"
+    "expiredDate": "満了日",
+    "avatarHint": "アバターをクリックして新しい写真をアップロード",
+    "cropAvatar": "アバターのトリミング",
+    "avatarInvalidType": "無効なファイル形式。対応形式：JPG, JPEG, PNG, WebP, HEIC",
+    "avatarNoGif": "GIFやアニメーション画像は許可されていません",
+    "avatarTooLarge": "ファイルが大きすぎます。最大50MB",
+    "avatarLoadFailed": "画像の読み込みに失敗しました。別のファイルをお試しください。",
+    "avatarUploadFailed": "アバターのアップロードに失敗しました。もう一度お試しください。",
+    "avatarCropFailed": "画像のトリミングに失敗しました。もう一度お試しください。",
+    "avatarTooSmall": "画像が小さすぎます。最小サイズは256x256ピクセルです。"
   },
   "requests": {
     "title": "申請一覧",

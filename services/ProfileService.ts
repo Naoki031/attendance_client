@@ -9,4 +9,8 @@ export default class ProfileService {
   public static async changePassword(data: Record<string, unknown>): Promise<void> {
     await apiClient.put('/auth/change-password', data)
   }
+
+  public static async updateAvatar(data: { avatar: string }): Promise<UserModel> {
+    return await apiClient.put<UserModel>('/auth/avatar', data)
+  }
 }

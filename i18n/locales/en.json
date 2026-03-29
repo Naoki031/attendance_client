@@ -228,7 +228,16 @@
     "contract": "Contract",
     "count": "Count",
     "signedDate": "Signed Date",
-    "expiredDate": "Expired Date"
+    "expiredDate": "Expired Date",
+    "avatarHint": "Click the avatar to upload a new photo",
+    "cropAvatar": "Crop Avatar",
+    "avatarInvalidType": "Invalid file type. Allowed: JPG, JPEG, PNG, WebP, HEIC",
+    "avatarNoGif": "GIF and animated images are not allowed",
+    "avatarTooLarge": "File too large. Maximum size is 50MB",
+    "avatarLoadFailed": "Failed to load image. Please try another file.",
+    "avatarUploadFailed": "Failed to upload avatar. Please try again.",
+    "avatarCropFailed": "Failed to crop image. Please try again.",
+    "avatarTooSmall": "Image is too small. Minimum size is 256x256 pixels."
   },
   "requests": {
     "title": "My Requests",

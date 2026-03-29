@@ -91,7 +91,16 @@ export default defineNuxtConfig({
       'process.env.DEBUG': false,
     },
     optimizeDeps: {
-      include: ['moment-timezone', 'socket.io-client', 'xlsx', 'qrcode', 'jsqr', 'marked'],
+      include: [
+        'moment-timezone',
+        'socket.io-client',
+        'xlsx',
+        'qrcode',
+        'jsqr',
+        'marked',
+        'heic2any',
+        'cropperjs',
+      ],
     },
     ssr: {
       noExternal: ['vuetify'],

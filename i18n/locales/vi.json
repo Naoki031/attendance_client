@@ -228,7 +228,16 @@
     "contract": "Hợp đồng",
     "count": "Số lần",
     "signedDate": "Ngày ký",
-    "expiredDate": "Ngày hết hạn"
+    "expiredDate": "Ngày hết hạn",
+    "avatarHint": "Nhấn vào ảnh đại diện để tải ảnh mới lên",
+    "cropAvatar": "Cắt ảnh đại diện",
+    "avatarInvalidType": "Định dạng không hợp lệ. Cho phép: JPG, JPEG, PNG, WebP, HEIC",
+    "avatarNoGif": "Không cho phép ảnh GIF hoặc ảnh động",
+    "avatarTooLarge": "Tệp quá lớn. Kích thước tối đa 50MB",
+    "avatarLoadFailed": "Không thể tải hình ảnh. Vui lòng thử tệp khác.",
+    "avatarUploadFailed": "Tải ảnh đại diện thất bại. Vui lòng thử lại.",
+    "avatarCropFailed": "Cắt ảnh thất bại. Vui lòng thử lại.",
+    "avatarTooSmall": "Hình ảnh quá nhỏ. Kích thước tối thiểu là 256x256 pixel."
   },
   "requests": {
     "title": "Đơn của tôi",

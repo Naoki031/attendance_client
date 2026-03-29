@@ -12,4 +12,8 @@ export default class AuthService {
   public static async getUser(): Promise<any> {
     return await apiClient.get('/auth/user')
   }
+
+  public static async updateProfile(data: Record<string, unknown>): Promise<any> {
+    return await apiClient.put('/auth/profile', data)
+  }
 }
