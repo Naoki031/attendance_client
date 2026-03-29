@@ -92,3 +92,139 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ============================================================
+   Sidebar: prevent text truncation on child nav items
+   ============================================================ */
+
+/* Allow long item names to wrap when sidebar is expanded (not in rail/icon-only mode) */
+.v-navigation-drawer:not(.v-navigation-drawer--rail) .v-list-group .v-list-item .v-list-item-title {
+  white-space: normal;
+  line-height: 1.35;
+  word-break: break-word;
+  overflow: visible;
+}
+
+/* ============================================================
+   Clickable chips: light-sheen sweep to signal interactivity
+   Vuetify 4 automatically adds .v-chip--link when @click is present
+   ============================================================ */
+
+/* Diagonal streak of light sweeps across the chip every 3 s */
+@keyframes chip-shine-sweep {
+  0% {
+    transform: translateX(-160%) skewX(-15deg);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  28% {
+    transform: translateX(220%) skewX(-15deg);
+    opacity: 0;
+  }
+  /* Hold off-screen for the rest of the cycle */
+  29%, 100% {
+    transform: translateX(220%) skewX(-15deg);
+    opacity: 0;
+  }
+}
+
+.v-chip--link {
+  position: relative;
+  overflow: hidden !important;
+  cursor: pointer;
+  transition: filter 0.2s ease !important;
+}
+
+/* The sheen pseudo-element */
+.v-chip--link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 80%
+  );
+  transform: translateX(-160%) skewX(-15deg);
+  animation: chip-shine-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.v-chip--link:hover {
+  filter: brightness(1.1);
+}
+
+/* ============================================================
+   .btn-shine — reusable class for v-btn with the same sheen
+   Uses ::before because Vuetify 4 already claims ::after on v-btn
+   (focus-visible border indicator)
+   ============================================================ */
+
+.btn-shine {
+  overflow: hidden !important;
+  transition: filter 0.2s ease !important;
+}
+
+/* ::before is used instead of ::after because Vuetify 4 claims ::after on v-btn.
+   NOTE: do NOT add !important to transform — it would override the animation keyframes. */
+.btn-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.6) 50%,
+    transparent 80%
+  );
+  transform: translateX(-160%) skewX(-15deg);
+  animation: chip-shine-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: inherit;
+}
+
+.btn-shine:hover {
+  filter: brightness(1.08);
+}
+
+/* ============================================================
+   v-data-table: horizontal scroll on small screens
+   ============================================================ */
+
+/* Make card content scrollable when table is too wide */
+.table-responsive-card :deep(.v-table__wrapper) {
+  overflow-x: auto !important;
+}
+
+/* Force table to not shrink below content width */
+.table-responsive-card :deep(.v-data-table table) {
+  min-width: max-content;
+}
+
+/* ============================================================
+   v-menu / v-date-picker: mobile responsive
+   ============================================================ */
+
+/* Ensure date picker menu overlays everything on mobile */
+.v-menu > .v-overlay__content {
+  max-width: 90vw !important;
+  z-index: 9999 !important;
+}
+
+/* Date picker responsive on small screens */
+.v-date-picker {
+  width: 100% !important;
+  max-width: 320px !important;
+}
+
+@media (max-width: 600px) {
+  .v-menu > .v-overlay__content {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    max-width: 95vw !important;
+  }
+}

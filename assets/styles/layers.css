@@ -1,0 +1,12 @@
+/*
+ * CSS Layer Ordering — Vuetify 4 + Tailwind CSS v4
+ *
+ * Layers are applied in declaration order: the LAST layer wins.
+ * Order: tailwind-base → vuetify → tailwind-utilities
+ *
+ * This ensures:
+ * 1. Tailwind's base/reset runs first (lowest priority)
+ * 2. Vuetify's component styles override the base
+ * 3. Tailwind's utility classes override everything (highest priority)
+ */
+@layer tailwind-base, vuetify, tailwind-utilities;

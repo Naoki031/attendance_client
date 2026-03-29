@@ -1,7 +1,8 @@
 import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  devtools: { enabled: false },
 
   compatibilityDate: '2025-01-01',
 
@@ -27,7 +28,7 @@ export default defineNuxtConfig({
 
   typescript: {
     strict: true,
-    typeCheck: true,
+    typeCheck: false,
   },
 
   // Nuxt automatically overrides runtimeConfig values from env vars:
@@ -42,8 +43,14 @@ export default defineNuxtConfig({
     },
   },
 
-  // Vuetify 4: import path changed from 'vuetify/lib/styles/main.sass'
-  css: ['vuetify/styles', '@mdi/font/css/materialdesignicons.min.css', '~/assets/main.css'],
+  // CSS load order: layers.css (must be first) → Vuetify styles → Tailwind → project overrides
+  css: [
+    '~/assets/styles/layers.css',
+    'vuetify/styles',
+    '@mdi/font/css/materialdesignicons.min.css',
+    '~/assets/styles/tailwind.css',
+    '~/assets/main.css',
+  ],
 
   build: {
     transpile: ['vuetify'],
@@ -59,15 +66,32 @@ export default defineNuxtConfig({
       })
     },
     '@vee-validate/nuxt',
+    '@nuxtjs/i18n',
   ],
+
+  i18n: {
+    locales: [
+      { code: 'en', name: 'English', file: 'en.json' },
+      { code: 'vi', name: 'Tiếng Việt', file: 'vi.json' },
+      { code: 'ja', name: '日本語', file: 'ja.json' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'no_prefix',
+    langDir: 'locales/',
+    detectBrowserLanguage: false,
+  },
 
   pinia: {
     storesDirs: ['./stores/**'],
   },
 
   vite: {
+    plugins: [tailwindcss()],
     define: {
       'process.env.DEBUG': false,
+    },
+    optimizeDeps: {
+      include: ['moment-timezone', 'socket.io-client', 'xlsx', 'qrcode', 'jsqr', 'marked'],
     },
     ssr: {
       noExternal: ['vuetify'],

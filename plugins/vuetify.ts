@@ -10,6 +10,12 @@ export default defineNuxtPlugin((nuxtApp) => {
     ssr: true,
     components,
     directives,
+    defaults: {
+      VTextField: { autocomplete: 'off' },
+      VTextarea: { autocomplete: 'off' },
+      VAutocomplete: { autocomplete: 'off' },
+      VCombobox: { autocomplete: 'off' },
+    },
     theme: {
       defaultTheme: 'light',
       themes: {

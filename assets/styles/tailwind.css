@@ -1,0 +1,24 @@
+/*
+ * Tailwind CSS v4 Configuration
+ *
+ * Uses the new CSS-first configuration (no tailwind.config.js needed).
+ * Vuetify 4 breakpoints are aligned here so both systems share the same
+ * responsive breakpoints.
+ */
+@import "tailwindcss" layer(tailwind-utilities);
+
+@theme {
+  /* Align Tailwind breakpoints with Vuetify 4 display breakpoints */
+  --breakpoint-xs: 0px;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 960px;
+  --breakpoint-lg: 1280px;
+  --breakpoint-xl: 1920px;
+
+  /* Project theme colors (warm beige/brown palette) */
+  --color-primary: #BF6E3A;
+  --color-primary-light: #D4915E;
+  --color-primary-dark: #9A5628;
+  --color-surface: #FAF5F0;
+  --color-surface-variant: #F5EDE4;
+}
