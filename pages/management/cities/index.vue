@@ -2,21 +2,51 @@
   <v-container fluid class="py-6 px-6">
     <div class="d-flex align-center justify-space-between mb-5">
       <div>
-        <div class="text-h5 font-weight-bold">Cities</div>
-        <div class="text-body-2 text-medium-emphasis mt-1">Manage city records</div>
+        <div class="text-h5 font-weight-bold">{{ $t('cities.title') }}</div>
       </div>
-      <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="addCity()">
-        New City
+      <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="addItem()">
+        {{ $t('cities.createCity') }}
       </v-btn>
     </div>
 
-    <v-card rounded="xl" elevation="0" border>
+    <v-card rounded="xl" elevation="0" border class="table-responsive-card">
+      <!-- Toolbar -->
+      <div class="d-flex align-center px-4 py-3 ga-2 border-b table-toolbar">
+        <v-btn
+          :color="isFilterActive ? 'primary' : undefined"
+          :variant="isFilterActive ? 'tonal' : 'text'"
+          prepend-icon="mdi-filter-outline"
+          size="small"
+          @click="filterExpanded = !filterExpanded"
+        >
+          {{ $t('common.filter') }}
+          <v-badge
+            v-if="activeFilterCount > 0"
+            :content="activeFilterCount"
+            color="primary"
+            floating
+          ></v-badge>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <span class="text-caption text-medium-emphasis">{{ items.length }} records</span>
+      </div>
+
+      <!-- Filter panel -->
+      <FilterPanel
+        v-model="filters"
+        :expanded="filterExpanded"
+        :search-label="$t('common.search')"
+        :fields="filterFields"
+        @reset="resetFilters"
+      />
+
       <v-data-table
         v-model:sort-by="sortBy"
         :headers="headers"
-        :items="cities"
+        :items="items"
         :loading="isLoading"
         :hover="true"
+        items-per-page="50"
       >
         <template #item.country="{ item }">
           {{ item.country?.name ?? '-' }}
@@ -25,11 +55,11 @@
           <div class="d-flex align-center ga-1">
             <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
               <v-icon size="16">mdi-pencil-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
             <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
               <v-icon size="16">mdi-delete-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
           </div>
         </template>
@@ -48,8 +78,8 @@
     />
 
     <DialogDelete
-      v-if="!!city"
-      :item="city"
+      v-if="!!entityToDelete"
+      :item="entityToDelete"
       :dialog="dialogDelete"
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
@@ -59,124 +89,84 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import FilterPanel from '@/components/common/FilterPanel.vue'
+import type { FilterFieldConfig } from '@/components/common/FilterPanel.vue'
 import DialogCreateOrUpdate from '@/components/cities/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/cities/DialogDelete.vue'
 import type { CityModel } from '@/interfaces/models/CityModel'
+import type { CountryModel } from '@/interfaces/models/CountryModel'
 import CityService from '@/services/CityService'
+import CountryService from '@/services/CountryService'
 /* END IMPORT */
+
+const { t } = useI18n()
 
 /** START DEFINE NAME COMPONENT */
 definePageMeta({
   name: 'admin.cities.index',
 })
-/* END DEFINE */
+/* END DEFINE NAME COMPONENT */
 
 /** START DEFINE STATE */
-const cities = ref<Array<CityModel>>([])
-const isLoading = ref(false)
-const city = ref<CityModel | null>(null)
-const dialog = ref(false)
-const dialogDelete = ref(false)
-const sortBy = ref<Array<{ key: string; order: boolean | 'asc' | 'desc' | undefined }>>([
-  { key: 'name', order: 'asc' },
+const headers = computed(() => [
+  { title: t('common.id'), key: 'id', sortable: true },
+  { title: t('common.name'), align: 'start' as const, key: 'name' },
+  { title: t('common.slug'), key: 'slug' },
+  { title: t('cities.country'), key: 'country', sortable: false },
+  { title: t('common.actions'), key: 'actions', sortable: false },
 ])
-const headers = ref<Array<object>>([
-  { title: 'Name', align: 'start', key: 'name' },
-  { title: 'Slug', key: 'slug' },
-  { title: 'Country', key: 'country', sortable: false },
-  { title: 'Actions', key: 'actions', sortable: false },
+
+const availableCountries = ref<CountryModel[]>([])
+
+const filterFields = computed<FilterFieldConfig[]>(() => [
+  {
+    key: 'countryId',
+    label: t('cities.country'),
+    type: 'autocomplete',
+    items: availableCountries.value as unknown as Array<Record<string, unknown>>,
+    itemTitle: 'name',
+    itemValue: 'id',
+  },
 ])
-const editedIndex = ref(-1)
-const editedItem = ref<CityModel | null>(null)
+
+const {
+  items,
+  isLoading,
+  dialog,
+  dialogDelete,
+  editedItem,
+  entityToDelete,
+  sortBy,
+  filters,
+  filterExpanded,
+  activeFilterCount,
+  isFilterActive,
+  addItem,
+  editItem,
+  onConfirm,
+  onClose,
+  deleteItem,
+  onConfirmDelete,
+  onCloseDelete,
+  resetFilters,
+} = useCrudPage<CityModel, typeof CityService>(CityService, {
+  filters: { search: '', countryId: null as number | null },
+  hasActiveFilter: (filterValues) => {
+    return !!(filterValues.search || filterValues.countryId)
+  },
+})
 /* END DEFINE STATE */
 
-/** START DEFINE METHOD */
-const onConfirm = async () => {
-  try {
-    onClose()
-    await getCities()
-  } catch (error) {
-    console.error('Failed to refresh cities:', error)
-  }
-}
-
-const addCity = () => {
-  editedItem.value = null
-  dialog.value = true
-}
-
-const editItem = (item: CityModel) => {
-  editedIndex.value = cities.value.indexOf(item)
-  editedItem.value = { ...item }
-  dialog.value = true
-}
-
-const onClose = () => {
-  dialog.value = false
-  nextTick(() => {
-    editedIndex.value = -1
-  })
-}
-
-const onConfirmDelete = async (item: CityModel) => {
-  try {
-    dialogDelete.value = false
-    await nextTick()
-
-    if (item.id) {
-      await CityService.delete(item.id)
-      await getCities()
-      city.value = null
-    } else {
-      console.error('Invalid item id:', item.id)
-    }
-  } catch (error) {
-    console.error('Failed to delete city:', error)
-  }
-}
-
-const onCloseDelete = () => {
-  dialogDelete.value = false
-  nextTick(() => {
-    city.value = null
-  })
-}
-
-const deleteItem = (item: CityModel) => {
-  city.value = { ...item }
-  dialogDelete.value = true
-}
-
-const getCities = async () => {
-  if (isLoading.value) return
-
-  try {
-    isLoading.value = true
-    const data = await CityService.getAll()
-    cities.value = Object.values(data)
-  } catch (error) {
-    console.error('Failed to fetch cities:', error)
-  } finally {
-    isLoading.value = false
-  }
-}
-/* END DEFINE METHOD */
-
-/** START DEFINE WATCHER */
-watch(
-  () => dialog,
-  (newValue) => {
-    if (!newValue) onClose()
-  },
-  { immediate: false },
-)
-/* END DEFINE WATCHER */
-
 /** START DEFINE LIFE CYCLE HOOK */
-onMounted(() => {
-  getCities()
+onMounted(async () => {
+  const countries = await CountryService.getAll()
+  availableCountries.value = Object.values(countries)
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
 
-<style scoped></style>
+<style scoped>
+.table-toolbar {
+  background-color: #f5ede4;
+}
+</style>

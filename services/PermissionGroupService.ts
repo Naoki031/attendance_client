@@ -16,6 +16,19 @@ export default class PermissionGroupService {
   }
 
   /**
+   * Fetches permission groups matching the given filter criteria.
+   *
+   * @param parameters - The filter parameters.
+   * @returns A promise that resolves to an array of matching PermissionGroupModel objects.
+   */
+  public static async filter(parameters: { search?: string }): Promise<PermissionGroupModel[]> {
+    const searchParameters = new URLSearchParams()
+    if (parameters.search) searchParameters.set('search', parameters.search)
+
+    return apiClient.get<PermissionGroupModel[]>(`${this.resource}?${searchParameters.toString()}`)
+  }
+
+  /**
    * Creates a new permission group.
    *
    * @param data - The data for the new permission group.

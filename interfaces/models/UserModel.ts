@@ -1,4 +1,5 @@
 import type { UserDepartmentModel } from '@/interfaces/models/UserDepartmentModel'
+import type { UserWorkScheduleModel } from '@/interfaces/models/UserWorkScheduleModel'
 
 export interface UserModel {
   id: number
@@ -21,6 +22,14 @@ export interface UserModel {
   contract_expired_date?: string
   contract_type?: string
   contract_count?: number
+  slack_id?: string
+  device_user_id?: number | null
+  skip_attendance?: boolean
+  permanent_remote?: boolean
+  permanent_remote_reason?: string | null
+  preferred_language?: string
+  permission_group_ids?: number[]
   user_group_permissions?: { permission_group_id: number; permission_group?: { name: string } }[]
   user_departments?: UserDepartmentModel[]
+  user_work_schedules?: UserWorkScheduleModel[]
 }

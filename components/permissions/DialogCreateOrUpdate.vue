@@ -4,7 +4,7 @@
       <div class="dialog-header px-6 pt-6 pb-4">
         <div>
           <div class="text-h6 font-weight-bold text-primary">{{ title }}</div>
-          <div class="text-body-2 text-medium-emphasis mt-1">Create or update permission.</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">{{ $t('permissions.subtitle') }}</div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
           <v-icon>mdi-close</v-icon>
@@ -13,7 +13,7 @@
 
       <v-card-text class="px-6 py-0">
         <v-container class="pa-0">
-          <div class="field-label">NAME</div>
+          <div class="field-label">{{ $t('common.name').toUpperCase() }}</div>
           <v-text-field
             v-model="name"
             variant="filled"
@@ -22,10 +22,14 @@
             density="comfortable"
             :error-messages="errors.name"
             autocomplete="off"
-            @blur="updateKey"
+            @update:focused="
+              (focused: boolean) => {
+                if (!focused) updateKey()
+              }
+            "
           ></v-text-field>
 
-          <div class="field-label">KEY</div>
+          <div class="field-label">{{ $t('common.key').toUpperCase() }}</div>
           <v-text-field
             v-model="key"
             variant="filled"
@@ -36,7 +40,7 @@
             autocomplete="off"
           ></v-text-field>
 
-          <div class="field-label">DESCRIPTIONS</div>
+          <div class="field-label">{{ $t('common.description').toUpperCase() }}</div>
           <v-textarea
             v-model="descriptions"
             variant="filled"
@@ -51,8 +55,12 @@
       </v-card-text>
 
       <div class="d-flex justify-end ga-3 px-6 py-4">
-        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Save</v-btn>
+        <v-btn variant="text" color="default" rounded="lg" @click="close">{{
+          $t('common.cancel')
+        }}</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">{{
+          $t('common.save')
+        }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -94,11 +102,15 @@ const form: PermissionFormType = {
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE VALIDATE */
-const schema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  key: Yup.string().required('Key is required'),
-  descriptions: Yup.string().nullable(),
-})
+const { t } = useI18n()
+
+const schema = computed(() =>
+  Yup.object().shape({
+    name: Yup.string().required(t('validation.nameRequired')),
+    key: Yup.string().required(t('validation.required', { field: t('common.key') })),
+    descriptions: Yup.string().nullable(),
+  }),
+)
 
 const {
   values,
@@ -122,7 +134,7 @@ const { value: descriptions } = useField<string | null>('descriptions')
 
 /** START DEFINE COMPUTED */
 const title = computed(() => {
-  return props.item ? 'Edit Permission' : 'New Permission'
+  return props.item ? t('permissions.editPermission') : t('permissions.newPermission')
 })
 
 const maxWidth = computed(() => {
@@ -132,7 +144,7 @@ const maxWidth = computed(() => {
 
 /** START DEFINE METHOD */
 const handleCreate = handleSubmit(async (form: PermissionFormType) => {
-  await schema.validate(values, { abortEarly: false })
+  await schema.value.validate(values, { abortEarly: false })
   PermissionService.create(form)
     .then((permission: PermissionModel) => {
       emit('confirm', permission)
@@ -143,7 +155,7 @@ const handleCreate = handleSubmit(async (form: PermissionFormType) => {
 })
 
 const handleUpdate = handleSubmit(async (form) => {
-  await schema.validate(values, { abortEarly: false })
+  await schema.value.validate(values, { abortEarly: false })
   PermissionService.update(props.item?.id as number, form)
     .then((permission: PermissionModel) => {
       emit('confirm', permission)
@@ -167,6 +179,7 @@ const close = () => {
 
 // Submit on Enter key unless the focused element is a textarea
 const handleCardEnter = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter') return
   if ((event.target as HTMLElement).tagName === 'TEXTAREA') return
   event.preventDefault()
   confirm()

@@ -3,7 +3,9 @@
     <v-card rounded="xl" elevation="2">
       <div class="dialog-header px-6 pt-6 pb-4">
         <div>
-          <div class="text-h6 font-weight-bold text-primary">Manage Departments</div>
+          <div class="text-h6 font-weight-bold text-primary">
+            {{ $t('users.manageDepartments') }}
+          </div>
           <div class="text-body-2 text-medium-emphasis mt-1">{{ user.full_name }}</div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
@@ -32,9 +34,9 @@
                 >
               </template>
             </v-chip>
-            <span v-if="!departmentAssignments.length" class="text-medium-emphasis text-caption"
-              >No departments assigned</span
-            >
+            <span v-if="!departmentAssignments.length" class="text-medium-emphasis text-caption">{{
+              $t('users.noDepartments')
+            }}</span>
           </div>
 
           <v-alert
@@ -48,9 +50,9 @@
             {{ departmentError }}
           </v-alert>
 
-          <div class="section-label mb-3">ADD ASSIGNMENT</div>
+          <div class="section-label mb-3">{{ $t('users.addAssignment').toUpperCase() }}</div>
 
-          <div class="field-label">DEPARTMENT</div>
+          <div class="field-label">{{ $t('profile.department').toUpperCase() }}</div>
           <v-autocomplete
             v-model="newDepartmentId"
             :items="availableDepartments"
@@ -64,7 +66,7 @@
             autocomplete="off"
           ></v-autocomplete>
 
-          <div class="field-label">COMPANY</div>
+          <div class="field-label">{{ $t('profile.company').toUpperCase() }}</div>
           <v-autocomplete
             v-model="newCompanyId"
             :items="availableCompanies"
@@ -86,13 +88,15 @@
             class="mb-2"
             @click="addAssignment"
           >
-            Add
+            {{ $t('users.addAssignment') }}
           </v-btn>
         </v-container>
       </v-card-text>
 
       <div class="d-flex justify-end px-6 py-4">
-        <v-btn color="default" variant="elevated" rounded="lg" @click="close">Close</v-btn>
+        <v-btn color="default" variant="elevated" rounded="lg" @click="close">{{
+          $t('common.close')
+        }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -105,17 +109,16 @@
           <v-icon color="error" size="28">mdi-alert</v-icon>
         </div>
       </div>
-      <div class="text-h6 font-weight-bold mb-2">Remove Department?</div>
+      <div class="text-h6 font-weight-bold mb-2">{{ $t('users.removeDepartment') }}</div>
       <div class="text-body-2 text-medium-emphasis mb-6 px-4">
-        Are you sure you want to remove
-        <strong>{{ pendingRemoval?.department?.name }}</strong> from this user?
+        {{ $t('users.removeDepartmentConfirm', { name: pendingRemoval?.department?.name }) }}
       </div>
       <div class="d-flex justify-center ga-3">
         <v-btn variant="text" color="default" rounded="lg" min-width="100" @click="cancelRemove">
-          Cancel
+          {{ $t('common.cancel') }}
         </v-btn>
         <v-btn color="error" variant="elevated" rounded="lg" min-width="100" @click="executeRemove">
-          Remove
+          {{ $t('users.remove') }}
         </v-btn>
       </div>
     </v-card>
@@ -147,6 +150,10 @@ const props = defineProps({
 })
 const emit = defineEmits(['close-modal', 'changed'])
 /* end define property and emits */
+
+/** start define i18n */
+const { t } = useI18n()
+/* end define i18n */
 
 /** start defined state */
 const departmentAssignments = ref<UserDepartmentModel[]>([])
@@ -195,8 +202,34 @@ const addAssignment = async () => {
     newCompanyId.value = null
     emit('changed')
   } catch (error: unknown) {
-    departmentError.value =
-      (error as { data?: { message?: string } })?.data?.message ?? 'Failed to add department'
+    // Handle error.data - could be object or string
+    let errorData = (error as { data?: unknown })?.data
+    if (typeof errorData === 'string') {
+      try {
+        errorData = JSON.parse(errorData)
+      } catch {
+        // Failed to parse, keep as is
+      }
+    }
+
+    const message =
+      (errorData as { message?: string; error?: string })?.message ??
+      (errorData as { message?: string; error?: string })?.error ??
+      ''
+
+    // Map backend error message to i18n key
+    const lowerMessage = message.toLowerCase()
+    if (
+      lowerMessage.includes('already assigned') ||
+      lowerMessage.includes('already assigned to this department') ||
+      lowerMessage.includes('this user is already assigned')
+    ) {
+      departmentError.value = t('departments.userAlreadyAssignedToDepartment')
+    } else if (message) {
+      departmentError.value = t('common.error') + ': ' + message
+    } else {
+      departmentError.value = t('common.error')
+    }
   } finally {
     isAddingDepartment.value = false
   }

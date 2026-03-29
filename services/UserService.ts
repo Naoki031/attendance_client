@@ -33,6 +33,7 @@ export default class UserService {
     position?: string
     email?: string
     departmentId?: number | null
+    companyId?: number | null
     role?: string
     status?: string
     contractType?: string
@@ -44,6 +45,7 @@ export default class UserService {
     if (parameters.email) searchParameters.set('email', parameters.email)
     if (parameters.departmentId)
       searchParameters.set('department_id', String(parameters.departmentId))
+    if (parameters.companyId) searchParameters.set('company_id', String(parameters.companyId))
     if (parameters.role) searchParameters.set('role', parameters.role)
     if (parameters.status) searchParameters.set('status', parameters.status)
     if (parameters.contractType) searchParameters.set('contract_type', parameters.contractType)

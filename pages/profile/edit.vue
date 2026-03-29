@@ -4,22 +4,41 @@
     <div class="d-flex align-center ga-3 mb-6">
       <v-btn icon="mdi-arrow-left" variant="text" to="/profile"></v-btn>
       <div>
-        <div class="text-h5 font-weight-bold">Edit Profile</div>
+        <div class="text-h5 font-weight-bold">{{ $t('profile.editProfile') }}</div>
         <div class="text-body-2 text-medium-emphasis mt-1">
-          Update your personal information and security settings
+          {{ $t('profile.editProfileSubtitle') }}
         </div>
       </div>
     </div>
+
+    <v-card rounded="lg" class="mb-4">
+      <v-card-text class="pa-6">
+        <div class="d-flex align-center ga-6">
+          <AvatarUpload
+            :current-avatar="userStore.user?.avatar ?? ''"
+            :full-name="userStore.user?.full_name ?? ''"
+            :size="88"
+            @saved="onAvatarSaved"
+          />
+          <div>
+            <div class="text-h6 font-weight-bold">{{ userStore.user?.full_name }}</div>
+            <div class="text-body-2 text-medium-emphasis">
+              {{ $t('profile.avatarHint') }}
+            </div>
+          </div>
+        </div>
+      </v-card-text>
+    </v-card>
 
     <v-card rounded="lg">
       <v-tabs v-model="activeTab" color="primary">
         <v-tab value="info">
           <v-icon start icon="mdi-account-outline"></v-icon>
-          Personal Info
+          {{ $t('profile.personalInfoTab') }}
         </v-tab>
         <v-tab value="security">
           <v-icon start icon="mdi-lock-outline"></v-icon>
-          Security
+          {{ $t('profile.securityTab') }}
         </v-tab>
       </v-tabs>
 
@@ -39,7 +58,7 @@
               closable
               @click:close="profileSuccess = false"
             >
-              Profile updated successfully.
+              {{ $t('profile.profileUpdated') }}
             </v-alert>
 
             <!-- Error alert -->
@@ -59,7 +78,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="firstName"
-                  label="First Name"
+                  :label="$t('profile.firstName')"
                   prepend-inner-icon="mdi-account-outline"
                   variant="outlined"
                   density="compact"
@@ -70,7 +89,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="lastName"
-                  label="Last Name"
+                  :label="$t('profile.lastName')"
                   prepend-inner-icon="mdi-account-outline"
                   variant="outlined"
                   density="compact"
@@ -81,7 +100,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="position"
-                  label="Position"
+                  :label="$t('profile.position')"
                   prepend-inner-icon="mdi-briefcase-outline"
                   variant="outlined"
                   density="compact"
@@ -92,7 +111,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="phoneNumber"
-                  label="Phone Number"
+                  :label="$t('profile.phoneNumber')"
                   prepend-inner-icon="mdi-phone-outline"
                   variant="outlined"
                   density="compact"
@@ -103,7 +122,7 @@
               <v-col cols="12">
                 <v-text-field
                   v-model="address"
-                  label="Address"
+                  :label="$t('profile.address')"
                   prepend-inner-icon="mdi-map-marker-outline"
                   variant="outlined"
                   density="compact"
@@ -113,22 +132,46 @@
               </v-col>
               <v-col cols="12" md="6">
                 <v-text-field
-                  v-model="dateOfBirth"
-                  label="Date of Birth"
+                  :label="$t('profile.dateOfBirth')"
                   prepend-inner-icon="mdi-cake-variant-outline"
                   variant="outlined"
                   density="compact"
-                  type="date"
+                  :model-value="dateOfBirth"
                   :error-messages="profileErrors.date_of_birth"
+                  readonly
                   autocomplete="off"
-                ></v-text-field>
+                >
+                  <template #append-inner>
+                    <v-menu v-model="menuDateOfBirth" :close-on-content-click="false">
+                      <template #activator="{ props: menuProps }">
+                        <v-btn
+                          v-bind="menuProps"
+                          icon="mdi-calendar"
+                          size="small"
+                          variant="text"
+                          color="default"
+                        />
+                      </template>
+                      <v-date-picker
+                        :model-value="toPickerDate(dateOfBirth)"
+                        hide-header
+                        @update:model-value="
+                          (selectedDate: Date) => {
+                            dateOfBirth.value = formatDate(selectedDate)
+                            menuDateOfBirth = false
+                          }
+                        "
+                      />
+                    </v-menu>
+                  </template>
+                </v-text-field>
               </v-col>
             </v-row>
 
             <div class="d-flex justify-end ga-3 mt-4">
-              <v-btn variant="text" to="/profile">Cancel</v-btn>
+              <v-btn variant="text" to="/profile">{{ $t('common.cancel') }}</v-btn>
               <v-btn color="primary" :loading="profileLoading" @click="submitProfile">
-                Save Changes
+                {{ $t('common.save') }}
               </v-btn>
             </div>
           </v-card-text>
@@ -137,7 +180,9 @@
         <!-- Tab: Security (Change Password) -->
         <v-window-item value="security">
           <v-card-text class="pa-6" @keydown.enter.prevent="submitPassword">
-            <div class="text-subtitle-1 font-weight-medium mb-4">Change Password</div>
+            <div class="text-subtitle-1 font-weight-medium mb-4">
+              {{ $t('profile.changePassword') }}
+            </div>
 
             <!-- Success alert -->
             <v-alert
@@ -149,7 +194,7 @@
               closable
               @click:close="passwordSuccess = false"
             >
-              Password changed successfully.
+              {{ $t('profile.passwordChanged') }}
             </v-alert>
 
             <!-- Error alert -->
@@ -171,7 +216,7 @@
                   v-model="currentPassword"
                   :type="showCurrent ? 'text' : 'password'"
                   :append-inner-icon="showCurrent ? 'mdi-eye-off' : 'mdi-eye'"
-                  label="Current Password"
+                  :label="$t('profile.currentPassword')"
                   prepend-inner-icon="mdi-lock-outline"
                   variant="outlined"
                   density="compact"
@@ -185,7 +230,7 @@
                   v-model="newPassword"
                   :type="showNew ? 'text' : 'password'"
                   :append-inner-icon="showNew ? 'mdi-eye-off' : 'mdi-eye'"
-                  label="New Password"
+                  :label="$t('profile.newPassword')"
                   prepend-inner-icon="mdi-lock-reset"
                   variant="outlined"
                   density="compact"
@@ -199,7 +244,7 @@
                   v-model="confirmPassword"
                   :type="showConfirm ? 'text' : 'password'"
                   :append-inner-icon="showConfirm ? 'mdi-eye-off' : 'mdi-eye'"
-                  label="Confirm New Password"
+                  :label="$t('profile.confirmNewPassword')"
                   prepend-inner-icon="mdi-lock-check-outline"
                   variant="outlined"
                   density="compact"
@@ -212,7 +257,7 @@
 
             <div class="d-flex justify-end mt-4">
               <v-btn color="primary" :loading="passwordLoading" @click="submitPassword">
-                Change Password
+                {{ $t('profile.changePassword') }}
               </v-btn>
             </div>
           </v-card-text>
@@ -226,6 +271,7 @@
 /** START IMPORT */
 import * as Yup from 'yup'
 import ProfileService from '@/services/ProfileService'
+import AvatarUpload from '@/components/profile/AvatarUpload.vue'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -239,24 +285,38 @@ definePageMeta({
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE VALIDATE */
-const profileSchema = Yup.object().shape({
-  first_name: Yup.string().required('First name is required'),
-  last_name: Yup.string().required('Last name is required'),
-  position: Yup.string().nullable().optional(),
-  phone_number: Yup.string().nullable().optional(),
-  address: Yup.string().nullable().optional(),
-  date_of_birth: Yup.string().nullable().optional(),
-})
+const { t } = useI18n()
 
-const passwordSchema = Yup.object().shape({
-  current_password: Yup.string().required('Current password is required'),
-  new_password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('New password is required'),
-  confirm_password: Yup.string()
-    .oneOf([Yup.ref('new_password')], 'Passwords must match')
-    .required('Please confirm your new password'),
-})
+const profileSchema = computed(() =>
+  Yup.object().shape({
+    first_name: Yup.string().required(t('validation.firstNameRequired')),
+    last_name: Yup.string().required(t('validation.lastNameRequired')),
+    position: Yup.string().nullable().optional(),
+    phone_number: Yup.string().nullable().optional(),
+    address: Yup.string().nullable().optional(),
+    date_of_birth: Yup.string().nullable().optional(),
+  }),
+)
+
+const passwordSchema = computed(() =>
+  Yup.object().shape({
+    current_password: Yup.string().required(
+      t('validation.required', { field: t('profile.currentPassword') }),
+    ),
+    new_password: Yup.string()
+      .min(6, t('validation.passwordMinLength', { min: 6 }))
+      .required(
+        t('validation.newPasswordRequired') ||
+          t('validation.required', { field: t('profile.newPassword') }),
+      ),
+    confirm_password: Yup.string()
+      .oneOf([Yup.ref('new_password')], t('validation.oneOf'))
+      .required(
+        t('validation.confirmPasswordRequired') ||
+          t('validation.required', { field: t('profile.confirmNewPassword') }),
+      ),
+  }),
+)
 
 const {
   handleSubmit: handleProfileSubmit,
@@ -270,6 +330,7 @@ const {
 const userStore = useUserStore()
 const router = useRouter()
 const activeTab = ref<string>('info')
+const menuDateOfBirth = ref(false)
 
 // Profile form fields (managed by VeeValidate)
 const { value: firstName } = useField<string>('first_name')
@@ -303,6 +364,27 @@ const showConfirm = ref(false)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+const onAvatarSaved = (_updatedUser: unknown) => {
+  // User store already updated inside AvatarUpload, this is for any additional handling
+  console.log('Avatar updated successfully')
+}
+/* END DEFINE METHOD */
+
+/** START DEFINE COMPUTED */
+/* END DEFINE COMPUTED */
+
+/** START DEFINE METHOD */
+const { moment } = useMoment()
+
+const toPickerDate = (dateString: string | null | undefined): Date | undefined => {
+  if (!dateString) return undefined
+  return moment(dateString, 'YYYY-MM-DD').toDate()
+}
+
+const formatDate = (date: Date): string => {
+  return moment(date).format('YYYY-MM-DD')
+}
+
 // Strip ISO timestamp so <input type="date"> receives YYYY-MM-DD
 const toDateOnly = (value?: string | null): string | null => (value ? value.substring(0, 10) : null)
 
@@ -344,7 +426,7 @@ const submitPassword = async () => {
 
   // Validate with Yup schema
   try {
-    await passwordSchema.validate(
+    await passwordSchema.value.validate(
       {
         current_password: currentPassword.value,
         new_password: newPassword.value,
@@ -358,10 +440,12 @@ const submitPassword = async () => {
         if (fieldError.path) passwordErrors[fieldError.path] = fieldError.message
       })
     }
+
     return
   }
 
   passwordLoading.value = true
+
   try {
     await ProfileService.changePassword({
       current_password: currentPassword.value,
@@ -387,12 +471,14 @@ const submitPassword = async () => {
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
   const user = userStore.user
+
   if (user) {
     setProfileField('first_name', user.first_name ?? '')
     setProfileField('last_name', user.last_name ?? '')
     setProfileField('position', user.position ?? null)
     setProfileField('phone_number', user.phone_number ?? null)
     setProfileField('address', user.address ?? null)
+
     // Convert ISO timestamp to YYYY-MM-DD for <input type="date">
     setProfileField('date_of_birth', toDateOnly(user.date_of_birth))
   }

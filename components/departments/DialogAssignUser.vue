@@ -3,9 +3,11 @@
     <v-card rounded="xl" elevation="2" @keydown.enter.prevent="confirm">
       <div class="dialog-header px-6 pt-6 pb-4">
         <div>
-          <div class="text-h6 font-weight-bold text-primary">Assign User to Department</div>
+          <div class="text-h6 font-weight-bold text-primary">
+            {{ $t('departments.assignUserTitle') }}
+          </div>
           <div class="text-body-2 text-medium-emphasis mt-1">
-            Select a user and their company to assign.
+            {{ $t('departments.assignUserSubtitle') }}
           </div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
@@ -26,7 +28,7 @@
             {{ apiError }}
           </v-alert>
 
-          <div class="field-label">USER</div>
+          <div class="field-label">{{ $t('common.user').toUpperCase() }}</div>
           <v-autocomplete
             v-model="userId"
             :items="searchedUsers"
@@ -40,12 +42,12 @@
             :error-messages="errors.user_id"
             no-filter
             clearable
-            placeholder="Type to search..."
+            :placeholder="$t('common.typeToSearch')"
             autocomplete="off"
             @update:search="onUserSearch"
           ></v-autocomplete>
 
-          <div class="field-label">COMPANY</div>
+          <div class="field-label">{{ $t('common.company').toUpperCase() }}</div>
           <v-autocomplete
             v-model="companyId"
             :items="companies"
@@ -63,8 +65,12 @@
       </v-card-text>
 
       <div class="d-flex justify-end ga-3 px-6 py-4">
-        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Assign</v-btn>
+        <v-btn variant="text" color="default" rounded="lg" @click="close">{{
+          $t('common.cancel')
+        }}</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">{{
+          $t('departments.assignUser')
+        }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -99,10 +105,18 @@ const emit = defineEmits(['confirm', 'close-modal'])
 /* end define property and emits */
 
 /** start define validate */
-const schema = Yup.object().shape({
-  user_id: Yup.number().required('User is required').typeError('User is required'),
-  company_id: Yup.number().required('Company is required').typeError('Company is required'),
-})
+const { t } = useI18n()
+
+const schema = computed(() =>
+  Yup.object().shape({
+    user_id: Yup.number()
+      .required(t('validation.required', { field: t('common.user') }))
+      .typeError(t('validation.required', { field: t('common.user') })),
+    company_id: Yup.number()
+      .required(t('validation.companyRequired'))
+      .typeError(t('validation.companyRequired')),
+  }),
+)
 
 const { errors, handleSubmit, resetForm } = useForm({
   validationSchema: schema,
@@ -154,7 +168,50 @@ const handleCreate = handleSubmit(async (formValues) => {
       resetForm()
     })
     .catch((error) => {
-      apiError.value = error?.data?.message ?? 'Failed to assign user'
+      console.log('=== Assign User Error Debug ===')
+      console.log('Full error object:', error)
+      console.log('Error data:', error?.data)
+      console.log('Error data type:', typeof error?.data)
+
+      // Handle error.data - could be object or string
+      let errorData = error?.data
+      if (typeof errorData === 'string') {
+        try {
+          errorData = JSON.parse(errorData)
+        } catch {
+          console.log('Failed to parse errorData as JSON')
+        }
+      }
+
+      console.log('Processed errorData:', errorData)
+
+      // Extract message from processed data
+      const message = errorData?.message ?? errorData?.error ?? error?.message ?? ''
+
+      console.log('Extracted message:', message)
+      console.log('Message type:', typeof message)
+
+      const lowerMessage = message.toLowerCase()
+      console.log('Lowercase message:', lowerMessage)
+      console.log('Includes "already assigned":', lowerMessage.includes('already assigned'))
+
+      // Map backend error message to i18n key
+      if (
+        lowerMessage.includes('already assigned') ||
+        lowerMessage.includes('already assigned to this department') ||
+        lowerMessage.includes('this user is already assigned')
+      ) {
+        console.log('✓ Matched! Setting i18n error')
+        apiError.value = t('departments.userAlreadyAssignedToDepartment')
+      } else if (message) {
+        console.log('✗ Not matched, using fallback')
+        apiError.value = t('common.error') + ': ' + message
+      } else {
+        console.log('✗ Empty message, using common error')
+        apiError.value = t('common.error')
+      }
+      console.log('Final apiError:', apiError.value)
+      console.log('=== End Debug ===')
     })
 })
 

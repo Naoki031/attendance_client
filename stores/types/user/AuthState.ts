@@ -4,4 +4,5 @@ import type { UserModel } from '~/interfaces/models/UserModel'
 export type AuthState = {
   isAuthenticated: boolean
   user: UserModel | null
+  roleLevel: 'super_admin' | 'admin' | 'user'
 }

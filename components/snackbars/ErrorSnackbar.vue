@@ -3,7 +3,7 @@
     {{ message }}
 
     <template #actions>
-      <v-btn variant="text"> Close </v-btn>
+      <v-btn variant="text"> {{ $t('common.close') }} </v-btn>
     </template>
   </v-snackbar>
 </template>

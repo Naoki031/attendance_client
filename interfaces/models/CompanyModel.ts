@@ -12,6 +12,10 @@ export interface CompanyModel {
   email?: string
   website?: string
   logo?: string
+  allowed_ips?: string | null
+  google_calendar_id?: string | null
+  work_start_time?: string | null
+  work_end_time?: string | null
   country?: CountryModel
   city?: CityModel
   created_at?: string

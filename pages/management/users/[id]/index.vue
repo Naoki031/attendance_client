@@ -28,7 +28,7 @@
           variant="tonal"
           class="flex-shrink-0"
         >
-          {{ user.is_activated ? 'Active' : 'Inactive' }}
+          {{ user.is_activated ? $t('common.active') : $t('common.inactive') }}
         </v-chip>
       </div>
     </div>
@@ -50,35 +50,39 @@
           <v-card rounded="xl" elevation="0" border class="mb-4">
             <div class="px-5 pt-5 pb-2">
               <div class="text-subtitle-2 font-weight-bold text-primary mb-4">
-                BASIC INFORMATION
+                {{ $t('profile.basicInfo').toUpperCase() }}
               </div>
               <v-row dense>
                 <v-col cols="6">
-                  <div class="info-label">ID</div>
+                  <div class="info-label">{{ $t('common.id').toUpperCase() }}</div>
                   <div class="info-value">{{ user.id }}</div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">POSITION</div>
+                  <div class="info-label">{{ $t('profile.position').toUpperCase() }}</div>
                   <div class="info-value">{{ user.position ?? '—' }}</div>
                 </v-col>
                 <v-col cols="12">
-                  <div class="info-label">EMAIL</div>
+                  <div class="info-label">{{ $t('profile.email').toUpperCase() }}</div>
                   <div class="info-value">{{ user.email }}</div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">PHONE</div>
+                  <div class="info-label">{{ $t('common.phone').toUpperCase() }}</div>
                   <div class="info-value">{{ user.phone_number ?? '—' }}</div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">DATE OF BIRTH</div>
+                  <div class="info-label">{{ $t('profile.dateOfBirth').toUpperCase() }}</div>
                   <div class="info-value">{{ user.date_of_birth ?? '—' }}</div>
                 </v-col>
                 <v-col cols="12">
-                  <div class="info-label">ADDRESS</div>
+                  <div class="info-label">{{ $t('profile.address').toUpperCase() }}</div>
                   <div class="info-value">{{ user.address ?? '—' }}</div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">JOIN DATE</div>
+                  <div class="info-label">{{ $t('profile.slackId').toUpperCase() }}</div>
+                  <div class="info-value">{{ user.slack_id ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">{{ $t('profile.joinDate').toUpperCase() }}</div>
                   <div class="info-value">{{ user.join_date ?? '—' }}</div>
                 </v-col>
               </v-row>
@@ -91,24 +95,26 @@
           <!-- Contract -->
           <v-card rounded="xl" elevation="0" border class="mb-4">
             <div class="px-5 pt-5 pb-2">
-              <div class="text-subtitle-2 font-weight-bold text-primary mb-4">CONTRACT</div>
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-4">
+                {{ $t('profile.contract').toUpperCase() }}
+              </div>
               <v-row dense>
                 <v-col cols="6">
-                  <div class="info-label">TYPE</div>
+                  <div class="info-label">{{ $t('common.type').toUpperCase() }}</div>
                   <div class="info-value">{{ user.contract_type ?? '—' }}</div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">COUNT</div>
+                  <div class="info-label">{{ $t('profile.count').toUpperCase() }}</div>
                   <div class="info-value">
                     {{ user.contract_count != null ? String(user.contract_count) : '—' }}
                   </div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">SIGNED DATE</div>
+                  <div class="info-label">{{ $t('profile.signedDate').toUpperCase() }}</div>
                   <div class="info-value">{{ user.contract_signed_date ?? '—' }}</div>
                 </v-col>
                 <v-col cols="6">
-                  <div class="info-label">EXPIRED DATE</div>
+                  <div class="info-label">{{ $t('profile.expiredDate').toUpperCase() }}</div>
                   <div class="info-value">{{ user.contract_expired_date ?? '—' }}</div>
                 </v-col>
               </v-row>
@@ -118,7 +124,9 @@
           <!-- Roles -->
           <v-card rounded="xl" elevation="0" border class="mb-4">
             <div class="px-5 pt-5 pb-4">
-              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">ROLES</div>
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">
+                {{ $t('profile.roles').toUpperCase() }}
+              </div>
               <div class="d-flex flex-wrap ga-2">
                 <v-chip
                   v-for="role in user.roles"
@@ -137,7 +145,9 @@
           <!-- Departments -->
           <v-card rounded="xl" elevation="0" border>
             <div class="px-5 pt-5 pb-4">
-              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">DEPARTMENTS</div>
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">
+                {{ $t('departments.title').toUpperCase() }}
+              </div>
               <div class="d-flex flex-wrap ga-2">
                 <v-chip
                   v-for="assignment in user.user_departments"
@@ -202,6 +212,7 @@ const getInitials = (item: UserModel): string => {
   const first = parts[0]?.[0] ?? ''
   const last = parts[parts.length - 1]?.[0] ?? ''
   if (parts.length >= 2) return (first + last).toUpperCase()
+
   return first.toUpperCase() || '?'
 }
 /* END DEFINE METHOD */

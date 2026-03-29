@@ -8,6 +8,13 @@ export default class CountryService {
     return response
   }
 
+  public static async filter(parameters: { search?: string }): Promise<CountryModel[]> {
+    const searchParameters = new URLSearchParams()
+    if (parameters.search) searchParameters.set('search', parameters.search)
+
+    return apiClient.get<CountryModel[]>(`countries?${searchParameters.toString()}`)
+  }
+
   public static async create(data: Record<string, unknown>): Promise<CountryModel> {
     return await apiClient.post<CountryModel>('/countries', data)
   }

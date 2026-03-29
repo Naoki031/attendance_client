@@ -16,4 +16,9 @@ export type UserFormType = {
   contract_expired_date: string | null
   contract_type: string | null
   contract_count: number | null
+  slack_id: string | null
+  device_user_id: number | null
+  skip_attendance: boolean
+  permanent_remote: boolean
+  permanent_remote_reason: string | null
 }

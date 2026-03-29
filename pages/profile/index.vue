@@ -3,21 +3,33 @@
     <!-- Page header -->
     <div class="d-flex align-center justify-space-between mb-6">
       <div>
-        <div class="text-h5 font-weight-bold">My Profile</div>
-        <div class="text-body-2 text-medium-emphasis mt-1">View your personal information</div>
+        <div class="text-h5 font-weight-bold">{{ $t('profile.title') }}</div>
       </div>
-      <v-btn color="primary" prepend-icon="mdi-pencil-outline" :to="{ name: 'profile.edit' }">
-        Edit Profile
-      </v-btn>
+      <div class="d-flex ga-2">
+        <v-btn
+          color="info"
+          prepend-icon="mdi-bug-outline"
+          variant="tonal"
+          @click="dialogReportBug = true"
+        >
+          {{ $t('bugReports.reportBug') }}
+        </v-btn>
+        <v-btn color="primary" prepend-icon="mdi-pencil-outline" :to="{ name: 'profile.edit' }">
+          {{ $t('profile.editProfile') }}
+        </v-btn>
+      </div>
     </div>
 
     <!-- Avatar & identity card -->
     <v-card rounded="lg" class="mb-4">
       <v-card-text class="pa-6">
         <div class="d-flex align-center ga-8">
-          <v-avatar color="primary" size="88">
-            <span class="text-h4 text-white font-weight-bold">{{ initials }}</span>
-          </v-avatar>
+          <AvatarUpload
+            :current-avatar="user?.avatar ?? ''"
+            :full-name="user?.full_name ?? ''"
+            :size="88"
+            @saved="onAvatarSaved"
+          />
           <div>
             <div class="text-h5 font-weight-bold">{{ user?.full_name }}</div>
             <div class="text-body-1 text-medium-emphasis">{{ user?.position ?? '—' }}</div>
@@ -50,8 +62,8 @@
       <v-col cols="12" md="6">
         <v-card rounded="lg" height="100%">
           <v-card-title class="pa-5 pb-3 text-body-1 font-weight-bold">
-            <v-icon size="18" color="primary" class="mr-2">mdi-account-outline</v-icon>Personal
-            Information
+            <v-icon size="18" color="primary" class="mr-2">mdi-account-outline</v-icon
+            >{{ $t('profile.personalInfo') }}
           </v-card-title>
           <v-divider></v-divider>
           <v-list density="compact" class="pa-2">
@@ -61,7 +73,7 @@
                   >mdi-card-account-details-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>First Name</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.firstName') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.first_name ?? '—' }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
@@ -70,14 +82,14 @@
                   >mdi-card-account-details-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Last Name</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.lastName') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.last_name ?? '—' }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
               <template #prepend>
                 <v-icon size="16" color="medium-emphasis" class="mr-3">mdi-phone-outline</v-icon>
               </template>
-              <v-list-item-subtitle>Phone Number</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.phone') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.phone_number ?? '—' }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
@@ -86,7 +98,7 @@
                   >mdi-map-marker-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Address</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.address') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.address ?? '—' }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
@@ -95,7 +107,7 @@
                   >mdi-cake-variant-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Date of Birth</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.dateOfBirth') }}</v-list-item-subtitle>
               <v-list-item-title>{{ formatDate(user?.date_of_birth) }}</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -106,8 +118,8 @@
       <v-col cols="12" md="6">
         <v-card rounded="lg" height="100%">
           <v-card-title class="pa-5 pb-3 text-body-1 font-weight-bold">
-            <v-icon size="18" color="primary" class="mr-2">mdi-briefcase-outline</v-icon>Employment
-            Information
+            <v-icon size="18" color="primary" class="mr-2">mdi-briefcase-outline</v-icon
+            >{{ $t('profile.employmentInfo') }}
           </v-card-title>
           <v-divider></v-divider>
           <v-list density="compact" class="pa-2">
@@ -117,8 +129,19 @@
                   >mdi-briefcase-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Position</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.position') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.position ?? '—' }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <template #prepend>
+                <v-icon size="16" color="medium-emphasis" class="mr-3"
+                  >mdi-office-building-outline</v-icon
+                >
+              </template>
+              <v-list-item-subtitle>{{ $t('profile.company') }}</v-list-item-subtitle>
+              <v-list-item-title>{{
+                user?.user_departments?.[0]?.company?.name ?? '—'
+              }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
               <template #prepend>
@@ -126,14 +149,14 @@
                   >mdi-calendar-account-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Join Date</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.joinDate') }}</v-list-item-subtitle>
               <v-list-item-title>{{ formatDate(user?.join_date) }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
               <template #prepend>
                 <v-icon size="16" color="medium-emphasis" class="mr-3">mdi-file-sign</v-icon>
               </template>
-              <v-list-item-subtitle>Contract Type</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.contractType') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.contract_type ?? '—' }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
@@ -142,7 +165,7 @@
                   >mdi-calendar-check-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Contract Signed Date</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.contractSignedDate') }}</v-list-item-subtitle>
               <v-list-item-title>{{ formatDate(user?.contract_signed_date) }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
@@ -151,14 +174,14 @@
                   >mdi-calendar-remove-outline</v-icon
                 >
               </template>
-              <v-list-item-subtitle>Contract Expired Date</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.contractExpiredDate') }}</v-list-item-subtitle>
               <v-list-item-title>{{ formatDate(user?.contract_expired_date) }}</v-list-item-title>
             </v-list-item>
             <v-list-item>
               <template #prepend>
                 <v-icon size="16" color="medium-emphasis" class="mr-3">mdi-counter</v-icon>
               </template>
-              <v-list-item-subtitle>Contract Count</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ $t('profile.contractCount') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.contract_count ?? '—' }}</v-list-item-title>
             </v-list-item>
           </v-list>
@@ -166,10 +189,19 @@
       </v-col>
     </v-row>
   </v-container>
+
+  <!-- Bug report dialog -->
+  <DialogReportBug
+    :dialog="dialogReportBug"
+    @confirm="handleBugReportConfirm"
+    @close-modal="dialogReportBug = false"
+  />
 </template>
 
 <script lang="ts" setup>
 /** START IMPORT */
+import DialogReportBug from '@/components/common/DialogReportBug.vue'
+import AvatarUpload from '@/components/profile/AvatarUpload.vue'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -188,25 +220,26 @@ definePageMeta({
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const user = computed(() => userStore.user)
+const dialogReportBug = ref(false)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
-const initials = computed(() => {
-  const name = user.value?.full_name ?? ''
-  const parts = name.trim().split(' ').filter(Boolean)
-  const first = parts[0]?.[0] ?? ''
-  const last = parts[parts.length - 1]?.[0] ?? ''
-  if (parts.length >= 2) return (first + last).toUpperCase()
-  if (parts.length === 1) return first.toUpperCase() || 'U'
-  return 'U'
-})
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
 // Format ISO date string to YYYY-MM-DD, return '—' if empty
 const formatDate = (value?: string | null): string => {
   if (!value) return '—'
+
   return value.substring(0, 10)
+}
+
+const handleBugReportConfirm = () => {
+  dialogReportBug.value = false
+}
+
+const onAvatarSaved = () => {
+  // User store already updated inside AvatarUpload
 }
 /* END DEFINE METHOD */
 

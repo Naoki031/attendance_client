@@ -4,7 +4,7 @@
       <div class="dialog-header px-6 pt-6 pb-4">
         <div>
           <div class="text-h6 font-weight-bold text-primary">{{ title }}</div>
-          <div class="text-body-2 text-medium-emphasis mt-1">Create or update city record.</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">{{ $t('cities.subtitle') }}</div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
           <v-icon>mdi-close</v-icon>
@@ -24,7 +24,7 @@
             {{ serverError }}
           </v-alert>
 
-          <div class="field-label">COUNTRY</div>
+          <div class="field-label">{{ $t('profile.country').toUpperCase() }}</div>
           <v-select
             v-model="countryId"
             :items="countries"
@@ -37,7 +37,7 @@
             :error-messages="errors.country_id"
           ></v-select>
 
-          <div class="field-label">NAME</div>
+          <div class="field-label">{{ $t('common.name').toUpperCase() }}</div>
           <v-text-field
             v-model="name"
             variant="filled"
@@ -46,10 +46,9 @@
             density="comfortable"
             :error-messages="errors.name"
             autocomplete="off"
-            @blur="updateSlug"
           ></v-text-field>
 
-          <div class="field-label">SLUG</div>
+          <div class="field-label">{{ $t('common.slug').toUpperCase() }}</div>
           <v-text-field
             v-model="slug"
             variant="filled"
@@ -58,13 +57,18 @@
             density="comfortable"
             :error-messages="errors.slug"
             autocomplete="off"
+            @input="onSlugInput"
           ></v-text-field>
         </v-container>
       </v-card-text>
 
       <div class="d-flex justify-end ga-3 px-6 py-4">
-        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Save</v-btn>
+        <v-btn variant="text" color="default" rounded="lg" @click="close">{{
+          $t('common.cancel')
+        }}</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">{{
+          $t('common.save')
+        }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -105,14 +109,19 @@ const form = {
 /** start define state */
 const countries = ref<Array<CountryModel>>([])
 const serverError = ref<string>('')
+const slugManuallyEdited = ref(false)
 /* end define state */
 
 /** start define validate */
-const schema = Yup.object().shape({
-  country_id: Yup.number().required('Country is required'),
-  name: Yup.string().required('Name is required'),
-  slug: Yup.string().required('Slug is required'),
-})
+const { t } = useI18n()
+
+const schema = computed(() =>
+  Yup.object().shape({
+    country_id: Yup.number().required(t('validation.countryRequired')),
+    name: Yup.string().required(t('validation.nameRequired')),
+    slug: Yup.string().required(t('validation.slugRequired')),
+  }),
+)
 
 const { errors, handleSubmit, setFieldValue } = useForm({
   validationSchema: schema,
@@ -125,7 +134,7 @@ const { value: slug } = useField<string>('slug')
 /* end define validate */
 
 /** start defined computed */
-const title = computed(() => (props.item ? 'Edit City' : 'New City'))
+const title = computed(() => (props.item ? t('cities.editCity') : t('cities.newCity')))
 /* end defined computed */
 
 /** start defined methods */
@@ -170,34 +179,49 @@ const close = () => {
   emit('close-modal', null)
 }
 
-const updateSlug = () => {
-  setFieldValue(
-    'slug',
-    name.value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036F]/g, '')
-      .toLowerCase()
-      .replace(/ /g, '-')
-      .replace(/[^a-z0-9-]/g, ''),
-  )
+const onSlugInput = () => {
+  slugManuallyEdited.value = true
 }
 /* end defined methods */
 
 /** start define watcher */
 watch(
   () => props.dialog,
-  (value) => {
-    if (!value) close()
+  (isOpen) => {
+    if (isOpen) {
+      if (props.item) {
+        slugManuallyEdited.value = true
+        setFieldValue('id', props.item.id ?? null)
+        setFieldValue('country_id', props.item.country_id)
+        setFieldValue('name', props.item.name)
+        setFieldValue('slug', props.item.slug)
+      } else {
+        slugManuallyEdited.value = false
+        setFieldValue('id', null)
+        setFieldValue('country_id', null)
+        setFieldValue('name', '')
+        setFieldValue('slug', '')
+        serverError.value = ''
+      }
+    } else {
+      close()
+    }
   },
   { immediate: false },
 )
 
-watchEffect(() => {
-  if (props.item) {
-    setFieldValue('id', props.item.id ?? null)
-    setFieldValue('country_id', props.item.country_id)
-    setFieldValue('name', props.item.name)
-    setFieldValue('slug', props.item.slug)
+watch(name, (newName) => {
+  if (!slugManuallyEdited.value) {
+    setFieldValue(
+      'slug',
+      (newName ?? '')
+        .replace(/[đĐ]/g, 'd')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036F]/g, '')
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^a-z0-9-]/g, ''),
+    )
   }
 })
 /* end define watcher */

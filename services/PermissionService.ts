@@ -16,6 +16,19 @@ export default class PermissionService {
   }
 
   /**
+   * Fetches permissions matching the given filter criteria.
+   *
+   * @param parameters - The filter parameters.
+   * @returns A promise that resolves to an array of matching PermissionModel objects.
+   */
+  public static async filter(parameters: { search?: string }): Promise<PermissionModel[]> {
+    const searchParameters = new URLSearchParams()
+    if (parameters.search) searchParameters.set('search', parameters.search)
+
+    return apiClient.get<PermissionModel[]>(`${this.resource}?${searchParameters.toString()}`)
+  }
+
+  /**
    * Creates a new permission record.
    *
    * @param data - The data for the new permission record.

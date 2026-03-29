@@ -6,6 +6,13 @@ export default class DepartmentService {
     return await apiClient.get<DepartmentModel[]>('departments')
   }
 
+  public static async filter(parameters: { search?: string }): Promise<DepartmentModel[]> {
+    const searchParameters = new URLSearchParams()
+    if (parameters.search) searchParameters.set('search', parameters.search)
+
+    return apiClient.get<DepartmentModel[]>(`departments?${searchParameters.toString()}`)
+  }
+
   public static async getOne(id: number): Promise<DepartmentModel> {
     return await apiClient.get<DepartmentModel>(`departments/${id}`)
   }

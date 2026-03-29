@@ -5,7 +5,7 @@
         <div>
           <div class="text-h6 font-weight-bold text-primary">{{ title }}</div>
           <div class="text-body-2 text-medium-emphasis mt-1">
-            Create or update permission group.
+            {{ $t('permissionGroups.subtitle') }}
           </div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
@@ -15,7 +15,7 @@
 
       <v-card-text class="px-6 py-0">
         <v-container class="pa-0">
-          <div class="field-label">NAME</div>
+          <div class="field-label">{{ $t('common.name').toUpperCase() }}</div>
           <v-text-field
             v-model="nameField"
             variant="filled"
@@ -26,7 +26,7 @@
             autocomplete="off"
           ></v-text-field>
 
-          <div class="field-label">PERMISSIONS</div>
+          <div class="field-label">{{ $t('permissions.title').toUpperCase() }}</div>
           <v-select
             v-model="permissionsField"
             :items="permissions"
@@ -41,7 +41,7 @@
             multiple
           ></v-select>
 
-          <div class="field-label">DESCRIPTIONS</div>
+          <div class="field-label">{{ $t('common.description').toUpperCase() }}</div>
           <v-textarea
             v-model="descriptionsField"
             variant="filled"
@@ -56,8 +56,12 @@
       </v-card-text>
 
       <div class="d-flex justify-end ga-3 px-6 py-4">
-        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Save</v-btn>
+        <v-btn variant="text" color="default" rounded="lg" @click="close">{{
+          $t('common.cancel')
+        }}</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">{{
+          $t('common.save')
+        }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -101,11 +105,15 @@ const form: PermissionGroupModel = {
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE VALIDATE */
-const schema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  permissions: Yup.array().of(Yup.string()).required('Permissions is required'),
-  descriptions: Yup.string().nullable(),
-})
+const { t } = useI18n()
+
+const schema = computed(() =>
+  Yup.object().shape({
+    name: Yup.string().required(t('validation.nameRequired')),
+    permissions: Yup.array().of(Yup.string()).required(t('validation.atLeastOne')),
+    descriptions: Yup.string().nullable(),
+  }),
+)
 
 const {
   values,
@@ -131,7 +139,7 @@ const permissions = ref<Array<PermissionModel>>([])
 
 /** START DEFINE COMPUTED */
 const title = computed(() => {
-  return props.item ? 'Edit Permission Group' : 'New Permission Group'
+  return props.item ? t('permissionGroups.editGroup') : t('permissionGroups.newGroup')
 })
 
 const maxWidth = computed(() => {
@@ -141,7 +149,7 @@ const maxWidth = computed(() => {
 
 /** START DEFINE METHOD */
 const handleCreate = handleSubmit(async (form: PermissionGroupFormType) => {
-  await schema.validate(values, { abortEarly: false })
+  await schema.value.validate(values, { abortEarly: false })
   PermissionGroupService.create(form)
     .then((permission: PermissionGroupModel) => {
       emit('confirm', permission)
@@ -152,7 +160,7 @@ const handleCreate = handleSubmit(async (form: PermissionGroupFormType) => {
 })
 
 const handleUpdate = handleSubmit(async (form: PermissionGroupFormType) => {
-  await schema.validate(values, { abortEarly: false })
+  await schema.value.validate(values, { abortEarly: false })
   PermissionGroupService.update(props.item?.id as number, form)
     .then((permission: PermissionGroupModel) => {
       emit('confirm', permission)
@@ -176,6 +184,7 @@ const close = () => {
 
 // Submit on Enter key unless the focused element is a textarea
 const handleCardEnter = (event: KeyboardEvent) => {
+  if (event.key !== 'Enter') return
   if ((event.target as HTMLElement).tagName === 'TEXTAREA') return
   event.preventDefault()
   confirm()

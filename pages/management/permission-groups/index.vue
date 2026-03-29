@@ -2,31 +2,78 @@
   <v-container fluid class="py-6 px-6">
     <div class="d-flex align-center justify-space-between mb-5">
       <div>
-        <div class="text-h5 font-weight-bold">Permission Groups</div>
-        <div class="text-body-2 text-medium-emphasis mt-1">Manage permission groups</div>
+        <div class="text-h5 font-weight-bold">{{ $t('permissionGroups.title') }}</div>
       </div>
-      <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="add()">
-        New Permission Group
+      <v-btn color="primary" prepend-icon="mdi-plus" rounded="lg" @click="addItem()">
+        {{ $t('permissionGroups.createGroup') }}
       </v-btn>
     </div>
 
-    <v-card rounded="xl" elevation="0" border>
+    <v-card rounded="xl" elevation="0" border class="table-responsive-card">
+      <!-- Toolbar -->
+      <div class="d-flex align-center px-4 py-3 ga-2 border-b table-toolbar">
+        <v-btn
+          :color="isFilterActive ? 'primary' : undefined"
+          :variant="isFilterActive ? 'tonal' : 'text'"
+          prepend-icon="mdi-filter-outline"
+          size="small"
+          @click="filterExpanded = !filterExpanded"
+        >
+          {{ $t('common.filter') }}
+          <v-badge
+            v-if="activeFilterCount > 0"
+            :content="activeFilterCount"
+            color="primary"
+            floating
+          ></v-badge>
+        </v-btn>
+        <v-spacer></v-spacer>
+        <span class="text-caption text-medium-emphasis">{{ items.length }} records</span>
+      </div>
+
+      <!-- Filter panel -->
+      <FilterPanel
+        v-model="filters"
+        :expanded="filterExpanded"
+        :search-label="$t('common.search')"
+        @reset="resetFilters"
+      />
+
       <v-data-table
         v-model:sort-by="sortBy"
         :headers="headers"
-        :items="permissionGroups"
+        :items="items"
         :loading="isLoading"
         :hover="true"
+        items-per-page="50"
       >
+        <template #item.permissions="{ item }">
+          <div
+            v-if="item.permissions && item.permissions.length > 0"
+            class="d-flex flex-wrap ga-1 py-2"
+          >
+            <v-chip
+              v-for="permission in item.permissions"
+              :key="permission"
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              label
+            >
+              {{ permission }}
+            </v-chip>
+          </div>
+          <span v-else class="text-caption text-medium-emphasis">—</span>
+        </template>
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
             <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
               <v-icon size="16">mdi-pencil-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
             <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
               <v-icon size="16">mdi-delete-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
           </div>
         </template>
@@ -45,8 +92,8 @@
     />
 
     <DialogDelete
-      v-if="!!permissionGroup"
-      :item="permissionGroup"
+      v-if="!!entityToDelete"
+      :item="entityToDelete"
       :dialog="dialogDelete"
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
@@ -56,146 +103,58 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import FilterPanel from '@/components/common/FilterPanel.vue'
 import DialogCreateOrUpdate from '@/components/permission_groups/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/permission_groups/DialogDelete.vue'
 import type { PermissionGroupModel } from '~/interfaces/models/PermissionGroupModel'
 import PermissionGroupService from '@/services/PermissionGroupService'
 /* END IMPORT */
 
+const { t } = useI18n()
+
 /** START DEFINE NAME COMPONENT */
 definePageMeta({
   name: 'admin.permission_groups.index',
 })
-/* END  DEFINE */
-
-/** START DEFINE PROPERTY AND EMITS */
-/* END DEFINE PROPERTY AND EMITS */
-
-/** START DEFINE VALIDATE */
-/* END DEFINE VALIDATE */
+/* END DEFINE NAME COMPONENT */
 
 /** START DEFINE STATE */
-const permissionGroups = ref<Array<PermissionGroupModel>>([])
-const isLoading = ref(false)
-const permissionGroup = ref<PermissionGroupModel | null>(null)
-const dialog = ref(false)
-const dialogDelete = ref(false)
-const sortBy = ref<Array<{ key: string; order: boolean | 'asc' | 'desc' | undefined }>>([
-  { key: 'name', order: 'asc' },
+const headers = computed(() => [
+  { title: t('common.id'), key: 'id', sortable: true },
+  { title: t('common.name'), align: 'start' as const, key: 'name' },
+  { title: t('permissionGroups.permissions'), key: 'permissions' },
+  { title: t('common.description'), key: 'descriptions' },
+  { title: t('common.actions'), key: 'actions', sortable: false },
 ])
-const headers = ref<Array<object>>([
-  {
-    title: 'Name',
-    align: 'start',
-    key: 'name',
-  },
 
-  { title: 'permissions', key: 'permissions' },
-
-  { title: 'Descriptions', key: 'descriptions' },
-
-  { title: 'Actions', key: 'actions', sortable: false },
-])
-const editedIndex = ref(-1)
-const editedItem = ref<PermissionGroupModel | null>(null)
-/* END DEFINE STATE */
-
-/** START DEFINE COMPUTED */
-/* END DEFINE COMPUTED */
-
-/** START DEFINE METHOD */
-const onConfirm = async () => {
-  try {
-    onClose()
-    await getPermissionGroups()
-  } catch (error) {
-    console.error('Failed to add permission:', error)
-  }
-}
-
-const add = () => {
-  editedItem.value = null
-  dialog.value = true
-}
-
-const editItem = (item: PermissionGroupModel) => {
-  editedIndex.value = permissionGroups.value.indexOf(item)
-  editedItem.value = { ...item }
-  dialog.value = true
-}
-
-const onClose = () => {
-  dialog.value = false
-
-  nextTick(() => {
-    editedIndex.value = -1
-  })
-}
-
-const onConfirmDelete = async (item: PermissionGroupModel) => {
-  try {
-    dialogDelete.value = false
-    await nextTick()
-
-    if (item.id) {
-      await PermissionGroupService.delete(item.id)
-      await getPermissionGroups()
-      permissionGroup.value = null
-    } else {
-      console.error('Invalid item id:', item.id)
-    }
-  } catch (error) {
-    console.error('Failed to delete permission:', error)
-  }
-}
-
-const onCloseDelete = () => {
-  dialogDelete.value = false
-
-  nextTick(() => {
-    permissionGroup.value = null
-  })
-}
-
-const deleteItem = async (item: any) => {
-  permissionGroup.value = await { ...item }
-  dialogDelete.value = true
-}
-
-const getPermissionGroups = async () => {
-  if (isLoading.value) return
-
-  try {
-    isLoading.value = true
-    const data = await PermissionGroupService.getAll()
-    permissionGroups.value = Object.values(data)
-
-    setTimeout(() => {
-      isLoading.value = false
-    }, 500)
-  } catch (error) {
-    console.error('Failed to fetch permissions:', error)
-  }
-}
-/* END DEFINE METHOD */
-
-/** START DEFINE WATCHER */
-watch(
-  () => dialog,
-  (newValue) => {
-    if (!newValue) {
-      close()
-    }
-  },
-  { immediate: false },
-)
-/* END DEFINE WATCHER */
-
-/** START DEFINE LIFE CYCLE HOOK */
-onMounted(() => {
-  getPermissionGroups()
+const {
+  items,
+  isLoading,
+  dialog,
+  dialogDelete,
+  editedItem,
+  entityToDelete,
+  sortBy,
+  filters,
+  filterExpanded,
+  activeFilterCount,
+  isFilterActive,
+  addItem,
+  editItem,
+  onConfirm,
+  onClose,
+  deleteItem,
+  onConfirmDelete,
+  onCloseDelete,
+  resetFilters,
+} = useCrudPage<PermissionGroupModel, typeof PermissionGroupService>(PermissionGroupService, {
+  filters: { search: '' },
 })
-/* END DEFINE LIFE CYCLE HOOK */
+/* END DEFINE STATE */
 </script>
 
-<style scoped></style>
+<style scoped>
+.table-toolbar {
+  background-color: #f5ede4;
+}
+</style>

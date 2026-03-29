@@ -8,17 +8,25 @@
         </v-btn>
         <div>
           <div class="text-h5 font-weight-bold">{{ departmentName }}</div>
-          <div class="text-body-2 text-medium-emphasis mt-1">Assigned users</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            {{ $t('departments.assignedUsers') }}
+          </div>
         </div>
       </div>
       <v-btn color="primary" prepend-icon="mdi-account-plus" rounded="lg" @click="dialog = true">
-        Assign User
+        {{ $t('departments.assignUser') }}
       </v-btn>
     </div>
 
     <!-- Table card -->
     <v-card rounded="xl" elevation="0" border>
-      <v-data-table :headers="headers" :items="assignments" :loading="isLoading" :hover="true">
+      <v-data-table
+        :headers="headers"
+        :items="assignments"
+        :loading="isLoading"
+        :hover="true"
+        items-per-page="50"
+      >
         <template #item.user="{ item }">
           {{ item.user?.full_name ?? '-' }}
         </template>
@@ -34,7 +42,7 @@
         <template #item.actions="{ item }">
           <v-btn icon size="x-small" variant="text" color="error" @click="confirmRemove(item)">
             <v-icon size="16">mdi-delete-outline</v-icon>
-            <v-tooltip activator="parent" location="top">Remove</v-tooltip>
+            <v-tooltip activator="parent" location="top">{{ $t('users.remove') }}</v-tooltip>
           </v-btn>
         </template>
 
@@ -47,16 +55,18 @@
     <!-- Confirm remove dialog -->
     <v-dialog v-model="dialogDelete" max-width="420px">
       <v-card>
-        <v-card-title class="text-h6">Remove User</v-card-title>
+        <v-card-title class="text-h6">{{ $t('departments.removeUser') }}</v-card-title>
         <v-card-text>
-          Are you sure you want to remove
-          <strong>{{ deletingAssignment?.user?.full_name ?? 'this user' }}</strong>
-          from the department?
+          {{
+            $t('departments.removeUserConfirm', { name: deletingAssignment?.user?.full_name ?? '' })
+          }}
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn variant="text" @click="cancelRemove">Cancel</v-btn>
-          <v-btn color="error" variant="elevated" @click="executeRemove">Remove</v-btn>
+          <v-btn variant="text" @click="cancelRemove">{{ $t('common.cancel') }}</v-btn>
+          <v-btn color="error" variant="elevated" @click="executeRemove">{{
+            $t('users.remove')
+          }}</v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
@@ -83,6 +93,8 @@ import CompanyService from '@/services/CompanyService'
 import DepartmentService from '@/services/DepartmentService'
 /* END IMPORT */
 
+const { t } = useI18n()
+
 /** START DEFINE NAME COMPONENT */
 definePageMeta({
   name: 'admin.departments.users',
@@ -99,17 +111,18 @@ const isLoading = ref(false)
 const dialog = ref(false)
 const dialogDelete = ref(false)
 const deletingAssignment = ref<UserDepartmentModel | null>(null)
-const headers = ref<Array<object>>([
-  { title: 'Full Name', key: 'user', sortable: false },
-  { title: 'Email', key: 'email', sortable: false },
-  { title: 'Company', key: 'company', sortable: false },
-  { title: 'Actions', key: 'actions', sortable: false },
+const headers = computed(() => [
+  { title: t('profile.fullName'), key: 'user', sortable: false },
+  { title: t('profile.email'), key: 'email', sortable: false },
+  { title: t('profile.company'), key: 'company', sortable: false },
+  { title: t('common.actions'), key: 'actions', sortable: false },
 ])
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
 const loadAssignments = async () => {
   if (isLoading.value) return
+
   try {
     isLoading.value = true
     const data = await UserDepartmentService.getByDepartment(departmentId.value)
@@ -133,6 +146,7 @@ const cancelRemove = () => {
 
 const executeRemove = async () => {
   if (!deletingAssignment.value) return
+
   try {
     await UserDepartmentService.delete(deletingAssignment.value.id)
     dialogDelete.value = false

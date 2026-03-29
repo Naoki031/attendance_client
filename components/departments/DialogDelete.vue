@@ -6,17 +6,16 @@
           <v-icon color="error" size="28">mdi-alert</v-icon>
         </div>
       </div>
-      <div class="text-h6 font-weight-bold mb-2">Delete Department?</div>
+      <div class="text-h6 font-weight-bold mb-2">{{ $t('departments.deleteDepartment') }}</div>
       <div class="text-body-2 text-medium-emphasis mb-6 px-4">
-        Are you sure you want to delete <strong>{{ item.name }}</strong
-        >? This action cannot be undone.
+        {{ $t('common.deleteConfirmName', { name: item.name }) }}
       </div>
       <div class="d-flex justify-center ga-3">
         <v-btn variant="text" color="default" rounded="lg" min-width="100" @click="close">
-          Cancel
+          {{ $t('common.cancel') }}
         </v-btn>
         <v-btn color="primary" variant="elevated" rounded="lg" min-width="100" @click="confirm">
-          Delete
+          {{ $t('common.delete') }}
         </v-btn>
       </div>
     </v-card>

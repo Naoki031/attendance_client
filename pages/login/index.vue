@@ -12,8 +12,8 @@
         <v-avatar color="primary" size="64" class="mb-4" rounded="lg">
           <v-icon icon="mdi-briefcase-clock-outline" size="36" color="white"></v-icon>
         </v-avatar>
-        <div class="text-h5 font-weight-bold">Attendance System</div>
-        <div class="text-body-2 text-medium-emphasis mt-1">Sign in to your account</div>
+        <div class="text-h5 font-weight-bold">{{ $t('auth.attendanceSystem') }}</div>
+        <div class="text-body-2 text-medium-emphasis mt-1">{{ $t('auth.signInToAccount') }}</div>
       </div>
 
       <!-- Error alert -->
@@ -33,8 +33,8 @@
       <v-text-field
         v-model="email.value.value"
         density="compact"
-        label="Email"
-        placeholder="Enter your email"
+        :label="$t('auth.email')"
+        :placeholder="$t('auth.enterEmail')"
         prepend-inner-icon="mdi-email-outline"
         variant="outlined"
         autocomplete="email"
@@ -49,8 +49,8 @@
         :append-inner-icon="visible ? 'mdi-eye-off' : 'mdi-eye'"
         :type="visible ? 'text' : 'password'"
         density="compact"
-        label="Password"
-        placeholder="Enter your password"
+        :label="$t('auth.password')"
+        :placeholder="$t('auth.enterPassword')"
         prepend-inner-icon="mdi-lock-outline"
         variant="outlined"
         autocomplete="current-password"
@@ -70,7 +70,7 @@
         :loading="isSubmitting"
         @click.prevent="onSubmit"
       >
-        Sign In
+        {{ $t('auth.signIn') }}
       </v-btn>
     </v-card>
   </v-sheet>
@@ -97,12 +97,16 @@ const form = {
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE VALIDATE */
-const schema = Yup.object().shape({
-  email: Yup.string().required('Email is required').email('Invalid email address'),
-  password: Yup.string()
-    .required('Password is required')
-    .min(4, 'Password must be at least 4 characters'),
-})
+const { t } = useI18n()
+
+const schema = computed(() =>
+  Yup.object().shape({
+    email: Yup.string().required(t('validation.emailRequired')).email(t('validation.invalidEmail')),
+    password: Yup.string()
+      .required(t('validation.passwordRequired'))
+      .min(4, t('validation.passwordMinLength', { min: 4 })),
+  }),
+)
 
 const { handleSubmit, isSubmitting } = useForm({
   validationSchema: schema,

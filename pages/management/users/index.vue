@@ -3,18 +3,15 @@
     <!-- Page header -->
     <div class="d-flex align-center justify-space-between mb-5">
       <div>
-        <div class="text-h5 font-weight-bold">User Management</div>
-        <div class="text-body-2 text-medium-emphasis mt-1">
-          Manage staff accounts, roles, and department assignments
-        </div>
+        <div class="text-h5 font-weight-bold">{{ $t('users.title') }}</div>
       </div>
       <v-btn color="primary" prepend-icon="mdi-account-plus" rounded="lg" @click="addUser()">
-        New User
+        {{ $t('users.createUser') }}
       </v-btn>
     </div>
 
     <!-- Table card -->
-    <v-card rounded="xl" elevation="0" border>
+    <v-card rounded="xl" elevation="0" border class="table-responsive-card">
       <!-- Toolbar -->
       <div class="d-flex align-center px-4 py-3 ga-2 border-b table-toolbar">
         <v-btn
@@ -24,7 +21,7 @@
           size="small"
           @click="filterExpanded = !filterExpanded"
         >
-          Filters
+          {{ $t('common.filter') }}
           <v-badge
             v-if="activeFilterCount > 0"
             :content="activeFilterCount"
@@ -40,6 +37,7 @@
       <UserFilterPanel
         v-model="filters"
         :expanded="filterExpanded"
+        :companies="availableCompanies"
         :departments="availableDepartments"
         :roles="availableRoles"
         @reset="resetFilters"
@@ -52,6 +50,7 @@
         :items="users"
         :loading="isLoading"
         :hover="true"
+        items-per-page="50"
       >
         <!-- ID: link to detail -->
         <template #item.id="{ item }">
@@ -69,6 +68,23 @@
             <nuxt-link :to="`/management/users/${item.id}`" class="row-link font-weight-medium">
               {{ item.full_name }}
             </nuxt-link>
+          </div>
+        </template>
+
+        <!-- Company -->
+        <template #item.company="{ item }">
+          <div class="d-flex flex-wrap ga-1 py-1">
+            <v-chip
+              v-for="company in getUniqueCompanies(item)"
+              :key="company.id"
+              size="x-small"
+              color="secondary"
+              variant="tonal"
+              >{{ company.name }}</v-chip
+            >
+            <span v-if="!getUniqueCompanies(item).length" class="text-medium-emphasis text-caption"
+              >—</span
+            >
           </div>
         </template>
 
@@ -106,6 +122,36 @@
           </div>
         </template>
 
+        <!-- Permanent Remote: chip label -->
+        <template #item.permanent_remote="{ item }">
+          <div v-if="item.permanent_remote" class="d-flex align-center ga-1">
+            <v-chip size="x-small" color="success" variant="tonal" prepend-icon="mdi-home-outline">
+              {{ $t('users.permanentRemote') }}
+            </v-chip>
+            <v-tooltip v-if="item.permanent_remote_reason" activator="parent" location="top">
+              {{ item.permanent_remote_reason }}
+            </v-tooltip>
+          </div>
+          <span v-else class="text-caption text-medium-emphasis">—</span>
+        </template>
+
+        <!-- Schedule: show custom schedule count badge -->
+        <template #item.schedule="{ item }">
+          <div v-if="item.user_work_schedules?.length">
+            <v-chip
+              color="deep-purple"
+              size="x-small"
+              variant="tonal"
+              prepend-icon="mdi-clock-edit-outline"
+            >
+              {{ $t('users.customSchedule', { count: item.user_work_schedules.length }) }}
+            </v-chip>
+          </div>
+          <span v-else class="text-caption text-medium-emphasis">{{
+            $t('users.companyDefault')
+          }}</span>
+        </template>
+
         <!-- Status: dot indicator -->
         <template #item.is_activated="{ item }">
           <div class="d-flex align-center ga-2">
@@ -113,7 +159,9 @@
               class="status-dot"
               :class="item.is_activated ? 'status-dot--active' : 'status-dot--inactive'"
             ></span>
-            <span class="text-body-2">{{ item.is_activated ? 'Active' : 'Inactive' }}</span>
+            <span class="text-body-2">{{
+              item.is_activated ? $t('common.active') : $t('common.inactive')
+            }}</span>
           </div>
         </template>
 
@@ -122,7 +170,7 @@
           <div class="d-flex align-center ga-1">
             <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
               <v-icon size="16">mdi-pencil-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Edit</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
             <v-btn
               icon
@@ -132,11 +180,19 @@
               @click="manageDepartments(item)"
             >
               <v-icon size="16">mdi-office-building-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Manage Departments</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{
+                $t('users.manageDepartments')
+              }}</v-tooltip>
+            </v-btn>
+            <v-btn icon size="x-small" variant="text" color="teal" @click="openWorkSchedule(item)">
+              <v-icon size="16">mdi-clock-time-eight-outline</v-icon>
+              <v-tooltip activator="parent" location="top">{{
+                $t('users.manageWorkSchedule')
+              }}</v-tooltip>
             </v-btn>
             <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
               <v-icon size="16">mdi-delete-outline</v-icon>
-              <v-tooltip activator="parent" location="top">Delete</v-tooltip>
+              <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
           </div>
         </template>
@@ -170,6 +226,14 @@
       @close-modal="dialogDepartments = false"
       @changed="getUsers"
     />
+
+    <DialogManageWorkSchedule
+      v-if="!!selectedUserForSchedule"
+      :user="selectedUserForSchedule"
+      :dialog="dialogWorkSchedule"
+      @close-modal="dialogWorkSchedule = false"
+      @changed="getUsers"
+    />
   </v-container>
 </template>
 
@@ -178,14 +242,19 @@
 import DialogCreateOrUpdate from '~/components/users/DialogCreateOrUpdate.vue'
 import DialogDelete from '@/components/users/DialogDelete.vue'
 import DialogManageDepartments from '@/components/users/DialogManageDepartments.vue'
+import DialogManageWorkSchedule from '@/components/users/DialogManageWorkSchedule.vue'
 import UserFilterPanel from '@/components/users/UserFilterPanel.vue'
 import type { UserModel } from '@/interfaces/models/UserModel'
 import type { DepartmentModel } from '@/interfaces/models/DepartmentModel'
 import type { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
+import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import UserService from '@/services/UserService'
+import CompanyService from '@/services/CompanyService'
 import DepartmentService from '@/services/DepartmentService'
 import PermissionGroupService from '@/services/PermissionGroupService'
 /* END IMPORT */
+
+const { t } = useI18n()
 
 /** START DEFINE NAME COMPONENT */
 definePageMeta({
@@ -196,6 +265,7 @@ definePageMeta({
 /** START DEFINE STATE */
 const users = ref<UserModel[]>([])
 const isLoading = ref(false)
+const availableCompanies = ref<CompanyModel[]>([])
 const availableDepartments = ref<DepartmentModel[]>([])
 const availableRoles = ref<PermissionGroupModel[]>([])
 const filterExpanded = ref(false)
@@ -204,6 +274,7 @@ const filters = ref({
   name: '',
   position: '',
   email: '',
+  companyId: null as number | null,
   departmentId: null as number | null,
   role: '',
   status: '' as '' | 'active' | 'inactive',
@@ -215,21 +286,26 @@ const dialog = ref(false)
 const dialogDelete = ref(false)
 const dialogDepartments = ref(false)
 const selectedUserForDepartments = ref<UserModel | null>(null)
+const dialogWorkSchedule = ref(false)
+const selectedUserForSchedule = ref<UserModel | null>(null)
 const editedItem = ref<UserModel | null>(null)
 const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
   { key: 'first_name', order: 'asc' },
 ])
-const headers = ref([
-  { title: 'ID', key: 'id', sortable: true },
-  { title: 'Name', align: 'start' as const, key: 'full_name', minWidth: '220px' },
-  { title: 'Position', key: 'position' },
-  { title: 'Email', key: 'email' },
-  { title: 'Departments', key: 'departments', sortable: false },
-  { title: 'Roles', key: 'roles', sortable: false },
-  { title: 'Contract Type', key: 'contract_type', sortable: true },
-  { title: 'Join Date', key: 'join_date' },
-  { title: 'Status', key: 'is_activated' },
-  { title: 'Actions', key: 'actions', sortable: false },
+const headers = computed(() => [
+  { title: t('common.id'), key: 'id', sortable: true },
+  { title: t('common.name'), align: 'start' as const, key: 'full_name', minWidth: '220px' },
+  { title: t('profile.position'), key: 'position' },
+  { title: t('profile.email'), key: 'email' },
+  { title: t('profile.company'), key: 'company', sortable: false },
+  { title: t('departments.title'), key: 'departments', sortable: false },
+  { title: t('profile.roles'), key: 'roles', sortable: false },
+  { title: t('profile.contractType'), key: 'contract_type', sortable: true },
+  { title: t('profile.joinDate'), key: 'join_date' },
+  { title: t('users.permanentRemote'), key: 'permanent_remote', sortable: false },
+  { title: t('common.schedule'), key: 'schedule', sortable: false },
+  { title: t('common.status'), key: 'is_activated' },
+  { title: t('common.actions'), key: 'actions', sortable: false },
 ])
 
 let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -238,11 +314,13 @@ let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null
 /** START DEFINE COMPUTED */
 const activeFilterCount = computed(() => {
   const filterValues = filters.value
+
   return [
     filterValues.id,
     filterValues.name,
     filterValues.position,
     filterValues.email,
+    filterValues.companyId,
     filterValues.departmentId,
     filterValues.role,
     filterValues.status,
@@ -266,16 +344,19 @@ const getUsers = async () => {
       filterValues.name ||
       filterValues.position ||
       filterValues.email ||
+      filterValues.companyId ||
       filterValues.departmentId ||
       filterValues.role ||
       filterValues.status ||
       filterValues.contractType
+
     if (hasFilter) {
       users.value = await UserService.filter({
         id: filterValues.id || undefined,
         name: filterValues.name || undefined,
         position: filterValues.position || undefined,
         email: filterValues.email || undefined,
+        companyId: filterValues.companyId,
         departmentId: filterValues.departmentId,
         role: filterValues.role || undefined,
         status: filterValues.status || undefined,
@@ -297,7 +378,22 @@ const getInitials = (item: UserModel): string => {
   const first = parts[0]?.[0] ?? ''
   const last = parts[parts.length - 1]?.[0] ?? ''
   if (parts.length >= 2) return (first + last).toUpperCase()
+
   return first.toUpperCase() || '?'
+}
+
+const getUniqueCompanies = (item: UserModel) => {
+  const companyMap = new Map<number, { id: number; name: string }>()
+  for (const assignment of item.user_departments ?? []) {
+    if (assignment.company?.id && !companyMap.has(assignment.company.id)) {
+      companyMap.set(assignment.company.id, {
+        id: assignment.company.id,
+        name: assignment.company.name,
+      })
+    }
+  }
+
+  return Array.from(companyMap.values())
 }
 
 const resetFilters = () => {
@@ -306,6 +402,7 @@ const resetFilters = () => {
     name: '',
     position: '',
     email: '',
+    companyId: null,
     departmentId: null,
     role: '',
     status: '',
@@ -344,6 +441,11 @@ const manageDepartments = (item: UserModel) => {
   dialogDepartments.value = true
 }
 
+const openWorkSchedule = (item: UserModel) => {
+  selectedUserForSchedule.value = { ...item }
+  dialogWorkSchedule.value = true
+}
+
 const deleteItem = (item: UserModel) => {
   selectedUser.value = { ...item }
   dialogDelete.value = true
@@ -352,6 +454,7 @@ const deleteItem = (item: UserModel) => {
 const onConfirmDelete = async (item: UserModel) => {
   try {
     dialogDelete.value = false
+
     if (item.id) {
       await UserService.delete(item.id)
       await getUsers()
@@ -386,10 +489,12 @@ watch(
 
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(async () => {
-  const [departments, roles] = await Promise.all([
+  const [companies, departments, roles] = await Promise.all([
+    CompanyService.getAll(),
     DepartmentService.getAll(),
     PermissionGroupService.getAll(),
   ])
+  availableCompanies.value = Object.values(companies)
   availableDepartments.value = Object.values(departments)
   availableRoles.value = Object.values(roles)
   await getUsers()

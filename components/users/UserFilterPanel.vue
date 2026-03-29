@@ -7,7 +7,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-text-field
               :model-value="modelValue.id"
-              label="ID"
+              :label="$t('common.id')"
               density="compact"
               hide-details
               clearable
@@ -19,7 +19,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-text-field
               :model-value="modelValue.name"
-              label="Name"
+              :label="$t('common.name')"
               density="compact"
               hide-details
               clearable
@@ -31,7 +31,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-text-field
               :model-value="modelValue.position"
-              label="Position"
+              :label="$t('profile.position')"
               density="compact"
               hide-details
               clearable
@@ -43,7 +43,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-text-field
               :model-value="modelValue.email"
-              label="Email"
+              :label="$t('profile.email')"
               density="compact"
               hide-details
               clearable
@@ -54,8 +54,23 @@
 
           <v-col cols="12" sm="6" md="3">
             <v-autocomplete
+              :model-value="modelValue.companyId"
+              :label="$t('profile.company')"
+              :items="companies"
+              item-title="name"
+              item-value="id"
+              density="compact"
+              hide-details
+              clearable
+              autocomplete="off"
+              @update:model-value="update('companyId', $event)"
+            ></v-autocomplete>
+          </v-col>
+
+          <v-col cols="12" sm="6" md="3">
+            <v-autocomplete
               :model-value="modelValue.departmentId"
-              label="Department"
+              :label="$t('profile.department')"
               :items="departments"
               item-title="name"
               item-value="id"
@@ -70,7 +85,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-autocomplete
               :model-value="modelValue.role"
-              label="Role"
+              :label="$t('profile.roles')"
               :items="roles"
               item-title="name"
               item-value="name"
@@ -85,7 +100,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-select
               :model-value="modelValue.status"
-              label="Status"
+              :label="$t('common.status')"
               :items="statusOptions"
               item-title="label"
               item-value="value"
@@ -99,7 +114,7 @@
           <v-col cols="12" sm="6" md="3">
             <v-text-field
               :model-value="modelValue.contractType"
-              label="Contract Type"
+              :label="$t('profile.contractType')"
               density="compact"
               hide-details
               clearable
@@ -112,7 +127,7 @@
         <v-row comfortable class="mt-1">
           <v-col cols="12" class="d-flex justify-end">
             <v-btn size="small" variant="text" color="error" @click="emit('reset')">
-              Clear all
+              {{ $t('users.clearFilter') }}
             </v-btn>
           </v-col>
         </v-row>
@@ -125,6 +140,7 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import type { PropType } from 'vue'
+import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import type { DepartmentModel } from '@/interfaces/models/DepartmentModel'
 import type { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
 /* END IMPORT */
@@ -135,6 +151,7 @@ export interface UserFilters {
   name: string
   position: string
   email: string
+  companyId: number | null
   departmentId: number | null
   role: string
   status: '' | 'active' | 'inactive'
@@ -148,6 +165,10 @@ const props = defineProps({
   },
   expanded: {
     type: Boolean,
+    required: true,
+  },
+  companies: {
+    type: Array as PropType<CompanyModel[]>,
     required: true,
   },
   departments: {
@@ -167,10 +188,12 @@ const emit = defineEmits<{
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
-const statusOptions = [
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' },
-]
+const { t } = useI18n()
+
+const statusOptions = computed(() => [
+  { label: t('common.active'), value: 'active' },
+  { label: t('common.inactive'), value: 'inactive' },
+])
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */

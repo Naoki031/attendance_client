@@ -4,7 +4,7 @@
       <div class="dialog-header px-6 pt-6 pb-4">
         <div>
           <div class="text-h6 font-weight-bold text-primary">{{ title }}</div>
-          <div class="text-body-2 text-medium-emphasis mt-1">Create or update country record.</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">{{ $t('countries.subtitle') }}</div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
           <v-icon>mdi-close</v-icon>
@@ -13,7 +13,7 @@
 
       <v-card-text class="px-6 py-0">
         <v-container class="pa-0">
-          <div class="field-label">NAME</div>
+          <div class="field-label">{{ $t('common.name').toUpperCase() }}</div>
           <v-text-field
             v-model="name"
             variant="filled"
@@ -22,10 +22,9 @@
             density="comfortable"
             :error-messages="errors.name"
             autocomplete="off"
-            @blur="updateSlug"
           ></v-text-field>
 
-          <div class="field-label">SLUG</div>
+          <div class="field-label">{{ $t('common.slug').toUpperCase() }}</div>
           <v-text-field
             v-model="slug"
             variant="filled"
@@ -34,9 +33,10 @@
             density="comfortable"
             :error-messages="errors.slug"
             autocomplete="off"
+            @input="onSlugInput"
           ></v-text-field>
 
-          <div class="field-label">CAPITAL</div>
+          <div class="field-label">{{ $t('common.capital').toUpperCase() }}</div>
           <v-text-field
             v-model="capital"
             variant="filled"
@@ -50,8 +50,12 @@
       </v-card-text>
 
       <div class="d-flex justify-end ga-3 px-6 py-4">
-        <v-btn variant="text" color="default" rounded="lg" @click="close">Cancel</v-btn>
-        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">Save</v-btn>
+        <v-btn variant="text" color="default" rounded="lg" @click="close">{{
+          $t('common.cancel')
+        }}</v-btn>
+        <v-btn color="primary" variant="elevated" rounded="lg" @click="confirm">{{
+          $t('common.save')
+        }}</v-btn>
       </div>
     </v-card>
   </v-dialog>
@@ -92,11 +96,15 @@ const form = {
 /* end define property and emits */
 
 /** 3. start define validate */
-const schema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  slug: Yup.string().required('Slug is required'),
-  capital: Yup.string().nullable(),
-})
+const { t } = useI18n()
+
+const schema = computed(() =>
+  Yup.object().shape({
+    name: Yup.string().required(t('validation.nameRequired')),
+    slug: Yup.string().required(t('validation.slugRequired')),
+    capital: Yup.string().nullable(),
+  }),
+)
 
 const {
   values,
@@ -115,11 +123,12 @@ const { value: capital } = useField<string | null>('capital')
 /* end define validate */
 
 /** 4. start defined state */
+const slugManuallyEdited = ref(false)
 /* end defined state */
 
 /** 5. start defined computed */
 const title = computed(() => {
-  return props.item ? 'Edit Country' : 'New Country'
+  return props.item ? t('countries.editCountry') : t('countries.newCountry')
 })
 
 const maxWidth = computed(() => {
@@ -129,7 +138,7 @@ const maxWidth = computed(() => {
 
 /** 6. start defined methods */
 const handleCreate = handleSubmit(async (form) => {
-  await schema.validate(values, { abortEarly: false })
+  await schema.value.validate(values, { abortEarly: false })
   CountryService.create(form)
     .then((result: CountryModel) => {
       emit('confirm', result)
@@ -140,7 +149,7 @@ const handleCreate = handleSubmit(async (form) => {
 })
 
 const handleUpdate = handleSubmit(async (form) => {
-  await schema.validate(values, { abortEarly: false })
+  await schema.value.validate(values, { abortEarly: false })
   CountryService.update(props.item?.id as number, form)
     .then((result: CountryModel) => {
       emit('confirm', result)
@@ -162,38 +171,48 @@ const close = () => {
   emit('close-modal', null)
 }
 
-const updateSlug = () => {
-  setFieldValue(
-    'slug',
-    name.value
-      .normalize('NFD')
-      .replace(/[\u0300-\u036F]/g, '') // Remove accents
-      .toLowerCase() // Convert to lowercase
-      .replace(/ /g, '-') // Replace spaces with hyphens
-      .replace(/[^a-z0-9-]/g, ''), // Remove all non-alphanumeric characters except hyphens
-  )
+const onSlugInput = () => {
+  slugManuallyEdited.value = true
 }
 /* end defined methods */
 
 /** 7. start define watcher */
 watch(
   () => props.dialog,
-
-  (value) => {
-    if (!value) {
+  (isOpen) => {
+    if (isOpen) {
+      if (props.item) {
+        slugManuallyEdited.value = true
+        setFieldValue('id', props.item?.id ?? null)
+        setFieldValue('name', props.item?.name)
+        setFieldValue('slug', props.item?.slug)
+        setFieldValue('capital', String(props.item?.capital))
+      } else {
+        slugManuallyEdited.value = false
+        setFieldValue('id', null)
+        setFieldValue('name', '')
+        setFieldValue('slug', '')
+        setFieldValue('capital', null)
+      }
+    } else {
       close()
     }
   },
-
   { immediate: false },
 )
 
-watchEffect(() => {
-  if (props.item) {
-    setFieldValue('id', props.item?.id ?? null)
-    setFieldValue('name', props.item?.name)
-    setFieldValue('slug', props.item?.slug)
-    setFieldValue('capital', String(props.item?.capital))
+watch(name, (newName) => {
+  if (!slugManuallyEdited.value) {
+    setFieldValue(
+      'slug',
+      (newName ?? '')
+        .replace(/[đĐ]/g, 'd')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036F]/g, '')
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/[^a-z0-9-]/g, ''),
+    )
   }
 })
 /* end define life watcher */

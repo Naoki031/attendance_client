@@ -9,22 +9,20 @@
       </div>
 
       <!-- Title -->
-      <div class="text-h6 font-weight-bold mb-2">Delete User?</div>
+      <div class="text-h6 font-weight-bold mb-2">{{ $t('users.deleteUser') }}</div>
 
       <!-- Description -->
       <div class="text-body-2 text-medium-emphasis mb-6 px-4">
-        Are you sure you want to delete
-        <strong>{{ item.full_name }}</strong
-        >? This action cannot be undone and all associated data will be permanently removed.
+        {{ $t('users.deleteConfirm', { name: item.full_name }) }}
       </div>
 
       <!-- Actions -->
       <div class="d-flex justify-center ga-3">
         <v-btn variant="text" color="default" rounded="lg" min-width="100" @click="close">
-          Cancel
+          {{ $t('common.cancel') }}
         </v-btn>
         <v-btn color="primary" variant="elevated" rounded="lg" min-width="100" @click="confirm">
-          Delete
+          {{ $t('common.delete') }}
         </v-btn>
       </div>
     </v-card>

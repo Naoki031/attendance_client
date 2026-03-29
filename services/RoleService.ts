@@ -8,6 +8,13 @@ export default class RoleService {
     return response
   }
 
+  public static async filter(parameters: { search?: string }): Promise<RoleModel[]> {
+    const searchParameters = new URLSearchParams()
+    if (parameters.search) searchParameters.set('search', parameters.search)
+
+    return apiClient.get<RoleModel[]>(`roles?${searchParameters.toString()}`)
+  }
+
   public static async create(data: Record<string, unknown>): Promise<RoleModel> {
     return await apiClient.post<RoleModel>('/roles', data)
   }
