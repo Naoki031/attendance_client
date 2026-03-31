@@ -223,7 +223,7 @@ const emit = defineEmits<{
 /* END DEFINE EMITS */
 
 /** START DEFINE STATE */
-const { moment, TIMEZONE } = useMoment()
+const { moment } = useMoment()
 
 const showTranslation = ref(props.autoTranslate)
 const isEditing = ref(false)
@@ -267,7 +267,7 @@ const canEdit = computed(() => {
 })
 
 const formattedTime = computed(() => {
-  return moment.utc(props.message.createdAt).tz(TIMEZONE).format('HH:mm')
+  return moment.utc(props.message.createdAt).local().format('HH:mm')
 })
 /* END DEFINE COMPUTED */
 

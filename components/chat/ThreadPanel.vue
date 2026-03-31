@@ -221,7 +221,7 @@ const emit = defineEmits<{
 /* END DEFINE EMITS */
 
 /** START DEFINE STATE */
-const { moment, TIMEZONE } = useMoment()
+const { moment } = useMoment()
 const showTranslation = ref(props.autoTranslate)
 const quotedMessage = ref<ChatMessage | null>(null)
 const editingReplyId = ref<number | null>(null)
@@ -243,7 +243,7 @@ const parentInitials = computed(() => {
 const formattedParentTime = computed(() => {
   if (!props.parent) return ''
 
-  return moment.utc(props.parent.createdAt).tz(TIMEZONE).format('HH:mm')
+  return moment.utc(props.parent.createdAt).local().format('HH:mm')
 })
 
 const parentDisplayContent = computed(() => {
@@ -275,7 +275,7 @@ function getInitials(username: string): string {
 }
 
 function formatTime(createdAt: string): string {
-  return moment.utc(createdAt).tz(TIMEZONE).format('HH:mm')
+  return moment.utc(createdAt).local().format('HH:mm')
 }
 
 function getDisplayContent(reply: ChatMessage): string {

@@ -2,9 +2,11 @@ import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineNuxtConfig({
+  ssr: false,
+
   devtools: { enabled: false },
 
-  compatibilityDate: '2025-01-01',
+  compatibilityDate: '2026-03-31',
 
   imports: {
     presets: [
@@ -98,6 +100,10 @@ export default defineNuxtConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      sourcemap: false,
+      cssMinify: 'lightningcss',
+    },
     define: {
       'process.env.DEBUG': false,
     },
