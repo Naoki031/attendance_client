@@ -566,7 +566,7 @@ watch(
   (value) => {
     if (!value) close()
   },
-  { immediate: false },
+  { immediate: true },
 )
 
 watchEffect(() => {

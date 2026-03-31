@@ -217,7 +217,7 @@ watch(
     }
   },
 
-  { immediate: false },
+  { immediate: true },
 )
 
 watch(

@@ -188,7 +188,7 @@ watch(
       close()
     }
   },
-  { immediate: false },
+  { immediate: true },
 )
 
 watch(name, (newName) => {

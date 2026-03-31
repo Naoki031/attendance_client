@@ -859,7 +859,7 @@ watch(
   (value) => {
     if (!value) close()
   },
-  { immediate: false },
+  { immediate: true },
 )
 
 // Use resetForm (not setFieldValue) to populate values without triggering validation
