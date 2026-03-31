@@ -32,10 +32,15 @@ export function useChatUnread() {
   }
 
   const markAsRead = async (roomUuid: string) => {
-    // Only persist on server — do NOT clear local state here
-    // Badge persists until next fetchUnreadCounts() returns fresh data
     try {
       await ChatRoomService.markAsRead(roomUuid)
+      // Clear local unread state immediately so badge updates
+      const newCounts = { ...unreadCounts.value }
+      delete newCounts[roomUuid]
+      unreadCounts.value = newCounts
+      unreadMessages.value = unreadMessages.value.filter(
+        (message) => message.roomUuid !== roomUuid,
+      )
     } catch (error) {
       console.error('Failed to mark as read:', error)
     }

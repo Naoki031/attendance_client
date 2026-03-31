@@ -57,8 +57,10 @@
       <div class="px-4 py-2">
         <div
           v-for="reply in threadReplies ?? []"
+          :id="'reply-' + reply.id"
           :key="reply.id"
           class="thread-reply d-flex ga-3 py-2"
+          :class="{ 'thread-reply--unread': isReplyUnread(reply) }"
         >
           <v-avatar size="32" :color="reply.avatar ? undefined : 'grey'" class="flex-shrink-0">
             <v-img v-if="reply.avatar" :src="reply.avatar" cover />
@@ -205,6 +207,10 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  lastReadAt: {
+    type: String as PropType<string | null>,
+    default: null,
+  },
   members: {
     type: Array as PropType<ChatRoomMemberModel[]>,
     default: () => [],
@@ -272,6 +278,11 @@ function getInitials(username: string): string {
   }
 
   return parts[0]?.[0]?.toUpperCase() ?? ''
+}
+
+function isReplyUnread(reply: ChatMessage): boolean {
+  if (!props.lastReadAt || reply.userId === props.currentUserId) return false
+  return new Date(reply.createdAt) > new Date(props.lastReadAt)
 }
 
 function formatTime(createdAt: string): string {
@@ -399,6 +410,11 @@ watch(
 
 .thread-original {
   background-color: rgba(var(--v-theme-on-surface), 0.02);
+}
+
+.thread-reply--unread .reply-content {
+  border-left: 3px solid rgb(var(--v-theme-primary));
+  padding-left: 6px;
 }
 
 .quoted-reply-preview {

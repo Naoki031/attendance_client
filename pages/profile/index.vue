@@ -6,14 +6,6 @@
         <div class="text-h5 font-weight-bold">{{ $t('profile.title') }}</div>
       </div>
       <div class="d-flex ga-2">
-        <v-btn
-          color="info"
-          prepend-icon="mdi-bug-outline"
-          variant="tonal"
-          @click="dialogReportBug = true"
-        >
-          {{ $t('bugReports.reportBug') }}
-        </v-btn>
         <v-btn color="primary" prepend-icon="mdi-pencil-outline" :to="{ name: 'profile.edit' }">
           {{ $t('profile.editProfile') }}
         </v-btn>

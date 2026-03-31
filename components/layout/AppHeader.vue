@@ -174,7 +174,11 @@ function formatMessageTime(createdAt: string): string {
 
 function handleUnreadMessageClick(message: (typeof unreadMessages.value)[number]) {
   chatMenuOpen.value = false
-  navigateTo(`/chat/${message.roomUuid}?scrollTo=${message.id}`)
+  if (message.parentId) {
+    navigateTo(`/chat/${message.roomUuid}?scrollTo=${message.id}&openThread=${message.parentId}`)
+  } else {
+    navigateTo(`/chat/${message.roomUuid}?scrollTo=${message.id}`)
+  }
 }
 /* END DEFINE METHOD */
 

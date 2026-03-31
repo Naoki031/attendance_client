@@ -145,6 +145,7 @@
               :current-user-id="userStore.user?.id ?? 0"
               :user-language="userLanguage"
               :auto-translate="autoTranslate"
+              :last-read-at="lastReadAt"
               :members="members"
               @edit="handleEditMessage"
               @reply="handleReply"
@@ -183,6 +184,7 @@
         :auto-translate="autoTranslate"
         :user-language="userLanguage"
         :current-user-id="userStore.user?.id ?? 0"
+        :last-read-at="lastReadAt"
         :members="members"
         @close="closeThread"
         @edit="handleEditMessage"
@@ -363,7 +365,7 @@ const initChat = async () => {
 
   await loadRoomInfo()
 
-  connect(roomUuid.value, {
+  await connect(roomUuid.value, {
     userId: user.id,
     username: user.full_name ?? user.email ?? 'User',
     avatar: user.avatar ?? '',
@@ -374,6 +376,7 @@ const initChat = async () => {
 
   // Check for scrollTo query param
   const scrollToParameter = route.query.scrollTo as string | undefined
+  const openThreadParameter = route.query.openThread as string | undefined
 
   if (scrollToParameter) {
     scrollToMessageId.value = Number(scrollToParameter)
@@ -381,6 +384,15 @@ const initChat = async () => {
 
   await nextTick()
   setupIntersectionObserver()
+
+  if (openThreadParameter) {
+    const parentMessage = messages.value.find(
+      (item: ChatMessage) => item.id === Number(openThreadParameter),
+    )
+    if (parentMessage) {
+      await openThread(parentMessage)
+    }
+  }
 
   if (scrollToMessageId.value) {
     await nextTick()
@@ -484,13 +496,18 @@ function scrollToBottom() {
 }
 
 function scrollToMessage(messageId: number) {
-  nextTick(() => {
-    const element = document.getElementById(`message-${messageId}`)
-
+  const attempt = () => {
+    const element =
+      document.getElementById(`message-${messageId}`) ??
+      document.getElementById(`reply-${messageId}`)
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-  })
+  }
+
+  nextTick(attempt)
+  // Retry in case rendering is delayed
+  setTimeout(attempt, 300)
 
   // Clear highlight after 3 seconds
   setTimeout(() => {
@@ -541,6 +558,30 @@ watch(
         scrollToBottom()
       }
     }
+  },
+)
+
+// Handle scrollTo/openThread from notification clicks while already in room
+watch(
+  () => route.query.scrollTo as string | undefined,
+  (scrollToValue) => {
+    if (!scrollToValue) return
+
+    const messageId = Number(scrollToValue)
+    const openThreadParameter = route.query.openThread as string | undefined
+
+    scrollToMessageId.value = messageId
+
+    if (openThreadParameter) {
+      const parentMessage = messages.value.find(
+        (item: ChatMessage) => item.id === Number(openThreadParameter),
+      )
+      if (parentMessage) {
+        openThread(parentMessage)
+      }
+    }
+
+    nextTick(() => scrollToMessage(messageId))
   },
 )
 /* END DEFINE WATCHER */
@@ -623,16 +664,10 @@ onMounted(async () => {
 }
 
 .date-separator {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   background-color: transparent;
 }
 
 .unread-divider {
-  position: sticky;
-  top: 0;
-  z-index: 1;
   background-color: transparent;
 }
 

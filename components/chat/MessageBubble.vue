@@ -5,6 +5,7 @@
       'message-bubble--own': isOwnMessage && !flat,
       'message-bubble--editing': isEditing,
       'message-bubble--flat': flat,
+      'message-bubble--unread': isUnread,
     }"
   >
     <!-- Avatar -->
@@ -207,6 +208,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  lastReadAt: {
+    type: String as PropType<string | null>,
+    default: null,
+  },
   members: {
     type: Array as PropType<ChatRoomMemberModel[]>,
     default: () => [],
@@ -233,6 +238,11 @@ const reactionMenuOpen = ref(false)
 
 /** START DEFINE COMPUTED */
 const isOwnMessage = computed(() => props.message.userId === props.currentUserId)
+
+const isUnread = computed(() => {
+  if (!props.lastReadAt || isOwnMessage.value) return false
+  return new Date(props.message.createdAt) > new Date(props.lastReadAt)
+})
 
 const initials = computed(() => {
   const parts = props.message.username.trim().split(' ')
@@ -372,6 +382,10 @@ watch(
 
 .message-bubble--own .message-text {
   background-color: rgba(var(--v-theme-primary), 0.12);
+}
+
+.message-bubble--unread .message-text {
+  border-left: 3px solid rgb(var(--v-theme-primary));
 }
 
 .message-bubble--flat .message-text {
