@@ -1,6 +1,6 @@
 <template>
   <v-footer app>
-    <span>&copy; 2024 Nguyen Trung Truc</span>
+    <span>&copy; 2026 Nguyen Trung Truc</span>
   </v-footer>
 </template>
 

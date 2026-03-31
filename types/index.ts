@@ -1,3 +1,4 @@
+export * from './chat'
 export * from './chatbot/ChatbotHelpGroup'
 export * from './chatbot/ChatbotMessage'
 export * from './Common'

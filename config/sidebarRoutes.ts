@@ -16,6 +16,7 @@ type RouteGroup = {
 
 const userRoutes: RouteItem[] = [
   { icon: 'mdi-home-outline', link: '/home', textKey: 'nav.home' },
+  { icon: 'mdi-chat-outline', link: '/chat', textKey: 'nav.chat' },
   { icon: 'mdi-account', link: '/profile', textKey: 'nav.profile' },
   {
     icon: 'mdi-clipboard-text-clock-outline',

@@ -33,13 +33,22 @@ export default defineNuxtConfig({
 
   // Nuxt automatically overrides runtimeConfig values from env vars:
   // apiBaseUrl → NUXT_PUBLIC_API_BASE_URL
+  // wsUrl      → NUXT_PUBLIC_WS_URL
   // NUXT_HOST  → NUXT_PUBLIC_NUXT_HOST
   // NUXT_PORT  → NUXT_PUBLIC_NUXT_PORT
   runtimeConfig: {
     public: {
       apiBaseUrl: 'http://localhost:3001/api/v1',
+      wsUrl: 'http://localhost:3001',
       NUXT_HOST: 'localhost',
       NUXT_PORT: '3000',
+      firebaseApiKey: '',
+      firebaseAuthDomain: '',
+      firebaseProjectId: '',
+      firebaseStorageBucket: '',
+      firebaseMessagingSenderId: '',
+      firebaseAppId: '',
+      firebaseVapidKey: '',
     },
   },
 
@@ -60,7 +69,9 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxt/devtools',
     '@nuxt/eslint',
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (_options: any, nuxt: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       nuxt.hooks.hook('vite:extendConfig', (config: any) => {
         config.plugins.push(vuetify({ autoImport: true }))
       })
@@ -100,6 +111,8 @@ export default defineNuxtConfig({
         'marked',
         'heic2any',
         'cropperjs',
+        'firebase/app',
+        'firebase/messaging',
       ],
     },
     ssr: {

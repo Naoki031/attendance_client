@@ -2,6 +2,7 @@ import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
 
 let socket: Socket | null = null
+let wsBaseUrl = 'http://localhost:3001'
 
 function getToken(): string | null {
   if (!import.meta.client) return null
@@ -19,7 +20,7 @@ export function connectSocket(): void {
   const token = getToken()
   if (!token) return
 
-  socket = io('http://localhost:3001', {
+  socket = io(wsBaseUrl, {
     path: '/ws',
     auth: { token },
     transports: ['websocket'], // polling would send unauthenticated HTTP requests → 401 → auto-logout
@@ -35,6 +36,9 @@ export function disconnectSocket(): void {
 }
 
 export default defineNuxtPlugin(() => {
+  const config = useRuntimeConfig()
+  wsBaseUrl = config.public.wsUrl || 'http://localhost:3001'
+
   if (import.meta.client) {
     connectSocket()
   }

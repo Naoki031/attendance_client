@@ -134,9 +134,13 @@ const onSubmit = handleSubmit(async (values) => {
     errorMessages.value = null
     await userStore.login(values.email, values.password)
     navigateTo('/home')
-  } catch (error: any) {
-    const status = error?.status ?? error?.data?.statusCode
-    const message = error?.data?.message ?? error?.message ?? 'Login failed. Please try again.'
+  } catch (error: unknown) {
+    const errorData = error as Record<string, unknown>
+    const nestedData = errorData?.data as Record<string, unknown> | undefined
+    const status = (errorData?.status ?? nestedData?.statusCode) as number | undefined
+    const message = (nestedData?.message ??
+      errorData?.message ??
+      'Login failed. Please try again.') as string
 
     if (
       status === HTTP_UNAUTHORIZED ||

@@ -168,18 +168,14 @@ const handleCreate = handleSubmit(async (formValues) => {
       resetForm()
     })
     .catch((error) => {
-      console.log('=== Assign User Error Debug ===')
-      console.log('Full error object:', error)
-      console.log('Error data:', error?.data)
-      console.log('Error data type:', typeof error?.data)
-
       // Handle error.data - could be object or string
       let errorData = error?.data
+
       if (typeof errorData === 'string') {
         try {
           errorData = JSON.parse(errorData)
         } catch {
-          console.log('Failed to parse errorData as JSON')
+          // not valid JSON, use as-is
         }
       }
 

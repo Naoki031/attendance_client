@@ -31,8 +31,22 @@ export default defineNuxtPlugin(() => {
         // Do not redirect if already on the login page (avoids redirect loop on bad credentials)
         if (route.path !== '/login') {
           token.value = null
-          if (import.meta.client) localStorage.removeItem('token')
-          navigateTo('/login')
+
+          if (import.meta.client) {
+            localStorage.removeItem('token')
+            localStorage.removeItem('role_level')
+
+            // Clear user store state without calling API logout (token is already invalid)
+            const userStore = useUserStore()
+            userStore.isAuthenticated = false
+            userStore.user = null
+            userStore.roleLevel = 'user'
+
+            const roleLevelCookie = useCookie<string | null>('role_level')
+            roleLevelCookie.value = null
+
+            navigateTo('/login')
+          }
         }
       }
 
