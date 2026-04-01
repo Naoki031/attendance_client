@@ -3,6 +3,7 @@ import type { UnreadMessageModel } from '@/interfaces/models/UnreadMessageModel'
 
 const unreadCounts = ref<Record<string, number>>({})
 const unreadMessages = ref<Array<UnreadMessageModel>>([])
+const readMessages = ref<Array<UnreadMessageModel>>([])
 let fetchPromise: Promise<void> | null = null
 
 export function useChatUnread() {
@@ -15,12 +16,14 @@ export function useChatUnread() {
 
     fetchPromise = (async () => {
       try {
-        const [counts, messages] = await Promise.all([
+        const [counts, messages, read] = await Promise.all([
           ChatRoomService.getUnreadCounts(),
           ChatRoomService.getUnreadMessages(),
+          ChatRoomService.getReadMessages(),
         ])
         unreadCounts.value = counts
         unreadMessages.value = messages
+        readMessages.value = read
       } catch (error) {
         console.error('Failed to fetch unread counts:', error)
       } finally {
@@ -31,22 +34,18 @@ export function useChatUnread() {
     return fetchPromise
   }
 
+  let messageFetchTimer: ReturnType<typeof setTimeout> | null = null
+
   const markAsRead = async (roomUuid: string) => {
     try {
       await ChatRoomService.markAsRead(roomUuid)
-      // Clear local unread state immediately so badge updates
-      const newCounts = { ...unreadCounts.value }
-      delete newCounts[roomUuid]
-      unreadCounts.value = newCounts
-      unreadMessages.value = unreadMessages.value.filter(
-        (message) => message.roomUuid !== roomUuid,
-      )
+      const { [roomUuid]: _, ...rest } = unreadCounts.value
+      unreadCounts.value = rest
+      unreadMessages.value = unreadMessages.value.filter((message) => message.roomUuid !== roomUuid)
     } catch (error) {
       console.error('Failed to mark as read:', error)
     }
   }
-
-  let messageFetchTimer: ReturnType<typeof setTimeout> | null = null
 
   const incrementUnread = (roomUuid: string) => {
     const current = unreadCounts.value[roomUuid] ?? 0
@@ -55,21 +54,15 @@ export function useChatUnread() {
       [roomUuid]: current + 1,
     }
 
-    // Debounce message list refresh for dropdown
+    // Sync both counts and messages from server
     if (messageFetchTimer) clearTimeout(messageFetchTimer)
-    messageFetchTimer = setTimeout(async () => {
-      try {
-        const messages = await ChatRoomService.getUnreadMessages()
-        unreadMessages.value = messages
-      } catch (error) {
-        console.error('Failed to refresh unread messages:', error)
-      }
-    }, 2000)
+    messageFetchTimer = setTimeout(() => fetchUnreadCounts(), 500)
   }
 
   return {
     unreadCounts,
     unreadMessages,
+    readMessages,
     totalUnread,
     fetchUnreadCounts,
     markAsRead,

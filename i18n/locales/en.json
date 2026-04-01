@@ -69,7 +69,9 @@
     "update": "Update",
     "typeToSearch": "Type to search...",
     "view": "View",
-    "clearFilter": "Clear all"
+    "clearFilter": "Clear all",
+    "employees": "Employees",
+    "members": "Members"
   },
   "weekDays": {
     "mon": "Mon",
@@ -822,6 +824,8 @@
     "removeMemberTitle": "Remove Member?",
     "removeMemberConfirm": "Are you sure you want to remove {name} from this room?",
     "addReaction": "Add reaction",
-    "reactions": "reactions"
+    "reactions": "reactions",
+    "readMessages": "Read",
+    "noReadMessages": "No recently read messages"
   }
 }

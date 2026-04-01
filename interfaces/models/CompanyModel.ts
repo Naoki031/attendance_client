@@ -18,6 +18,7 @@ export interface CompanyModel {
   work_end_time?: string | null
   country?: CountryModel
   city?: CityModel
+  user_count?: number
   created_at?: string
   updated_at?: string
   deleted_at?: string

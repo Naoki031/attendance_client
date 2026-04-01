@@ -88,4 +88,8 @@ export default class ChatRoomService {
   public static async getUnreadMessages(): Promise<UnreadMessageModel[]> {
     return await apiClient.get<UnreadMessageModel[]>('chat-rooms/unread-messages')
   }
+
+  public static async getReadMessages(): Promise<UnreadMessageModel[]> {
+    return await apiClient.get<UnreadMessageModel[]>('chat-rooms/read-messages')
+  }
 }

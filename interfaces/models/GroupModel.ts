@@ -10,6 +10,7 @@ export interface GroupModel {
   slack_user_group_id?: string
   company_id?: number
   company?: CompanyModel
+  member_count?: number
   created_at?: string
   updated_at?: string
 }

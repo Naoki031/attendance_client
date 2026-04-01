@@ -26,6 +26,13 @@
           <span class="text-body-2">{{ companyName(item.company_id) }}</span>
         </template>
 
+        <!-- Member count -->
+        <template #item.member_count="{ item }">
+          <v-chip size="x-small" variant="tonal" color="primary">
+            {{ item.member_count ?? 0 }}
+          </v-chip>
+        </template>
+
         <!-- Slack channel -->
         <template #item.slack_channel_id="{ item }">
           <span v-if="item.slack_channel_id" class="text-caption text-medium-emphasis">
@@ -141,6 +148,7 @@ const tableHeaders = computed(() => [
   { title: t('common.name'), key: 'name', sortable: true },
   { title: t('groups.slug'), key: 'slug', sortable: true },
   { title: t('common.company'), key: 'company_id', sortable: false },
+  { title: t('common.members'), key: 'member_count', sortable: true },
   { title: t('groups.slackChannelId'), key: 'slack_channel_id', sortable: false },
   { title: t('groups.slackUserGroupId'), key: 'slack_user_group_id', sortable: false },
   { title: '', key: 'actions', sortable: false, width: '100px' },

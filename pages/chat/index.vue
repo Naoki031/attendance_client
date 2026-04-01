@@ -69,6 +69,9 @@
                     </div>
                     <div class="text-caption text-medium-emphasis">
                       {{ $t('chat.createdBy', { name: room.creator?.full_name }) }}
+                      <span v-if="room.member_count !== undefined" class="ml-2">
+                        · {{ $t('chat.memberCount', { count: room.member_count }) }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -181,6 +184,9 @@
                 </div>
                 <div class="text-caption text-medium-emphasis">
                   {{ $t('chat.createdBy', { name: room.creator?.full_name }) }}
+                  <span v-if="room.member_count !== undefined" class="ml-2">
+                    · {{ $t('chat.memberCount', { count: room.member_count }) }}
+                  </span>
                 </div>
               </div>
             </div>

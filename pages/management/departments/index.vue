@@ -49,6 +49,12 @@
         :hover="true"
         items-per-page="50"
       >
+        <template #item.user_count="{ item }">
+          <v-chip size="x-small" variant="tonal" color="primary">
+            {{ item.user_count ?? 0 }}
+          </v-chip>
+        </template>
+
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
             <v-btn
@@ -121,6 +127,7 @@ const headers = computed(() => [
   { title: t('common.name'), align: 'start' as const, key: 'name' },
   { title: t('common.slug'), key: 'slug' },
   { title: t('common.description'), key: 'descriptions' },
+  { title: t('common.employees'), key: 'user_count', sortable: true },
   { title: t('common.actions'), key: 'actions', sortable: false },
 ])
 

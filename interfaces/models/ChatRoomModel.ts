@@ -23,6 +23,7 @@ export interface ChatRoomModel {
     email: string
     avatar?: string
   } | null
+  member_count?: number
   created_at?: string
   updated_at?: string
 }

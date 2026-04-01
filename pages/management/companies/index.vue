@@ -48,6 +48,12 @@
         :hover="true"
         items-per-page="50"
       >
+        <template #item.user_count="{ item }">
+          <v-chip size="x-small" variant="tonal" color="primary">
+            {{ item.user_count ?? 0 }}
+          </v-chip>
+        </template>
+
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
             <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
@@ -170,6 +176,7 @@ const headers = computed(() => [
   { title: t('profile.email'), key: 'email' },
   { title: t('common.phone'), key: 'phone' },
   { title: t('common.website'), key: 'website' },
+  { title: t('common.employees'), key: 'user_count', sortable: true },
   { title: t('companies.allowedIps'), key: 'allowed_ips', sortable: false },
   { title: t('common.workSchedule'), key: 'work_schedule', sortable: false },
   { title: t('common.actions'), key: 'actions', sortable: false },

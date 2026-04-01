@@ -153,11 +153,39 @@ export function useChat() {
     roomUuid: string
     roomName: string
     roomType: string
+    senderId: number
     senderName: string
     senderAvatar: string
     contentPreview: string
+    messageId: number
+    messageParentId: number | null
+    messageCreatedAt: string
   }) {
     mentionNotification.value = data
+
+    // Push directly into unread dropdown so mention appears immediately
+    const { unreadMessages } = useChatUnread()
+    if (data.messageId) {
+      const exists = unreadMessages.value.some((message) => message.id === data.messageId)
+      if (!exists) {
+        unreadMessages.value = [
+          {
+            id: data.messageId,
+            content: data.contentPreview,
+            createdAt: data.messageCreatedAt,
+            parentId: data.messageParentId,
+            roomUuid: data.roomUuid,
+            roomName: data.roomName,
+            roomType: data.roomType,
+            senderId: data.senderId,
+            senderName: data.senderName,
+            senderAvatar: data.senderAvatar,
+          },
+          ...unreadMessages.value,
+        ]
+      }
+    }
+
     setTimeout(() => {
       if (mentionNotification.value === data) {
         mentionNotification.value = null
@@ -369,12 +397,13 @@ export function useChat() {
     threadReplies.value = []
   }
 
-  function sendThreadReply(content: string) {
+  function sendThreadReply(content: string, mentionedUserIds: number[] = []) {
     if (!socket || !content.trim() || !activeThreadParent.value) return
     socket.emit('send_thread_reply', {
       roomUuid: currentRoomUuid,
       parentMessageId: activeThreadParent.value.id,
       content: content.trim(),
+      mentionedUserIds,
     })
   }
 

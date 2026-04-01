@@ -221,7 +221,7 @@ const props = defineProps({
 /** START DEFINE EMITS */
 const emit = defineEmits<{
   close: []
-  send: [content: string]
+  send: [content: string, mentionedUserIds: number[]]
   edit: [messageId: number, newContent: string]
 }>()
 /* END DEFINE EMITS */
@@ -359,7 +359,7 @@ function handleReplyInThread(message: ChatMessage) {
   quotedMessage.value = message
 }
 
-function handleThreadSend(content: string) {
+function handleThreadSend(content: string, mentionedUserIds: number[] = []) {
   if (!content.trim()) return
 
   let finalContent = content.trim()
@@ -379,7 +379,7 @@ function handleThreadSend(content: string) {
     finalContent = `> ${quotedMessage.value.username}: ${quotedContent}\n${finalContent}`
   }
 
-  emit('send', finalContent)
+  emit('send', finalContent, mentionedUserIds)
   quotedMessage.value = null
 }
 /* END DEFINE METHOD */

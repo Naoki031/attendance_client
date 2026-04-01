@@ -69,7 +69,9 @@
     "update": "Cập nhật",
     "typeToSearch": "Nhập để tìm kiếm...",
     "view": "Xem",
-    "clearFilter": "Xóa tất cả"
+    "clearFilter": "Xóa tất cả",
+    "employees": "Nhân viên",
+    "members": "Thành viên"
   },
   "weekDays": {
     "mon": "T2",
@@ -822,6 +824,8 @@
     "removeMemberTitle": "Xoá thành viên?",
     "removeMemberConfirm": "Bạn có chắc muốn xoá {name} khỏi phòng chat này không?",
     "addReaction": "Thêm cảm xúc",
-    "reactions": "lượt bày tỏ"
+    "reactions": "lượt bày tỏ",
+    "readMessages": "Đã đọc",
+    "noReadMessages": "Không có tin nhắn đã đọc gần đây"
   }
 }

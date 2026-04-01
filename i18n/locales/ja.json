@@ -69,7 +69,9 @@
     "update": "更新",
     "typeToSearch": "検索して選択...",
     "view": "表示",
-    "clearFilter": "すべてクリア"
+    "clearFilter": "すべてクリア",
+    "employees": "従業員",
+    "members": "メンバー"
   },
   "weekDays": {
     "mon": "月",
@@ -822,6 +824,8 @@
     "removeMemberTitle": "メンバーを削除しますか？",
     "removeMemberConfirm": "{name}をこのルームから削除してもよろしいですか？",
     "addReaction": "リアクションを追加",
-    "reactions": "件のリアクション"
+    "reactions": "件のリアクション",
+    "readMessages": "既読",
+    "noReadMessages": "最近の既読メッセージはありません"
   }
 }
