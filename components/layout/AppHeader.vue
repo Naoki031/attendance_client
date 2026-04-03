@@ -33,6 +33,27 @@
             </v-btn>
           </template>
         </v-tooltip>
+
+        <v-tooltip :text="$t('nav.kycApproval')" location="bottom">
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              icon
+              variant="text"
+              class="text-white"
+              :to="{ name: 'admin.kyc.index' }"
+            >
+              <v-badge
+                v-if="kycStore.pendingCount > 0"
+                :content="kycStore.pendingCount"
+                color="error"
+              >
+                <v-icon icon="mdi-face-recognition"></v-icon>
+              </v-badge>
+              <v-icon v-else icon="mdi-face-recognition"></v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
       </template>
 
       <!-- Chat -->
@@ -207,19 +228,22 @@ import HeaderLanguageSwitcher from '@/components/layout/HeaderLanguageSwitcher.v
 import HeaderUserMenu from '@/components/layout/HeaderUserMenu.vue'
 import { useDrawer } from '@/composables/useDrawer'
 import { useApprovalsStore } from '@/stores/approvals'
+import { useKycStore } from '@/stores/kyc'
 import { useMoment } from '@/composables/useMoment'
+import { useChatUnread } from '@/composables/useChatUnread'
 /* END IMPORT */
 
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const approvalsStore = useApprovalsStore()
+const kycStore = useKycStore()
 const drawer = useDrawer()
 const route = useRoute()
 const chatMenuOpen = ref(false)
 const chatTab = ref<'unread' | 'read'>('unread')
-let pollingTimer: ReturnType<typeof setInterval> | null = null
 const { totalUnread, unreadMessages, readMessages, fetchUnreadCounts } = useChatUnread()
 const { moment: momentInstance } = useMoment()
+let pollingTimer: ReturnType<typeof setInterval> | null = null
 
 const sortedUnreadMessages = computed(() =>
   [...unreadMessages.value].sort(
@@ -237,9 +261,11 @@ const sortedReadMessages = computed(() =>
 /** START DEFINE METHOD */
 function getInitials(name: string): string {
   const parts = name.trim().split(' ')
+
   if (parts.length > 1 && parts[0] && parts.at(-1)) {
     return `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
   }
+
   return parts[0]?.[0]?.toUpperCase() ?? ''
 }
 
@@ -259,6 +285,7 @@ function formatMessageTime(createdAt: string): string {
 
 function handleUnreadMessageClick(message: (typeof unreadMessages.value)[number]) {
   chatMenuOpen.value = false
+
   if (message.parentId) {
     navigateTo(`/chat/${message.roomUuid}?scrollTo=${message.id}&openThread=${message.parentId}`)
   } else {

@@ -29,7 +29,7 @@ const props = defineProps({
   minuteIntervals: {
     type: Array as PropType<number[]>,
     required: false,
-    default: () => [0, 15, 30],
+    default: () => [0, 15, 30, 45],
   },
 })
 

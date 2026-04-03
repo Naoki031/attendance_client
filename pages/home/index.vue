@@ -1,5 +1,33 @@
 <template>
   <v-container class="py-8" max-width="1100">
+    <!-- KYC banner -->
+    <v-alert
+      v-if="kycBanner && featureFaceCheckin"
+      :color="kycBanner.color"
+      :icon="kycBanner.icon"
+      variant="tonal"
+      rounded="xl"
+      class="mb-6"
+      density="comfortable"
+    >
+      <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+        <div>
+          <div class="text-body-2 font-weight-bold">{{ kycBanner.title }}</div>
+          <div class="text-caption text-medium-emphasis">{{ kycBanner.text }}</div>
+        </div>
+        <v-btn
+          :color="kycBanner.color"
+          variant="tonal"
+          size="small"
+          rounded="lg"
+          prepend-icon="mdi-account-outline"
+          :to="{ name: 'profile.index' }"
+        >
+          {{ $t('home.kycBanner.goToProfile') }}
+        </v-btn>
+      </div>
+    </v-alert>
+
     <!-- Quick actions -->
     <div class="text-body-2 font-weight-bold text-medium-emphasis mb-3">
       {{ $t('home.quickActions').toUpperCase() }}
@@ -161,17 +189,29 @@
               {{ $t('home.doneForToday') }}
             </v-chip>
           </template>
-          <v-btn
-            v-else
-            variant="tonal"
-            color="primary"
-            rounded="lg"
-            prepend-icon="mdi-qrcode-scan"
-            class="btn-shine"
-            @click="openQrScanner"
-          >
-            {{ $t('home.scanQr') }}
-          </v-btn>
+          <div v-else class="d-flex align-center ga-2">
+            <v-btn
+              v-if="featureQrCheckin"
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              prepend-icon="mdi-qrcode-scan"
+              class="btn-shine"
+              @click="openQrScanner"
+            >
+              {{ $t('home.scanQr') }}
+            </v-btn>
+            <v-btn
+              v-if="featureFaceCheckin && userStore.user?.kyc_status === 'approved'"
+              variant="tonal"
+              color="deep-purple"
+              rounded="lg"
+              prepend-icon="mdi-face-recognition"
+              @click="faceCheckinOpen = true"
+            >
+              {{ $t('face.faceCheckin') }}
+            </v-btn>
+          </div>
         </div>
       </div>
     </v-card>
@@ -480,6 +520,11 @@
       @scanned="onQrScanned"
       @close="qrScannerOpen = false"
     />
+
+    <!-- Face Check-in dialog -->
+    <v-dialog v-model="faceCheckinOpen" max-width="480" persistent>
+      <FaceCheckin @success="onFaceCheckinSuccess" @close="faceCheckinOpen = false" />
+    </v-dialog>
   </v-container>
 </template>
 
@@ -488,6 +533,7 @@
 import QRCode from 'qrcode'
 import DialogCreateRequest from '@/components/employee_requests/DialogCreateRequest.vue'
 import QrScannerDialog from '@/components/qr/QrScannerDialog.vue'
+import FaceCheckin from '@/components/face/FaceCheckin.vue'
 import CalendarGrid from '@/components/common/CalendarGrid.vue'
 import EmployeeRequestService from '@/services/EmployeeRequestService'
 import AttendanceLogsService from '@/services/AttendanceLogsService'
@@ -498,6 +544,7 @@ import type {
 } from '@/interfaces/models/EmployeeRequestModel'
 import type { TodayStatusModel, TodayQrModel } from '@/interfaces/models/AttendanceLogModel'
 import { useSocketEvent } from '@/composables/useSocket'
+import { useFeatureFlags } from '@/composables/useFeatureFlags'
 import type { CalendarView } from '@/types'
 import { enumerateDates, extractTime, mapRequestsByDate } from '@/utils/calendar'
 /* END IMPORT */
@@ -515,6 +562,11 @@ const { t } = useI18n()
 
 const userStore = useUserStore()
 const approvalsStore = useApprovalsStore()
+const {
+  load: loadFeatureFlags,
+  qrCheckin: featureQrCheckin,
+  faceCheckin: featureFaceCheckin,
+} = useFeatureFlags()
 const requestDialog = ref(false)
 const requestType = ref<EmployeeRequestType>('wfh')
 const allRequests = ref<EmployeeRequestModel[]>([])
@@ -527,6 +579,7 @@ const todayStatus = ref<TodayStatusModel | null>(null)
 const isClockingIn = ref<boolean>(false)
 const isClockingOut = ref<boolean>(false)
 const qrScannerOpen = ref<boolean>(false)
+const faceCheckinOpen = ref<boolean>(false)
 
 const homeQrCanvas = ref<HTMLCanvasElement | null>(null)
 const homeQrData = ref<TodayQrModel | null>(null)
@@ -638,6 +691,37 @@ const overtimeFullByDate = computed(() =>
 
 const pendingApprovalsCount = computed(() => approvalsStore.pendingCount)
 
+const kycBanner = computed(() => {
+  const status = userStore.user?.kyc_status
+  if (status === 'approved') return null
+
+  if (status === 'pending') {
+    return {
+      color: 'info',
+      icon: 'mdi-clock-outline',
+      title: t('home.kycBanner.pendingTitle'),
+      text: t('home.kycBanner.pendingText'),
+    }
+  }
+
+  if (status === 'rejected') {
+    return {
+      color: 'error',
+      icon: 'mdi-face-recognition',
+      title: t('home.kycBanner.rejectedTitle'),
+      text: t('home.kycBanner.rejectedText'),
+    }
+  }
+
+  // status is null — user has never registered
+  return {
+    color: 'warning',
+    icon: 'mdi-face-recognition',
+    title: t('home.kycBanner.notRegisteredTitle'),
+    text: t('home.kycBanner.notRegisteredText'),
+  }
+})
+
 const homeQrScanUrl = computed<string>(() => {
   if (!homeQrData.value || typeof window === 'undefined') return ''
   const { token, companyId, date } = homeQrData.value
@@ -705,6 +789,11 @@ const openQrScanner = () => {
   qrScannerOpen.value = true
 }
 
+const onFaceCheckinSuccess = async () => {
+  faceCheckinOpen.value = false
+  await loadTodayStatus()
+}
+
 const renderHomeQr = async () => {
   if (!homeQrCanvas.value || !homeQrScanUrl.value) return
   await QRCode.toCanvas(homeQrCanvas.value, homeQrScanUrl.value, {
@@ -734,6 +823,7 @@ const onQrScanned = (url: string) => {
 
   try {
     const parsed = new URL(url)
+
     if (parsed.pathname === '/clock' && parsed.searchParams.has('token')) {
       navigateTo(parsed.pathname + parsed.search)
     }
@@ -745,8 +835,11 @@ const onQrScanned = (url: string) => {
 
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
+  userStore.getUser()
+  loadFeatureFlags()
   loadRequests()
   loadTodayStatus()
+
   if (userStore.isAdmin) {
     loadHomeQr()
   }

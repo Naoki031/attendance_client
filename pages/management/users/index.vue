@@ -190,6 +190,22 @@
                 $t('users.manageWorkSchedule')
               }}</v-tooltip>
             </v-btn>
+            <!-- Cancel KYC button: shown whenever a KYC submission exists (any status) -->
+            <v-btn
+              v-if="item.kyc_status"
+              icon
+              size="x-small"
+              variant="text"
+              :color="item.kyc_status === 'approved' ? 'success' : 'warning'"
+              @click="openCancelKycDialog(item)"
+            >
+              <v-icon size="16">{{
+                item.kyc_status === 'approved' ? 'mdi-check-circle' : 'mdi-face-recognition'
+              }}</v-icon>
+              <v-tooltip activator="parent" location="top">{{
+                $t('face.kyc.cancelKyc')
+              }}</v-tooltip>
+            </v-btn>
             <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
               <v-icon size="16">mdi-delete-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
@@ -234,6 +250,41 @@
       @close-modal="dialogWorkSchedule = false"
       @changed="getUsers"
     />
+
+    <!-- Cancel KYC confirmation dialog -->
+    <v-dialog v-model="dialogCancelKyc" max-width="400" persistent>
+      <v-card v-if="selectedUserForCancelKyc" rounded="xl">
+        <v-card-title class="px-6 pt-6 pb-2 text-h6 font-weight-bold">
+          {{ $t('face.kyc.cancelKyc') }}
+        </v-card-title>
+        <v-card-text class="px-6 pb-2">
+          <div class="text-body-2 font-weight-medium mb-1">
+            {{ selectedUserForCancelKyc.full_name }}
+          </div>
+          <div class="text-body-2 text-medium-emphasis">{{ $t('face.kyc.cancelKycConfirm') }}</div>
+        </v-card-text>
+        <v-card-actions class="px-6 pb-5 ga-2">
+          <v-btn
+            variant="text"
+            rounded="lg"
+            :disabled="cancelKycLoading"
+            @click="dialogCancelKyc = false"
+          >
+            {{ $t('common.cancel') }}
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            color="error"
+            variant="flat"
+            rounded="lg"
+            :loading="cancelKycLoading"
+            @click="confirmCancelKyc"
+          >
+            {{ $t('face.kyc.cancelKyc') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -244,6 +295,7 @@ import DialogDelete from '@/components/users/DialogDelete.vue'
 import DialogManageDepartments from '@/components/users/DialogManageDepartments.vue'
 import DialogManageWorkSchedule from '@/components/users/DialogManageWorkSchedule.vue'
 import UserFilterPanel from '@/components/users/UserFilterPanel.vue'
+import FaceAttendanceService from '@/services/FaceAttendanceService'
 import type { UserModel } from '@/interfaces/models/UserModel'
 import type { DepartmentModel } from '@/interfaces/models/DepartmentModel'
 import type { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
@@ -289,6 +341,9 @@ const selectedUserForDepartments = ref<UserModel | null>(null)
 const dialogWorkSchedule = ref(false)
 const selectedUserForSchedule = ref<UserModel | null>(null)
 const editedItem = ref<UserModel | null>(null)
+const dialogCancelKyc = ref(false)
+const selectedUserForCancelKyc = ref<UserModel | null>(null)
+const cancelKycLoading = ref(false)
 const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
   { key: 'first_name', order: 'asc' },
 ])
@@ -384,6 +439,7 @@ const getInitials = (item: UserModel): string => {
 
 const getUniqueCompanies = (item: UserModel) => {
   const companyMap = new Map<number, { id: number; name: string }>()
+
   for (const assignment of item.user_departments ?? []) {
     if (assignment.company?.id && !companyMap.has(assignment.company.id)) {
       companyMap.set(assignment.company.id, {
@@ -444,6 +500,34 @@ const manageDepartments = (item: UserModel) => {
 const openWorkSchedule = (item: UserModel) => {
   selectedUserForSchedule.value = { ...item }
   dialogWorkSchedule.value = true
+}
+
+const openCancelKycDialog = (item: UserModel) => {
+  selectedUserForCancelKyc.value = { ...item }
+  dialogCancelKyc.value = true
+}
+
+const confirmCancelKyc = async () => {
+  if (!selectedUserForCancelKyc.value?.id) return
+
+  cancelKycLoading.value = true
+
+  try {
+    await FaceAttendanceService.cancelKyc(selectedUserForCancelKyc.value.id)
+    const user = users.value.find((userItem) => userItem.id === selectedUserForCancelKyc.value?.id)
+
+    if (user) {
+      user.kyc_status = null
+      user.kyc_rejection_reason = null
+    }
+
+    dialogCancelKyc.value = false
+    selectedUserForCancelKyc.value = null
+  } catch (error) {
+    console.error('Failed to cancel KYC:', error)
+  } finally {
+    cancelKycLoading.value = false
+  }
 }
 
 const deleteItem = (item: UserModel) => {

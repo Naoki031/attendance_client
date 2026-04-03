@@ -36,7 +36,7 @@ export function useFirebaseMessaging() {
 
       const messaging = getMessaging()
       const token = await getToken(messaging, {
-        vapidKey: config.public.firebaseVapidKey,
+        vapidKey: config.public.firebaseVapidKey as string,
         serviceWorkerRegistration: registration,
       })
 

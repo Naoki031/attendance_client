@@ -37,7 +37,9 @@ export function disconnectSocket(): void {
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
-  wsBaseUrl = config.public.wsUrl || 'http://localhost:3001'
+  // Use configured wsUrl, or fall back to the current page origin so that
+  // WebSocket works through any host (localhost, LAN IP, ngrok, etc.)
+  wsBaseUrl = (config.public.wsUrl as string) || (import.meta.client ? window.location.origin : '')
 
   if (import.meta.client) {
     connectSocket()

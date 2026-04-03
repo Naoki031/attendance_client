@@ -37,6 +37,7 @@ export default class UserService {
     role?: string
     status?: string
     contractType?: string
+    kycStatus?: string
   }): Promise<UserModel[]> {
     const searchParameters = new URLSearchParams()
     if (parameters.id) searchParameters.set('id', parameters.id)
@@ -49,6 +50,7 @@ export default class UserService {
     if (parameters.role) searchParameters.set('role', parameters.role)
     if (parameters.status) searchParameters.set('status', parameters.status)
     if (parameters.contractType) searchParameters.set('contract_type', parameters.contractType)
+    if (parameters.kycStatus) searchParameters.set('kyc_status', parameters.kycStatus)
 
     return apiClient.get<UserModel[]>(`users?${searchParameters.toString()}`)
   }

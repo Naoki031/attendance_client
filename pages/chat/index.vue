@@ -222,6 +222,7 @@
 /** START IMPORT */
 import DialogCreateChatRoom from '@/components/chat/DialogCreateChatRoom.vue'
 import ChatRoomService from '@/services/ChatRoomService'
+import { useChatUnread } from '@/composables/useChatUnread'
 import type { ChatRoomModel } from '@/interfaces/models/ChatRoomModel'
 /* END IMPORT */
 

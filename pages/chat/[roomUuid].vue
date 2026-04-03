@@ -274,6 +274,8 @@ import TypingIndicator from '@/components/chat/TypingIndicator.vue'
 import DialogInviteUser from '@/components/chat/DialogInviteUser.vue'
 import ThreadPanel from '@/components/chat/ThreadPanel.vue'
 import ChatRoomService from '@/services/ChatRoomService'
+import { useChat } from '@/composables/useChat'
+import { useChatUnread } from '@/composables/useChatUnread'
 import type { ChatRoomModel, ChatRoomMemberModel } from '@/interfaces/models/ChatRoomModel'
 import type { ChatMessage } from '@/types/chat'
 /* END IMPORT */

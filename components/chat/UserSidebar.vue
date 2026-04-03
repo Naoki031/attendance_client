@@ -292,9 +292,11 @@ function getOnlineLanguage(userId: number): string {
 function getInitials(username: string): string {
   const parts = username.trim().split(' ')
 
-  return parts.length > 1
-    ? `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
-    : parts[0][0].toUpperCase()
+  if (parts.length > 1 && parts[0] && parts.at(-1)) {
+    return `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
+  }
+
+  return parts[0]?.[0]?.toUpperCase() ?? ''
 }
 
 function getLanguageColor(language: string): string {
@@ -311,8 +313,8 @@ function handleLanguageChange(language: string) {
   emit('language-change', language)
 }
 
-function handleAutoTranslateChange(value: boolean) {
-  emit('update:auto-translate', value)
+function handleAutoTranslateChange(value: boolean | null) {
+  emit('update:auto-translate', value ?? false)
 }
 /* END DEFINE METHOD */
 

@@ -1,5 +1,6 @@
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
+import { useChatUnread } from '@/composables/useChatUnread'
 import type {
   ReactionGroup,
   ChatMessage,

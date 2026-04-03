@@ -71,7 +71,8 @@
     "view": "Xem",
     "clearFilter": "Xóa tất cả",
     "employees": "Nhân viên",
-    "members": "Thành viên"
+    "members": "Thành viên",
+    "retry": "Thử lại"
   },
   "weekDays": {
     "mon": "T2",
@@ -126,6 +127,7 @@
     "qrClockCode": "Mã QR chấm công",
     "attendanceSync": "Đồng bộ chấm công",
     "attendanceLogs": "Nhật ký chấm công",
+    "kycApproval": "Duyệt KYC",
     "integrations": "Tích hợp",
     "slackChannels": "Kênh Slack",
     "googleSheets": "Google Sheets",
@@ -152,6 +154,15 @@
     "loginFailed": "Đăng nhập thất bại. Vui lòng thử lại."
   },
   "home": {
+    "kycBanner": {
+      "notRegisteredTitle": "Chưa đăng ký khuôn mặt",
+      "notRegisteredText": "Đăng ký khuôn mặt để bật tính năng chấm công bằng nhận diện khuôn mặt.",
+      "pendingTitle": "KYC đang chờ duyệt",
+      "pendingText": "Hồ sơ KYC của bạn đang chờ admin xem xét.",
+      "rejectedTitle": "KYC bị từ chối",
+      "rejectedText": "Hồ sơ KYC của bạn đã bị từ chối. Vui lòng gửi lại để bật chấm công bằng khuôn mặt.",
+      "goToProfile": "Đến trang hồ sơ"
+    },
     "quickActions": "THAO TÁC NHANH",
     "todayAttendance": "CHẤM CÔNG HÔM NAY",
     "quickLinks": "Liên kết nhanh",
@@ -513,7 +524,9 @@
     "editReason": "Lý do thay đổi",
     "historyTitle": "Lịch sử chỉnh sửa",
     "noHistory": "Chưa có lần chỉnh sửa nào cho bản ghi này.",
-    "editNoChanges": "Không có thay đổi nào. Vui lòng chỉnh sửa ít nhất một trường giờ."
+    "editNoChanges": "Không có thay đổi nào. Vui lòng chỉnh sửa ít nhất một trường giờ.",
+    "checkinImageTitle": "Ảnh chấm công khuôn mặt",
+    "checkinImageUnavailable": "Không có ảnh"
   },
   "attendanceSync": {
     "title": "Đồng bộ chấm công",
@@ -640,7 +653,9 @@
       "clockQr": "Clock-in bằng QR code như thế nào?",
       "createWfh": "Cách tạo đơn WFH?",
       "adminApproval": "Ai có quyền phê duyệt hoặc từ chối đơn?",
-      "forgetClock": "Quên chấm công thì làm gì?"
+      "forgetClock": "Quên chấm công thì làm gì?",
+      "registerKyc": "Cách đăng ký khuôn mặt để chấm công?",
+      "reviewKyc": "Cách duyệt hồ sơ KYC của nhân viên?"
     },
     "help": {
       "title": "Câu hỏi gợi ý",
@@ -662,6 +677,8 @@
         "clockQr": "Chấm công bằng QR code như thế nào?",
         "clockBiometric": "Máy chấm công vân tay hoạt động thế nào?",
         "clockWfh": "Làm việc ở nhà thì chấm công như thế nào?",
+        "clockFace": "Chấm công bằng nhận diện khuôn mặt như thế nào?",
+        "registerKyc": "Cách đăng ký khuôn mặt để chấm công bằng Face?",
         "editRequest": "Cách sửa đơn đã nộp?",
         "reuseRequest": "Có thể sao chép và nộp lại đơn cũ không?",
         "trackStatus": "Theo dõi trạng thái đơn ở đâu?",
@@ -673,9 +690,12 @@
         "syncDevice": "Cách đồng bộ chấm công từ thiết bị ZKTeco?",
         "viewLogs": "Xem nhật ký chấm công hàng ngày ở đâu?",
         "generateQr": "Cách tạo mã QR chấm công hàng ngày?",
+        "reviewKyc": "Cách duyệt hồ sơ KYC khuôn mặt của nhân viên?",
+        "viewCheckinPhoto": "Cách xem ảnh chấm công bằng khuôn mặt trong nhật ký?",
         "manageUsers": "Cách quản lý tài khoản nhân viên?",
         "assignDept": "Cách phân công nhân viên vào phòng ban?",
         "setDeviceId": "Cách liên kết nhân viên với thiết bị vân tay?",
+        "cancelKycAdmin": "Cách xoá đăng ký khuôn mặt của nhân viên để họ đăng ký lại?",
         "configSlack": "Cách cấu hình thông báo Slack?",
         "configGoogleSheets": "Cách cấu hình xuất dữ liệu Google Sheets?",
         "filterApprovals": "Có thể lọc phê duyệt theo tháng hoặc loại yêu cầu không?",
@@ -827,5 +847,62 @@
     "reactions": "lượt bày tỏ",
     "readMessages": "Đã đọc",
     "noReadMessages": "Không có tin nhắn đã đọc gần đây"
+  },
+  "face": {
+    "registerTitle": "Đăng ký khuôn mặt",
+    "registerSubtitle": "Chụp khuôn mặt để kích hoạt chấm công bằng nhận diện khuôn mặt",
+    "checkinTitle": "Chấm công khuôn mặt",
+    "checkinSubtitle": "Nhìn vào camera và nhấn nút",
+    "capture": "Chụp ảnh",
+    "confirmRegister": "Xác nhận đăng ký",
+    "capturedPreview": "Ảnh đã chụp",
+    "loadingModels": "Đang tải mô hình nhận diện...",
+    "checkinButton": "Vào / Ra",
+    "clockedIn": "Đã chấm công vào",
+    "clockedOut": "Đã chấm công ra",
+    "confidence": "Độ chính xác",
+    "registerFace": "Đăng ký khuôn mặt",
+    "faceCheckin": "Chấm công khuôn mặt",
+    "positionHint": "Đặt khuôn mặt vào trong khung oval",
+    "faceDetected": "Đã nhận diện khuôn mặt",
+    "kyc": {
+      "title": "KYC khuôn mặt",
+      "subtitle": "Đăng ký khuôn mặt để chấm công",
+      "statusPending": "Chờ duyệt",
+      "statusApproved": "Đã duyệt",
+      "statusRejected": "Bị từ chối",
+      "pendingHint": "Hồ sơ KYC đang chờ admin xét duyệt.",
+      "approvedHint": "Khuôn mặt đã được duyệt và kích hoạt chấm công.",
+      "approvedLabel": "Đã xác thực khuôn mặt",
+      "approvedTooltip": "Khuôn mặt đã được duyệt và kích hoạt chấm công",
+      "rejectedHint": "Hồ sơ KYC bị từ chối. Vui lòng đăng ký lại.",
+      "rejectionReason": "Lý do",
+      "startKyc": "Bắt đầu đăng ký khuôn mặt",
+      "resubmit": "Đăng ký lại KYC",
+      "cancelKyc": "Huỷ KYC",
+      "cancelKycConfirm": "Huỷ KYC của người dùng này? Họ sẽ cần đăng ký lại từ trang cá nhân.",
+      "reviewTitle": "Xét duyệt KYC",
+      "approve": "Duyệt",
+      "reject": "Từ chối",
+      "rejectionReasonLabel": "Lý do từ chối (tuỳ chọn)",
+      "approveConfirm": "Duyệt hồ sơ KYC này?",
+      "rejectConfirm": "Từ chối hồ sơ KYC này?",
+      "approveSuccess": "Đã duyệt KYC thành công.",
+      "rejectSuccess": "Đã từ chối KYC.",
+      "noSubmission": "Chưa có hồ sơ KYC.",
+      "noPending": "Không có hồ sơ KYC đang chờ duyệt.",
+      "pendingCount": "Tìm thấy {count} hồ sơ"
+    },
+    "liveness": {
+      "blink": "Hãy nháy mắt một lần",
+      "smile": "Hãy cười lên nào",
+      "turn_left": "Hãy quay đầu sang trái",
+      "turn_right": "Hãy quay đầu sang phải",
+      "move_closer": "Hãy lại gần camera hơn",
+      "move_further": "Hãy di chuyển ra xa camera",
+      "timeout": "Xác minh hết thời gian. Vui lòng thử lại.",
+      "passed": "Xác minh thành công!",
+      "kycStep": "Bước {current} / {total}"
+    }
   }
 }

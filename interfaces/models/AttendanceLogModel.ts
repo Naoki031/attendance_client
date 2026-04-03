@@ -23,6 +23,9 @@ export interface AttendanceLogModel {
   scheduled_end: string | null
   schedule_type: 'company' | 'custom' | null
   attendance_count: number
+  checkin_image_url?: string | null
+  confidence?: number | null
+  ip_address?: string | null
   created_at?: string
   updated_at?: string
   user?: UserModel

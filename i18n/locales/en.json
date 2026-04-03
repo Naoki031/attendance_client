@@ -71,7 +71,8 @@
     "view": "View",
     "clearFilter": "Clear all",
     "employees": "Employees",
-    "members": "Members"
+    "members": "Members",
+    "retry": "Retry"
   },
   "weekDays": {
     "mon": "Mon",
@@ -127,6 +128,7 @@
     "qrClockCode": "QR Clock Code",
     "attendanceSync": "Attendance Sync",
     "attendanceLogs": "Attendance Logs",
+    "kycApproval": "KYC Approval",
     "integrations": "Integrations",
     "slackChannels": "Slack Channels",
     "googleSheets": "Google Sheets",
@@ -152,6 +154,15 @@
     "loginFailed": "Login failed. Please try again."
   },
   "home": {
+    "kycBanner": {
+      "notRegisteredTitle": "Face Registration Required",
+      "notRegisteredText": "Register your face to enable attendance check-in via facial recognition.",
+      "pendingTitle": "KYC Under Review",
+      "pendingText": "Your face registration is awaiting admin approval.",
+      "rejectedTitle": "KYC Rejected",
+      "rejectedText": "Your KYC submission was rejected. Please re-submit to enable face check-in.",
+      "goToProfile": "Go to Profile"
+    },
     "quickActions": "QUICK ACTIONS",
     "todayAttendance": "TODAY'S ATTENDANCE",
     "quickLinks": "Quick Links",
@@ -513,7 +524,9 @@
     "editReason": "Reason for change",
     "historyTitle": "Edit History",
     "noHistory": "No edits have been made to this record.",
-    "editNoChanges": "No changes detected. Please modify at least one time field."
+    "editNoChanges": "No changes detected. Please modify at least one time field.",
+    "checkinImageTitle": "Face Check-In Photo",
+    "checkinImageUnavailable": "Image not available"
   },
   "attendanceSync": {
     "title": "Attendance Sync",
@@ -640,7 +653,9 @@
       "clockQr": "How to clock in with QR code?",
       "createWfh": "How to create a WFH request?",
       "adminApproval": "Who can approve or reject requests?",
-      "forgetClock": "What to do if I forgot to clock in?"
+      "forgetClock": "What to do if I forgot to clock in?",
+      "registerKyc": "How do I register my face for face check-in?",
+      "reviewKyc": "How to review and approve KYC submissions?"
     },
     "help": {
       "title": "Suggested Questions",
@@ -662,6 +677,8 @@
         "clockQr": "How to clock in with QR code?",
         "clockBiometric": "How does the fingerprint device work?",
         "clockWfh": "How to clock in on a WFH day?",
+        "clockFace": "How to clock in using face recognition?",
+        "registerKyc": "How do I register my face for face check-in?",
         "editRequest": "How to edit a submitted request?",
         "reuseRequest": "Can I copy and resubmit a past request?",
         "trackStatus": "Where can I track my request status?",
@@ -673,9 +690,12 @@
         "syncDevice": "How to sync attendance from the ZKTeco device?",
         "viewLogs": "Where can I see daily attendance logs?",
         "generateQr": "How to generate the daily QR clock code?",
+        "reviewKyc": "How to review and approve employee KYC submissions?",
+        "viewCheckinPhoto": "How to view the face check-in photo in attendance logs?",
         "manageUsers": "How to manage employee accounts?",
         "assignDept": "How to assign a user to a department?",
         "setDeviceId": "How to link a user to the biometric device?",
+        "cancelKycAdmin": "How to reset an employee's face registration?",
         "configSlack": "How to set up Slack notifications?",
         "configGoogleSheets": "How to configure Google Sheets export?",
         "filterApprovals": "Can I filter approvals by month or request type?",
@@ -827,5 +847,62 @@
     "reactions": "reactions",
     "readMessages": "Read",
     "noReadMessages": "No recently read messages"
+  },
+  "face": {
+    "registerTitle": "Register Face",
+    "registerSubtitle": "Capture your face to enable face-based check-in",
+    "checkinTitle": "Face Check-In",
+    "checkinSubtitle": "Look at the camera and press the button",
+    "capture": "Capture",
+    "confirmRegister": "Confirm Registration",
+    "capturedPreview": "Captured photo",
+    "loadingModels": "Loading face recognition models...",
+    "checkinButton": "Check In / Out",
+    "clockedIn": "Clocked In",
+    "clockedOut": "Clocked Out",
+    "confidence": "Confidence",
+    "registerFace": "Register Face",
+    "faceCheckin": "Face Check-In",
+    "positionHint": "Position your face in the oval",
+    "faceDetected": "Face detected",
+    "kyc": {
+      "title": "Face KYC",
+      "subtitle": "Register your face for attendance check-in",
+      "statusPending": "Pending Review",
+      "statusApproved": "Approved",
+      "statusRejected": "Rejected",
+      "pendingHint": "Your KYC submission is awaiting admin review.",
+      "approvedHint": "Your face has been approved and is active for check-in.",
+      "approvedLabel": "Face Verified",
+      "approvedTooltip": "Your face has been approved and activated for attendance check-in",
+      "rejectedHint": "Your KYC was rejected. Please re-submit.",
+      "rejectionReason": "Reason",
+      "startKyc": "Start Face Registration",
+      "resubmit": "Re-submit KYC",
+      "cancelKyc": "Cancel KYC",
+      "cancelKycConfirm": "Cancel this user's KYC? They will need to re-submit from their profile.",
+      "reviewTitle": "Review KYC",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectionReasonLabel": "Rejection reason (optional)",
+      "approveConfirm": "Approve this KYC submission?",
+      "rejectConfirm": "Reject this KYC submission?",
+      "approveSuccess": "KYC approved successfully.",
+      "rejectSuccess": "KYC rejected.",
+      "noSubmission": "No KYC submission yet.",
+      "noPending": "No pending KYC submissions.",
+      "pendingCount": "{count} submission(s) found"
+    },
+    "liveness": {
+      "blink": "Please blink once",
+      "smile": "Please smile",
+      "turn_left": "Please turn your head to the left",
+      "turn_right": "Please turn your head to the right",
+      "move_closer": "Please move closer to the camera",
+      "move_further": "Please move further from the camera",
+      "timeout": "Verification timed out. Please try again.",
+      "passed": "Verification passed!",
+      "kycStep": "Step {current} of {total}"
+    }
   }
 }

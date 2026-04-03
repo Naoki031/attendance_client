@@ -247,9 +247,11 @@ const isUnread = computed(() => {
 const initials = computed(() => {
   const parts = props.message.username.trim().split(' ')
 
-  return parts.length > 1
-    ? `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
-    : parts[0][0].toUpperCase()
+  if (parts.length > 1 && parts[0] && parts.at(-1)) {
+    return `${parts[0][0]}${parts.at(-1)![0]}`.toUpperCase()
+  }
+
+  return parts[0]?.[0]?.toUpperCase() ?? ''
 })
 
 const hasTranslation = computed(() => {
@@ -258,7 +260,7 @@ const hasTranslation = computed(() => {
 
 const displayContent = computed(() => {
   if (showTranslation.value && hasTranslation.value) {
-    return props.message.translations[props.userLanguage]
+    return props.message.translations[props.userLanguage] ?? props.message.content
   }
 
   return props.message.content

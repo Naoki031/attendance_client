@@ -11,7 +11,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     () => userStore.user?.preferred_language,
     (language) => {
       if (language && ALLOWED_LOCALES.includes(language)) {
-        nuxtApp.$i18n.setLocale(language)
+        ;(nuxtApp.$i18n as { setLocale: (locale: string) => void }).setLocale(language)
       }
     },
     { immediate: true },

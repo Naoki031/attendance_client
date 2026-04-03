@@ -157,7 +157,7 @@
                         hide-header
                         @update:model-value="
                           (selectedDate: Date) => {
-                            dateOfBirth.value = formatDate(selectedDate)
+                            dateOfBirth = formatDate(selectedDate)
                             menuDateOfBirth = false
                           }
                         "

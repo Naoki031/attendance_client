@@ -71,7 +71,8 @@
     "view": "表示",
     "clearFilter": "すべてクリア",
     "employees": "従業員",
-    "members": "メンバー"
+    "members": "メンバー",
+    "retry": "やり直す"
   },
   "weekDays": {
     "mon": "月",
@@ -126,6 +127,7 @@
     "qrClockCode": "QRコード打刻",
     "attendanceSync": "勤怠同期",
     "attendanceLogs": "勤怠ログ",
+    "kycApproval": "KYC審査",
     "integrations": "連携",
     "slackChannels": "Slackチャンネル",
     "googleSheets": "Googleスプレッドシート",
@@ -152,6 +154,15 @@
     "loginFailed": "ログインに失敗しました。もう一度お試しください。"
   },
   "home": {
+    "kycBanner": {
+      "notRegisteredTitle": "顔認証登録が必要です",
+      "notRegisteredText": "顔認証による出退勤を有効にするには、顔を登録してください。",
+      "pendingTitle": "KYC審査中",
+      "pendingText": "顔登録の申請が管理者の承認待ちです。",
+      "rejectedTitle": "KYC却下",
+      "rejectedText": "KYC申請が却下されました。顔認証打刻を有効にするには再申請してください。",
+      "goToProfile": "プロフィールへ"
+    },
     "quickActions": "クイックアクション",
     "todayAttendance": "本日の勤怠",
     "quickLinks": "クイックリンク",
@@ -513,7 +524,9 @@
     "editReason": "変更理由",
     "historyTitle": "編集履歴",
     "noHistory": "このレコードにはまだ編集履歴がありません。",
-    "editNoChanges": "変更が検出されませんでした。少なくとも1つの時刻フィールドを修正してください。"
+    "editNoChanges": "変更が検出されませんでした。少なくとも1つの時刻フィールドを修正してください。",
+    "checkinImageTitle": "顔チェックイン写真",
+    "checkinImageUnavailable": "画像がありません"
   },
   "attendanceSync": {
     "title": "勤怠同期",
@@ -640,7 +653,9 @@
       "clockQr": "QRコードで打刻する方法は？",
       "createWfh": "テレワーク申請の作成方法は？",
       "adminApproval": "誰が申請を承認または却下できますか？",
-      "forgetClock": "打刻を忘れた場合はどうすればよいですか？"
+      "forgetClock": "打刻を忘れた場合はどうすればよいですか？",
+      "registerKyc": "顔認証打刻のために顔を登録するには？",
+      "reviewKyc": "KYC申請を審査・承認するには？"
     },
     "help": {
       "title": "おすすめの質問",
@@ -676,6 +691,11 @@
         "manageUsers": "従業員アカウントの管理方法は？",
         "assignDept": "ユーザーを部署に割り当てるには？",
         "setDeviceId": "ユーザーを指紋デバイスに紐付けるには？",
+        "clockFace": "顔認識で打刻するには？",
+        "registerKyc": "顔認証打刻のために顔を登録するには？",
+        "reviewKyc": "従業員のKYC申請を審査・承認するには？",
+        "viewCheckinPhoto": "勤怠ログで顔認証の写真を確認するには？",
+        "cancelKycAdmin": "従業員の顔登録をリセットするには？",
         "configSlack": "Slack通知の設定方法は？",
         "configGoogleSheets": "Googleスプレッドシートの連携設定方法は？",
         "filterApprovals": "承認リストを月別やリクエストタイプで絞り込めますか？",
@@ -827,5 +847,62 @@
     "reactions": "件のリアクション",
     "readMessages": "既読",
     "noReadMessages": "最近の既読メッセージはありません"
+  },
+  "face": {
+    "registerTitle": "顔を登録",
+    "registerSubtitle": "顔認識チェックインを有効にするために顔を撮影してください",
+    "checkinTitle": "顔認識チェックイン",
+    "checkinSubtitle": "カメラを見てボタンを押してください",
+    "capture": "撮影",
+    "confirmRegister": "登録を確認",
+    "capturedPreview": "撮影した写真",
+    "loadingModels": "顔認識モデルを読み込んでいます...",
+    "checkinButton": "チェックイン / アウト",
+    "clockedIn": "チェックイン済み",
+    "clockedOut": "チェックアウト済み",
+    "confidence": "一致度",
+    "registerFace": "顔を登録",
+    "faceCheckin": "顔認識チェックイン",
+    "positionHint": "顔をオーバルに合わせてください",
+    "faceDetected": "顔を検出しました",
+    "kyc": {
+      "title": "顔KYC",
+      "subtitle": "勤怠チェックイン用に顔を登録してください",
+      "statusPending": "審査中",
+      "statusApproved": "承認済み",
+      "statusRejected": "却下",
+      "pendingHint": "KYC申請は管理者の審査待ちです。",
+      "approvedHint": "顔が承認され、チェックインで有効です。",
+      "approvedLabel": "顔認証済み",
+      "approvedTooltip": "顔が承認され、チェックインで有効になっています",
+      "rejectedHint": "KYCが却下されました。再申請してください。",
+      "rejectionReason": "理由",
+      "startKyc": "顔登録を開始",
+      "resubmit": "KYC再申請",
+      "cancelKyc": "KYCキャンセル",
+      "cancelKycConfirm": "このユーザーのKYCをキャンセルしますか？プロフィールから再申請が必要になります。",
+      "reviewTitle": "KYC審査",
+      "approve": "承認",
+      "reject": "却下",
+      "rejectionReasonLabel": "却下理由（任意）",
+      "approveConfirm": "このKYC申請を承認しますか？",
+      "rejectConfirm": "このKYC申請を却下しますか？",
+      "approveSuccess": "KYCを承認しました。",
+      "rejectSuccess": "KYCを却下しました。",
+      "noSubmission": "KYC申請がありません。",
+      "noPending": "審査待ちのKYC申請がありません。",
+      "pendingCount": "{count}件の申請が見つかりました"
+    },
+    "liveness": {
+      "blink": "一度まばたきしてください",
+      "smile": "笑顔を見せてください",
+      "turn_left": "頭を左に向けてください",
+      "turn_right": "頭を右に向けてください",
+      "move_closer": "カメラに近づいてください",
+      "move_further": "カメラから離れてください",
+      "timeout": "確認がタイムアウトしました。もう一度お試しください。",
+      "passed": "確認に成功しました！",
+      "kycStep": "ステップ {current} / {total}"
+    }
   }
 }

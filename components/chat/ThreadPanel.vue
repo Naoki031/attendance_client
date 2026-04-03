@@ -256,7 +256,7 @@ const parentDisplayContent = computed(() => {
   if (!props.parent) return ''
 
   if (showTranslation.value && props.parent.translations?.[props.userLanguage]) {
-    return props.parent.translations[props.userLanguage]
+    return props.parent.translations[props.userLanguage] ?? props.parent.content
   }
 
   return props.parent.content
@@ -291,7 +291,7 @@ function formatTime(createdAt: string): string {
 
 function getDisplayContent(reply: ChatMessage): string {
   if (showTranslation.value && reply.translations?.[props.userLanguage]) {
-    return reply.translations[props.userLanguage]
+    return reply.translations[props.userLanguage] as string
   }
 
   return reply.content ?? ''

@@ -34,14 +34,16 @@ export default defineNuxtConfig({
   },
 
   // Nuxt automatically overrides runtimeConfig values from env vars:
-  // apiBaseUrl → NUXT_PUBLIC_API_BASE_URL
-  // wsUrl      → NUXT_PUBLIC_WS_URL
-  // NUXT_HOST  → NUXT_PUBLIC_NUXT_HOST
-  // NUXT_PORT  → NUXT_PUBLIC_NUXT_PORT
+  // apiBaseUrl   → NUXT_PUBLIC_API_BASE_URL
+  // wsUrl        → NUXT_PUBLIC_WS_URL
+  // NUXT_HOST    → NUXT_PUBLIC_NUXT_HOST
+  // NUXT_PORT    → NUXT_PUBLIC_NUXT_PORT
+  // chatbotName  → NUXT_PUBLIC_CHATBOT_NAME
   runtimeConfig: {
     public: {
-      apiBaseUrl: 'http://localhost:3001/api/v1',
-      wsUrl: 'http://localhost:3001',
+      apiBaseUrl: '/api/v1',
+      chatbotName: '',
+      wsUrl: '',
       NUXT_HOST: 'localhost',
       NUXT_PORT: '3000',
       firebaseApiKey: '',

@@ -57,12 +57,14 @@ import { useDrawer } from '@/composables/useDrawer'
 import { useScreenCapture } from '@/composables/useScreenCapture'
 import { useDisplay } from 'vuetify'
 import { useApprovalsStore } from '@/stores/approvals'
+import { useKycStore } from '@/stores/kyc'
 import { getUserRoutes, getAdminRoutes } from '@/config/sidebarRoutes'
 /* END IMPORT */
 
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const approvalsStore = useApprovalsStore()
+const kycStore = useKycStore()
 const opened = ref<string[]>([])
 const { mdAndUp } = useDisplay()
 const isRail = ref<boolean>(mdAndUp.value)
@@ -117,6 +119,7 @@ watch(mdAndUp, (value) => {
 onMounted(() => {
   if (userStore.isAdmin) {
     approvalsStore.loadPendingCount()
+    kycStore.loadPendingCount()
   }
 })
 /* END DEFINE LIFE CYCLE HOOK */

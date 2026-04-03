@@ -6,9 +6,7 @@
       <!-- Header -->
       <v-toolbar color="primary" density="compact" rounded="t-lg">
         <v-icon icon="mdi-robot-outline" class="ml-2 mr-2"></v-icon>
-        <v-toolbar-title class="text-body-2 font-weight-bold">{{
-          $t('chatbot.title')
-        }}</v-toolbar-title>
+        <v-toolbar-title class="text-body-2 font-weight-bold">{{ chatbotName }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn
           :icon="isHelpOpen ? 'mdi-close-circle-outline' : 'mdi-help-circle-outline'"
@@ -221,6 +219,10 @@ import type { ChatbotMessage } from '@/types'
 
 const { t } = useI18n()
 const userStore = useUserStore()
+const runtimeConfig = useRuntimeConfig()
+const chatbotName = computed<string>(
+  () => (runtimeConfig.public.chatbotName as string) || t('chatbot.title'),
+)
 
 // ── Storage keys ──────────────────────────────────────────────────────────────
 const STORAGE_TONE = 'chatbot_tone'
@@ -233,8 +235,12 @@ const SUGGESTED_QUESTIONS = computed<string[]>(() => {
     t('chatbot.suggestions.clockQr'),
     t('chatbot.suggestions.createWfh'),
     t('chatbot.suggestions.forgetClock'),
+    t('chatbot.suggestions.registerKyc'),
   ]
-  const adminQuestions = [t('chatbot.suggestions.adminApproval')]
+  const adminQuestions = [
+    t('chatbot.suggestions.adminApproval'),
+    t('chatbot.suggestions.reviewKyc'),
+  ]
 
   return userStore.isAdmin ? [...employeeQuestions, ...adminQuestions] : employeeQuestions
 })
@@ -417,6 +423,12 @@ watch(selectedHistoryLimit, (value) => {
   max-height: 600px;
   display: flex;
   flex-direction: column;
+}
+
+.chatbot-panel :deep(.v-toolbar-title__placeholder) {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
 }
 
 .chatbot-settings {

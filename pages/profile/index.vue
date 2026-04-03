@@ -15,36 +15,58 @@
     <!-- Avatar & identity card -->
     <v-card rounded="lg" class="mb-4">
       <v-card-text class="pa-6">
-        <div class="d-flex align-center ga-8">
-          <AvatarUpload
-            :current-avatar="user?.avatar ?? ''"
-            :full-name="user?.full_name ?? ''"
-            :size="88"
-            @saved="onAvatarSaved"
-          />
-          <div>
-            <div class="text-h5 font-weight-bold">{{ user?.full_name }}</div>
-            <div class="text-body-1 text-medium-emphasis">{{ user?.position ?? '—' }}</div>
-            <div class="text-body-2 text-medium-emphasis mt-1">
-              <v-icon size="14" class="mr-1">mdi-email-outline</v-icon>{{ user?.email }}
-            </div>
-            <div class="text-caption text-medium-emphasis">
-              <v-icon size="12" class="mr-1">mdi-account-circle-outline</v-icon>@{{
-                user?.username
-              }}
-            </div>
-            <div class="d-flex flex-wrap ga-1 mt-2">
-              <v-chip
-                v-for="role in user?.roles"
-                :key="role"
-                size="x-small"
-                color="primary"
-                variant="tonal"
-              >
-                {{ role }}
-              </v-chip>
+        <div class="d-flex flex-wrap align-start justify-space-between ga-6">
+          <!-- Left: avatar + info -->
+          <div class="d-flex align-center ga-6">
+            <AvatarUpload
+              :current-avatar="user?.avatar ?? ''"
+              :full-name="user?.full_name ?? ''"
+              :size="88"
+              @saved="onAvatarSaved"
+            />
+            <div>
+              <div class="text-h5 font-weight-bold">{{ user?.full_name }}</div>
+              <div class="text-body-1 text-medium-emphasis">{{ user?.position ?? '—' }}</div>
+              <div class="text-body-2 text-medium-emphasis mt-1">
+                <v-icon size="14" class="mr-1">mdi-email-outline</v-icon>{{ user?.email }}
+              </div>
+              <div class="text-caption text-medium-emphasis">
+                <v-icon size="12" class="mr-1">mdi-account-circle-outline</v-icon>@{{
+                  user?.username
+                }}
+              </div>
+              <div class="d-flex flex-wrap ga-1 mt-2">
+                <v-chip
+                  v-for="role in user?.roles"
+                  :key="role"
+                  size="x-small"
+                  color="primary"
+                  variant="tonal"
+                >
+                  {{ role }}
+                </v-chip>
+
+                <!-- Face approved badge — visible once KYC is approved -->
+                <v-tooltip v-if="user?.kyc_status === 'approved'" location="bottom">
+                  <template #activator="{ props }">
+                    <v-chip
+                      v-bind="props"
+                      size="x-small"
+                      color="success"
+                      variant="tonal"
+                      prepend-icon="mdi-face-recognition"
+                    >
+                      {{ $t('face.kyc.approvedLabel') }}
+                    </v-chip>
+                  </template>
+                  {{ $t('face.kyc.approvedTooltip') }}
+                </v-tooltip>
+              </div>
             </div>
           </div>
+
+          <!-- Right: KYC status panel — hidden once approved -->
+          <KycStatusPanel @open-kyc="kycDialog = true" />
         </div>
       </v-card-text>
     </v-card>
@@ -182,6 +204,17 @@
     </v-row>
   </v-container>
 
+  <!-- KYC registration dialog -->
+  <v-dialog v-model="kycDialog" max-width="540" persistent>
+    <FaceRegister
+      v-if="kycDialog && user"
+      :employee-id="user.id"
+      :employee-name="user.full_name ?? ''"
+      @registered="onKycSubmitted"
+      @close="kycDialog = false"
+    />
+  </v-dialog>
+
   <!-- Bug report dialog -->
   <DialogReportBug
     :dialog="dialogReportBug"
@@ -194,6 +227,8 @@
 /** START IMPORT */
 import DialogReportBug from '@/components/common/DialogReportBug.vue'
 import AvatarUpload from '@/components/profile/AvatarUpload.vue'
+import FaceRegister from '@/components/face/FaceRegister.vue'
+import KycStatusPanel from '@/components/kyc/KycStatusPanel.vue'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -203,26 +238,16 @@ definePageMeta({
 })
 /* END DEFINE */
 
-/** START DEFINE PROPERTY AND EMITS */
-/* END DEFINE PROPERTY AND EMITS */
-
-/** START DEFINE VALIDATE */
-/* END DEFINE VALIDATE */
-
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const user = computed(() => userStore.user)
 const dialogReportBug = ref(false)
+const kycDialog = ref(false)
 /* END DEFINE STATE */
 
-/** START DEFINE COMPUTED */
-/* END DEFINE COMPUTED */
-
 /** START DEFINE METHOD */
-// Format ISO date string to YYYY-MM-DD, return '—' if empty
 const formatDate = (value?: string | null): string => {
   if (!value) return '—'
-
   return value.substring(0, 10)
 }
 
@@ -233,11 +258,23 @@ const handleBugReportConfirm = () => {
 const onAvatarSaved = () => {
   // User store already updated inside AvatarUpload
 }
+
+const onKycSubmitted = (updatedUser: {
+  face_avatar_url?: string | null
+  kyc_status?: 'pending' | 'approved' | 'rejected' | null
+}) => {
+  if (userStore.user) {
+    userStore.user.face_avatar_url = updatedUser.face_avatar_url ?? null
+    userStore.user.kyc_status = updatedUser.kyc_status ?? null
+  }
+
+  kycDialog.value = false
+}
 /* END DEFINE METHOD */
 
-/** START DEFINE WATCHER */
-/* END DEFINE WATCHER */
-
 /** START DEFINE LIFE CYCLE HOOK */
+onMounted(() => {
+  userStore.getUser()
+})
 /* END DEFINE LIFE CYCLE HOOK */
 </script>

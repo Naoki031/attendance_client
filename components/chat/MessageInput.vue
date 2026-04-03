@@ -340,7 +340,9 @@ const editor = useEditor({
 
         if (event.key === 'Enter' || event.key === 'Tab') {
           event.preventDefault()
-          insertMention(filteredMembers.value[mentionSelectedIndex.value])
+          const selectedMember = filteredMembers.value[mentionSelectedIndex.value]
+          if (!selectedMember) return true
+          insertMention(selectedMember)
 
           return true
         }
@@ -372,7 +374,10 @@ const editor = useEditor({
 
     const lastAtIndex = textBefore.lastIndexOf('@')
 
-    if (lastAtIndex >= 0 && (lastAtIndex === 0 || /[ \n]/.test(textBefore[lastAtIndex - 1]))) {
+    if (
+      lastAtIndex >= 0 &&
+      (lastAtIndex === 0 || /[ \n]/.test(textBefore[lastAtIndex - 1] ?? ''))
+    ) {
       const searchText = textBefore.substring(lastAtIndex + 1)
 
       if (!searchText.includes('\n') && searchText.length <= 50 && !searchText.includes(' ')) {
@@ -438,7 +443,8 @@ function insertMention(member: ChatRoomMemberModel) {
 function handleSend() {
   if (!canSend.value) return
 
-  const markdown = editor.value!.storage.markdown.getMarkdown()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markdown = (editor.value!.storage as any).markdown.getMarkdown() as string
   const content = markdown.trim()
   if (!content) return
 

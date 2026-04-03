@@ -203,6 +203,16 @@
               :title="$t('attendanceLogs.historyTitle')"
               @click="openHistoryDialog(item)"
             />
+            <!-- Face check-in image: only shown when image exists -->
+            <v-btn
+              v-if="item.checkin_image_url"
+              icon="mdi-face-recognition"
+              size="x-small"
+              variant="text"
+              color="teal"
+              :title="$t('attendanceLogs.checkinImageTitle')"
+              @click="openCheckinImageDialog(item)"
+            />
           </div>
         </template>
       </v-data-table>
@@ -221,6 +231,13 @@
       :item="historyLog"
       :dialog="historyDialog"
       @close-modal="historyDialog = false"
+    />
+
+    <!-- Face check-in image preview dialog -->
+    <DialogCheckinImage
+      :item="checkinImageLog"
+      :dialog="checkinImageDialog"
+      @close-modal="checkinImageDialog = false"
     />
 
     <!-- Export dialog -->
@@ -332,6 +349,7 @@ import CompanyService from '@/services/CompanyService'
 import { useUserStore } from '@/stores/user'
 import DialogEditAttendanceLog from '~/components/attendance_logs/DialogEditAttendanceLog.vue'
 import DialogAttendanceLogHistory from '~/components/attendance_logs/DialogAttendanceLogHistory.vue'
+import DialogCheckinImage from '~/components/attendance_logs/DialogCheckinImage.vue'
 /* END IMPORT */
 
 const { t } = useI18n()
@@ -360,6 +378,8 @@ const editDialog = ref(false)
 const editingLog = ref<AttendanceLogModel | null>(null)
 const historyDialog = ref(false)
 const historyLog = ref<AttendanceLogModel | null>(null)
+const checkinImageDialog = ref(false)
+const checkinImageLog = ref<AttendanceLogModel | null>(null)
 
 const exportDialog = ref(false)
 const isExporting = ref(false)
@@ -467,6 +487,11 @@ const openEditDialog = (log: AttendanceLogModel) => {
 const openHistoryDialog = (log: AttendanceLogModel) => {
   historyLog.value = log
   historyDialog.value = true
+}
+
+const openCheckinImageDialog = (log: AttendanceLogModel) => {
+  checkinImageLog.value = log
+  checkinImageDialog.value = true
 }
 
 const onEditConfirm = (updated: AttendanceLogModel) => {

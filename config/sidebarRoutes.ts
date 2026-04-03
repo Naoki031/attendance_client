@@ -143,6 +143,12 @@ const adminGroups: RouteGroup[] = [
         textKey: 'nav.attendanceLogs',
         name: 'admin.attendance-logs.index',
       },
+      {
+        icon: 'mdi-face-recognition',
+        link: '/management/kyc',
+        textKey: 'nav.kycApproval',
+        name: 'admin.kyc.index',
+      },
     ],
   },
   {

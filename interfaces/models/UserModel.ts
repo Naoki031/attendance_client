@@ -24,6 +24,10 @@ export interface UserModel {
   contract_count?: number
   slack_id?: string
   device_user_id?: number | null
+  face_descriptor?: number[] | null
+  face_avatar_url?: string | null
+  kyc_status?: 'pending' | 'approved' | 'rejected' | null
+  kyc_rejection_reason?: string | null
   skip_attendance?: boolean
   permanent_remote?: boolean
   permanent_remote_reason?: string | null
