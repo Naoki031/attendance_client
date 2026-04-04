@@ -72,7 +72,9 @@
     "clearFilter": "すべてクリア",
     "employees": "従業員",
     "members": "メンバー",
-    "retry": "やり直す"
+    "retry": "やり直す",
+    "lightMode": "ライトモード",
+    "darkMode": "ダークモード"
   },
   "weekDays": {
     "mon": "月",

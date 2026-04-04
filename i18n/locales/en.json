@@ -72,7 +72,9 @@
     "clearFilter": "Clear all",
     "employees": "Employees",
     "members": "Members",
-    "retry": "Retry"
+    "retry": "Retry",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
   },
   "weekDays": {
     "mon": "Mon",

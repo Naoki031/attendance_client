@@ -17,6 +17,7 @@ export type ChatMessage = {
   editedAt?: string
   parentId: number | null
   replyCount: number
+  replyParticipants: Array<{ userId: number; username: string; avatar: string }>
   reactions: ReactionGroup[]
   createdAt: string
   isPinned?: boolean

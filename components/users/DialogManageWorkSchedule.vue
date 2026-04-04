@@ -158,7 +158,7 @@
         <v-list v-else density="compact" lines="two">
           <v-list-item v-for="schedule in schedules" :key="schedule.id" rounded="lg" class="mb-1">
             <template #prepend>
-              <v-icon color="teal" class="mr-2">mdi-clock-time-eight-outline</v-icon>
+              <v-icon color="action" class="mr-2">mdi-clock-time-eight-outline</v-icon>
             </template>
             <v-list-item-title class="text-body-2 font-weight-medium">
               {{ schedule.start_time }} — {{ schedule.end_time }}

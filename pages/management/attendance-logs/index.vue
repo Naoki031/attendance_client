@@ -70,7 +70,7 @@
           {{ $t('common.refresh') }}
         </v-btn>
         <v-btn
-          color="teal"
+          color="action"
           variant="tonal"
           rounded="lg"
           prepend-icon="mdi-google-spreadsheet"
@@ -190,16 +190,20 @@
             <v-btn
               icon="mdi-pencil-outline"
               size="x-small"
-              variant="text"
+              variant="tonal"
               color="primary"
+              rounded="lg"
+              class="btn-shine"
               :title="$t('attendanceLogs.editTitle')"
               @click="openEditDialog(item)"
             />
             <v-btn
               icon="mdi-history"
               size="x-small"
-              variant="text"
+              variant="tonal"
               color="secondary"
+              rounded="lg"
+              class="btn-shine"
               :title="$t('attendanceLogs.historyTitle')"
               @click="openHistoryDialog(item)"
             />
@@ -209,7 +213,7 @@
               icon="mdi-face-recognition"
               size="x-small"
               variant="text"
-              color="teal"
+              color="action"
               :title="$t('attendanceLogs.checkinImageTitle')"
               @click="openCheckinImageDialog(item)"
             />
@@ -325,7 +329,7 @@
             $t('common.cancel')
           }}</v-btn>
           <v-btn
-            color="teal"
+            color="action"
             variant="elevated"
             rounded="lg"
             :loading="isExporting"

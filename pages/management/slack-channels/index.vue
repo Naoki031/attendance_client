@@ -51,7 +51,7 @@
               v-for="user in item.mention_users"
               :key="user.id"
               size="x-small"
-              color="indigo"
+              color="accent"
               variant="tonal"
             >
               {{ user.full_name }}
@@ -63,15 +63,23 @@
         <!-- Actions -->
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
-            <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              class="btn-shine"
+              @click="editItem(item)"
+            >
               <v-icon size="16">mdi-pencil-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
             <v-btn
-              icon
               size="x-small"
-              variant="text"
+              variant="tonal"
               color="secondary"
+              rounded="lg"
+              class="btn-shine"
               @click="duplicateItem(item)"
             >
               <v-icon size="16">mdi-content-copy</v-icon>
@@ -79,7 +87,14 @@
                 $t('slackChannels.duplicate')
               }}</v-tooltip>
             </v-btn>
-            <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="error"
+              rounded="lg"
+              class="btn-shine"
+              @click="deleteItem(item)"
+            >
               <v-icon size="16">mdi-delete-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
@@ -120,6 +135,7 @@ import type { SlackChannelModel, SlackChannelFeature } from '@/interfaces/models
 import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import SlackChannelService from '@/services/SlackChannelService'
 import CompanyService from '@/services/CompanyService'
+import { SLACK_FEATURE_COLOR } from '@/config/colors'
 /* END IMPORT */
 
 const { t } = useI18n()
@@ -179,19 +195,8 @@ const featureLabel = (feature: SlackChannelFeature): string => {
   return labels[feature] ?? feature
 }
 
-const featureColor = (feature: SlackChannelFeature): string => {
-  const colors: Record<SlackChannelFeature, string> = {
-    wfh: 'blue',
-    off: 'amber-darken-2',
-    overtime: 'red',
-    equipment: 'cyan-darken-1',
-    clock_forget: 'deep-orange',
-    business_trip: 'teal-darken-1',
-    error: 'grey',
-  }
-
-  return colors[feature] ?? 'default'
-}
+const featureColor = (feature: SlackChannelFeature): string =>
+  SLACK_FEATURE_COLOR[feature] ?? 'secondary'
 
 const addItem = () => {
   editedItem.value = null
@@ -263,6 +268,6 @@ onMounted(async () => {
 
 <style scoped>
 .table-toolbar {
-  background-color: #f5ede4;
+  background-color: var(--color-table-toolbar);
 }
 </style>

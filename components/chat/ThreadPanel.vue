@@ -396,11 +396,10 @@ watch(
 
 <style scoped>
 .thread-panel {
-  width: 35%;
-  min-width: 320px;
-  max-width: 500px;
-  overflow: hidden;
-  border-left: 1px solid rgba(0, 0, 0, 0.08);
+  flex: 0 0 clamp(320px, 35%, 500px);
+  overflow-x: hidden;
+  overflow-y: hidden;
+  border-left: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   background-color: rgb(var(--v-theme-surface));
 }
 
@@ -453,15 +452,15 @@ watch(
   font-weight: 600;
 }
 .reply-content :deep(code) {
-  background: #fff3e0;
+  background: rgba(var(--v-theme-primary), 0.1);
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 0.85em;
   font-family: monospace;
-  color: #e65100;
+  color: rgb(var(--v-theme-primary));
 }
 .reply-content :deep(pre) {
-  background: #fff3e0;
+  background: rgba(var(--v-theme-on-surface), 0.06);
   border-radius: 6px;
   padding: 8px;
   overflow-x: auto;
@@ -470,7 +469,7 @@ watch(
 .reply-content :deep(pre code) {
   background: none;
   padding: 0;
-  color: #e65100;
+  color: rgb(var(--v-theme-primary));
 }
 .reply-content :deep(blockquote) {
   border-left: 3px solid rgb(var(--v-theme-primary));

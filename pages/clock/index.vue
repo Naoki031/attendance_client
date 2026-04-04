@@ -34,7 +34,13 @@
         <div class="text-body-2 text-medium-emphasis mb-4">
           {{ result.action === 'clock_in' ? result.log.clock_in : result.log.clock_out }}
         </div>
-        <v-btn variant="tonal" rounded="lg" :to="{ name: 'home' }" @click="goHome">
+        <v-btn
+          variant="tonal"
+          rounded="lg"
+          class="btn-shine"
+          :to="{ name: 'home' }"
+          @click="goHome"
+        >
           {{ $t('qrClock.goHome') }}
         </v-btn>
       </div>
@@ -44,7 +50,7 @@
         <v-icon size="64" color="error" class="mb-3">mdi-alert-circle-outline</v-icon>
         <div class="text-body-1 font-weight-medium mb-2">{{ $t('qrClock.failed') }}</div>
         <div class="text-body-2 text-medium-emphasis mb-4">{{ errorMessage }}</div>
-        <v-btn variant="tonal" rounded="lg" :to="{ name: 'home' }">{{
+        <v-btn variant="tonal" rounded="lg" class="btn-shine" :to="{ name: 'home' }">{{
           $t('qrClock.goHome')
         }}</v-btn>
       </div>

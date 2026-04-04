@@ -46,6 +46,7 @@
       <v-col cols="12" sm="6" md="4" class="d-flex align-center ga-2">
         <v-btn
           color="success"
+          class="btn-shine"
           variant="tonal"
           rounded="lg"
           prepend-icon="mdi-microsoft-excel"
@@ -86,14 +87,22 @@
           {{ item.user?.full_name ?? '—' }}
         </template>
         <template #item.type="{ item }">
-          <v-chip :color="typeColor(item.type)" size="x-small" variant="tonal">
-            {{ typeLabel(item.type) }}
-          </v-chip>
+          <v-chip
+            :color="typeColor(item.type)"
+            :prepend-icon="typeIcon(item.type)"
+            size="x-small"
+            variant="tonal"
+            >{{ typeLabel(item.type) }}</v-chip
+          >
         </template>
         <template #item.status="{ item }">
-          <v-chip :color="statusColor(item.status)" size="x-small" variant="tonal">
-            {{ item.status }}
-          </v-chip>
+          <v-chip
+            :color="statusColor(item.status)"
+            :prepend-icon="statusIcon(item.status)"
+            size="x-small"
+            variant="tonal"
+            >{{ statusLabel(item.status) }}</v-chip
+          >
         </template>
         <template #item.from_datetime="{ item }">
           {{ formatDatetime(item.from_datetime) }}
@@ -105,7 +114,14 @@
           {{ item.unit_hours ?? '—' }}
         </template>
         <template #item.actions="{ item }">
-          <v-btn size="x-small" variant="tonal" color="info" rounded="lg" @click="openEdit(item)">
+          <v-btn
+            size="x-small"
+            variant="tonal"
+            color="info"
+            rounded="lg"
+            class="btn-shine"
+            @click="openEdit(item)"
+          >
             {{ $t('common.edit') }}
           </v-btn>
         </template>
@@ -131,6 +147,12 @@ import type {
   EmployeeRequestType,
   EmployeeRequestStatus,
 } from '@/interfaces/models/EmployeeRequestModel'
+import {
+  REQUEST_TYPE_COLOR,
+  REQUEST_TYPE_ICON,
+  REQUEST_STATUS_COLOR,
+  REQUEST_STATUS_ICON,
+} from '@/config/colors'
 
 const { t } = useI18n()
 
@@ -222,25 +244,16 @@ const typeLabel = (type: EmployeeRequestType): string => {
   return labels[type] ?? type
 }
 
-const typeColor = (type: EmployeeRequestType): string => {
-  const colors: Record<EmployeeRequestType, string> = {
-    wfh: 'blue',
-    off: 'amber-darken-2',
-    overtime: 'red',
-    equipment: 'cyan-darken-1',
-    clock_forget: 'deep-orange',
-    business_trip: 'teal-darken-1',
-  }
+const typeColor = (type: EmployeeRequestType): string => REQUEST_TYPE_COLOR[type] ?? 'secondary'
+const typeIcon = (type: EmployeeRequestType): string =>
+  REQUEST_TYPE_ICON[type] ?? 'mdi-help-circle-outline'
 
-  return colors[type] ?? 'grey'
-}
-
-const statusColor = (status: EmployeeRequestStatus): string => {
-  if (status === 'approved') return 'success'
-  if (status === 'rejected') return 'error'
-
-  return 'warning'
-}
+const statusColor = (status: EmployeeRequestStatus): string =>
+  REQUEST_STATUS_COLOR[status] ?? 'secondary'
+const statusIcon = (status: EmployeeRequestStatus): string =>
+  REQUEST_STATUS_ICON[status] ?? 'mdi-help-circle-outline'
+const statusLabel = (status: EmployeeRequestStatus): string =>
+  t(`requestStatus.${status}`) || status
 
 const formatDatetime = (datetime?: string): string => {
   if (!datetime) return '—'

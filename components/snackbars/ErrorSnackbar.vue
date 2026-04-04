@@ -1,5 +1,5 @@
 <template>
-  <v-snackbar :model-value="show" color="red">
+  <v-snackbar :model-value="show" color="error">
     {{ message }}
 
     <template #actions>

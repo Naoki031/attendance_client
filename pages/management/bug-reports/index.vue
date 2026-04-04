@@ -49,6 +49,7 @@
             variant="tonal"
             color="primary"
             rounded="lg"
+            class="btn-shine"
             @click="openScreenshot(item.screenshot_path)"
           >
             {{ $t('bugReports.viewScreenshot') }}
@@ -71,6 +72,7 @@
               variant="tonal"
               color="primary"
               rounded="lg"
+              class="btn-shine"
               @click="openUpdate(item)"
             >
               {{ $t('bugReports.updateStatus') }}

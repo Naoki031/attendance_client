@@ -129,7 +129,7 @@
           <!-- Assistant message -->
           <div v-else class="d-flex flex-column align-start">
             <v-sheet
-              color="grey-lighten-4"
+              color="surface-variant"
               class="chatbot-bubble text-body-2 pa-2 px-3"
               rounded="lg"
               max-width="280"
@@ -164,7 +164,7 @@
 
         <!-- Typing indicator -->
         <div v-if="isLoading" class="d-flex justify-start mb-2">
-          <v-sheet color="grey-lighten-4" class="pa-2 px-3" rounded="lg">
+          <v-sheet color="surface-variant" class="pa-2 px-3" rounded="lg">
             <div class="chatbot-typing"><span></span><span></span><span></span></div>
           </v-sheet>
         </div>
@@ -433,12 +433,12 @@ watch(selectedHistoryLimit, (value) => {
 
 .chatbot-settings {
   background-color: rgb(var(--v-theme-surface));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .chatbot-help {
   background-color: rgb(var(--v-theme-surface));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   max-height: 420px;
   overflow-y: auto;
 }
@@ -491,14 +491,14 @@ watch(selectedHistoryLimit, (value) => {
   font-weight: 600;
 }
 .chatbot-markdown :deep(code) {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(var(--v-theme-on-surface), 0.08);
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 0.85em;
   font-family: monospace;
 }
 .chatbot-markdown :deep(pre) {
-  background: rgba(0, 0, 0, 0.06);
+  background: rgba(var(--v-theme-on-surface), 0.06);
   border-radius: 6px;
   padding: 8px;
   overflow-x: auto;

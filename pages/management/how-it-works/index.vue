@@ -88,7 +88,7 @@
     <!-- Method 2: QR Clock -->
     <v-card rounded="xl" border elevation="0" class="mb-4">
       <div class="d-flex align-center ga-3 pa-4 pb-3">
-        <v-avatar color="deep-orange" size="40" rounded="lg">
+        <v-avatar color="request-clock-forget" size="40" rounded="lg">
           <v-icon color="white" size="22">mdi-qrcode-scan</v-icon>
         </v-avatar>
         <div>
@@ -98,7 +98,7 @@
           </div>
         </div>
         <v-spacer />
-        <v-chip color="deep-orange" variant="tonal" size="small">{{
+        <v-chip color="request-clock-forget" variant="tonal" size="small">{{
           $t('howItWorks.manual')
         }}</v-chip>
       </div>
@@ -192,7 +192,7 @@
     <!-- Method 4: Face Checkin -->
     <v-card rounded="xl" border elevation="0" class="mb-4">
       <div class="d-flex align-center ga-3 pa-4 pb-3">
-        <v-avatar color="teal" size="40" rounded="lg">
+        <v-avatar color="action" size="40" rounded="lg">
           <v-icon color="white" size="22">mdi-face-man</v-icon>
         </v-avatar>
         <div>
@@ -202,7 +202,9 @@
           </div>
         </div>
         <v-spacer />
-        <v-chip color="teal" variant="tonal" size="small">{{ $t('howItWorks.automatic') }}</v-chip>
+        <v-chip color="action" variant="tonal" size="small">{{
+          $t('howItWorks.automatic')
+        }}</v-chip>
       </div>
       <v-divider />
       <div class="pa-4">
@@ -246,7 +248,7 @@
     <!-- Method 5: KYC -->
     <v-card rounded="xl" border elevation="0" class="mb-4">
       <div class="d-flex align-center ga-3 pa-4 pb-3">
-        <v-avatar color="purple" size="40" rounded="lg">
+        <v-avatar color="accent" size="40" rounded="lg">
           <v-icon color="white" size="22">mdi-shield-account-outline</v-icon>
         </v-avatar>
         <div>
@@ -254,7 +256,7 @@
           <div class="text-caption text-medium-emphasis">{{ $t('howItWorks.kyc.subtitle') }}</div>
         </div>
         <v-spacer />
-        <v-chip color="purple" variant="tonal" size="small">{{
+        <v-chip color="accent" variant="tonal" size="small">{{
           $t('howItWorks.verification')
         }}</v-chip>
       </div>
@@ -281,10 +283,10 @@
 
         <v-btn
           variant="tonal"
-          color="purple"
+          color="accent"
           rounded="lg"
+          class="btn-shine mt-4"
           size="small"
-          class="mt-4"
           prepend-icon="mdi-face-recognition"
           to="/management/kyc"
         >
@@ -327,8 +329,8 @@
           variant="tonal"
           color="primary"
           rounded="lg"
+          class="btn-shine mt-4"
           size="small"
-          class="mt-4"
           prepend-icon="mdi-clipboard-clock-outline"
           to="/management/attendance-logs"
         >
@@ -340,7 +342,7 @@
     <!-- Clock-in / Clock-out logic -->
     <v-card rounded="xl" border elevation="0">
       <div class="d-flex align-center ga-3 pa-4 pb-3">
-        <v-avatar color="purple" size="40" rounded="lg">
+        <v-avatar color="accent" size="40" rounded="lg">
           <v-icon color="white" size="22">mdi-information-outline</v-icon>
         </v-avatar>
         <div class="text-body-1 font-weight-bold">{{ $t('howItWorks.logic.title') }}</div>

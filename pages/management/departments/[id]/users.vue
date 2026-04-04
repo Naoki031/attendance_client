@@ -40,7 +40,14 @@
         </template>
 
         <template #item.actions="{ item }">
-          <v-btn icon size="x-small" variant="text" color="error" @click="confirmRemove(item)">
+          <v-btn
+            size="x-small"
+            variant="tonal"
+            color="error"
+            rounded="lg"
+            class="btn-shine"
+            @click="confirmRemove(item)"
+          >
             <v-icon size="16">mdi-delete-outline</v-icon>
             <v-tooltip activator="parent" location="top">{{ $t('users.remove') }}</v-tooltip>
           </v-btn>

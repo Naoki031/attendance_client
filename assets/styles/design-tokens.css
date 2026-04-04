@@ -1,0 +1,107 @@
+/**
+ * Design Tokens — CSS custom properties for use in <style> blocks.
+ *
+ * Rule: NEVER write a raw hex or rgba(0,0,0,...) in a component <style>.
+ * Always reference a token from this file or a Vuetify theme variable.
+ *
+ * Vuetify exposes every theme color as --v-theme-<name> (RGB triplet).
+ * Use:  color: rgb(var(--v-theme-primary))
+ *       background: rgba(var(--v-theme-request-wfh), var(--badge-bg-opacity))
+ *
+ * To change a value globally: edit the variable below — done.
+ */
+
+/* ─── Opacity scales ─────────────────────────────────────────────────────── */
+:root {
+  /* Badge / chip tinted background (e.g. calendar entries, type chips) */
+  /* Light mode: 0.13 matches Vuetify tonal chip visual weight */
+  --badge-bg-opacity: 0.13;
+
+  /* Divider / border lines */
+  --border-opacity: 0.08;
+  --border-opacity-medium: 0.12;
+
+  /* Muted label text (field labels, metadata) */
+  --label-opacity: 0.5;
+  --muted-opacity: 0.55;
+  --subtle-opacity: 0.4;
+
+  /* Hover tint on interactive surfaces */
+  --hover-opacity: 0.06;
+  --hover-opacity-strong: 0.10;
+
+  /* Subtle section background */
+  --section-bg-opacity: 0.03;
+}
+
+/* ─── Dark mode overrides ────────────────────────────────────────────────── */
+/*
+  In dark mode, badge backgrounds at 0.13 opacity become nearly invisible
+  against dark surfaces. Bump opacity to maintain visual parity with
+  Vuetify's tonal chip rendering on dark backgrounds.
+*/
+[data-v-theme="sandstone-dark"] {
+  --badge-bg-opacity: 0.22;
+  --toolbar-bg-opacity: 0.10;
+  --border-opacity: 0.14;
+  --border-opacity-medium: 0.20;
+  --hover-opacity: 0.10;
+  --hover-opacity-strong: 0.16;
+  --section-bg-opacity: 0.06;
+}
+
+/* ─── Shorthand helpers ──────────────────────────────────────────────────── */
+/*
+  Shortcut for common patterns used across many components.
+
+  Usage in <style scoped>:
+    border: 1px solid var(--color-border);
+    color: var(--color-label);
+    background: var(--color-section-bg);
+*/
+:root {
+  --color-border:        rgba(var(--v-theme-on-surface), var(--border-opacity));
+  --color-border-medium: rgba(var(--v-theme-on-surface), var(--border-opacity-medium));
+  --color-label:         rgba(var(--v-theme-on-surface), var(--label-opacity));
+  --color-muted:         rgba(var(--v-theme-on-surface), var(--muted-opacity));
+  --color-subtle:        rgba(var(--v-theme-on-surface), var(--subtle-opacity));
+  --color-hover-bg:      rgba(var(--v-theme-primary),    var(--hover-opacity));
+  --color-section-bg:    rgba(var(--v-theme-on-surface), var(--section-bg-opacity));
+}
+
+/* ─── Table & list UI ────────────────────────────────────────────────────── */
+:root {
+  --toolbar-bg-opacity: 0.06;
+  /* Toolbar / filter bar above v-data-table */
+  --color-table-toolbar: rgba(var(--v-theme-primary), var(--toolbar-bg-opacity));
+  /* Clickable row link color */
+  --color-row-link: rgb(var(--v-theme-primary));
+  /* Status indicator dots */
+  --color-status-active:   rgb(var(--v-theme-success));
+  --color-status-inactive: rgba(var(--v-theme-on-surface), 0.3);
+  --color-status-pending:  rgb(var(--v-theme-warning));
+  --color-status-rejected: rgb(var(--v-theme-error));
+}
+
+/* ─── Calendar badge helpers (request type × current theme) ─────────────── */
+/*
+  These combine the request-type color token with the badge-bg-opacity,
+  so <style> blocks can write:
+    background: var(--badge-wfh-bg);
+    color:      var(--badge-wfh-text);
+*/
+:root {
+  --badge-wfh-bg:           rgba(var(--v-theme-request-wfh),           var(--badge-bg-opacity));
+  --badge-off-bg:           rgba(var(--v-theme-request-off),           var(--badge-bg-opacity));
+  --badge-overtime-bg:      rgba(var(--v-theme-request-overtime),      var(--badge-bg-opacity));
+  --badge-equipment-bg:     rgba(var(--v-theme-request-equipment),     var(--badge-bg-opacity));
+  --badge-clock-forget-bg:  rgba(var(--v-theme-request-clock-forget),  var(--badge-bg-opacity));
+  --badge-business-trip-bg: rgba(var(--v-theme-request-business-trip), var(--badge-bg-opacity));
+
+  --badge-wfh-text:           rgb(var(--v-theme-request-wfh));
+  --badge-off-text:           rgb(var(--v-theme-request-off));
+  --badge-overtime-text:      rgb(var(--v-theme-request-overtime));
+  --badge-equipment-text:     rgb(var(--v-theme-request-equipment));
+  --badge-clock-forget-text:  rgb(var(--v-theme-request-clock-forget));
+  --badge-business-trip-text: rgb(var(--v-theme-request-business-trip));
+}

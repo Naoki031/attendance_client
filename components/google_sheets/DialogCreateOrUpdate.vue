@@ -644,7 +644,7 @@ watchEffect(() => {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(var(--v-theme-on-surface), 0.5);
   margin-bottom: 4px;
 }
 
@@ -654,12 +654,12 @@ watchEffect(() => {
 }
 
 .preview-table {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   overflow-x: auto;
 }
 
 .preview-section {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgba(var(--v-theme-on-surface), 0.02);
   border-radius: 12px;
   padding: 12px;
 }

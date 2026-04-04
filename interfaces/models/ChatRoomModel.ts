@@ -24,6 +24,11 @@ export interface ChatRoomModel {
     avatar?: string
   } | null
   member_count?: number
+  preview_members?: Array<{
+    id: number
+    full_name: string
+    avatar?: string
+  }>
   created_at?: string
   updated_at?: string
 }

@@ -30,8 +30,8 @@
         :key="day"
         class="calendar-cell-header text-caption font-weight-bold"
         :class="{
-          'text-blue-700': index === 5,
-          'text-red-600': index === 6,
+          'calendar-sat': index === 5,
+          'calendar-sun': index === 6,
           'text-medium-emphasis': index !== 5 && index !== 6,
         }"
       >
@@ -57,8 +57,8 @@
           v-if="cell.day"
           class="calendar-day-number"
           :class="{
-            'text-blue-700': cell.dayOfWeek === 6,
-            'text-red-600': cell.dayOfWeek === 0,
+            'calendar-sat': cell.dayOfWeek === 6,
+            'calendar-sun': cell.dayOfWeek === 0,
           }"
           >{{ cell.day }}</span
         >
@@ -76,8 +76,8 @@
           :key="'header-' + day"
           class="calendar-cell-header text-caption font-weight-bold"
           :class="{
-            'text-blue-700': index === 5,
-            'text-red-600': index === 6,
+            'calendar-sat': index === 5,
+            'calendar-sun': index === 6,
             'text-medium-emphasis': index !== 5 && index !== 6,
           }"
         >
@@ -98,8 +98,8 @@
             <span
               class="calendar-day-number"
               :class="{
-                'text-blue-700': cell.dayOfWeek === 6,
-                'text-red-600': cell.dayOfWeek === 0,
+                'calendar-sat': cell.dayOfWeek === 6,
+                'calendar-sun': cell.dayOfWeek === 0,
               }"
               >{{ cell.day }}</span
             >
@@ -327,6 +327,14 @@ const goToToday = () => {
 </script>
 
 <style scoped>
+/* Saturday / Sunday label colors — use theme info/error tokens */
+.calendar-sat {
+  color: rgb(var(--v-theme-info));
+}
+.calendar-sun {
+  color: rgb(var(--v-theme-error));
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -405,7 +413,7 @@ const goToToday = () => {
 }
 
 .calendar-cell--clickable:hover {
-  background-color: rgba(191, 110, 58, 0.08);
+  background-color: rgba(var(--v-theme-primary), 0.08);
 }
 
 .calendar-cell--other {
@@ -413,8 +421,8 @@ const goToToday = () => {
 }
 
 .calendar-cell--today .calendar-day-number {
-  background-color: #bf6e3a;
-  color: white;
+  background-color: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-primary));
   border-radius: 50%;
   width: 26px;
   height: 26px;
@@ -425,8 +433,8 @@ const goToToday = () => {
 }
 
 .calendar-cell--selected {
-  background-color: rgba(191, 110, 58, 0.12);
-  outline: 1.5px solid #bf6e3a;
+  background-color: rgba(var(--v-theme-primary), 0.12);
+  outline: 1.5px solid rgb(var(--v-theme-primary));
 }
 
 .calendar-day-number {
@@ -479,7 +487,7 @@ const goToToday = () => {
 }
 
 .calendar-week-cell:hover {
-  background-color: rgba(191, 110, 58, 0.06);
+  background-color: rgba(var(--v-theme-primary), 0.06);
 }
 
 .calendar-week-day-header {

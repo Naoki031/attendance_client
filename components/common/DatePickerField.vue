@@ -21,7 +21,10 @@
       <template #day="daySlot">
         <v-btn
           v-bind="(daySlot as any).props"
-          :class="{ 'weekend-day': isWeekendIso((daySlot as any).item.isoDate) }"
+          :class="{
+            'picker-day-sat': isSaturdayIso((daySlot as any).item.isoDate),
+            'picker-day-sun': isSundayIso((daySlot as any).item.isoDate),
+          }"
           :disabled="disableWeekends && isWeekendIso((daySlot as any).item.isoDate)"
           >{{ (daySlot as any).item.localized }}</v-btn
         >
@@ -73,6 +76,9 @@ const isWeekendIso = (isoDate: string): boolean => {
   return dayOfWeek === 0 || dayOfWeek === 6
 }
 
+const isSaturdayIso = (isoDate: string): boolean => moment(isoDate, 'YYYY-MM-DD').day() === 6
+const isSundayIso = (isoDate: string): boolean => moment(isoDate, 'YYYY-MM-DD').day() === 0
+
 const onDateSelected = (selectedDate: Date) => {
   if (props.disableWeekends && isWeekendIso(formatDate(selectedDate))) return
   emit('update:modelValue', formatDate(selectedDate))
@@ -82,8 +88,13 @@ const onDateSelected = (selectedDate: Date) => {
 
 <style>
 /* Non-scoped: date picker renders in a portal overlay, scoped styles won't reach it */
-.v-date-picker-month__day .weekend-day .v-btn__content {
-  color: #ef5350 !important;
+.v-date-picker-month__day .picker-day-sat .v-btn__content {
+  color: rgb(var(--v-theme-info)) !important;
+  font-weight: 700;
+}
+
+.v-date-picker-month__day .picker-day-sun .v-btn__content {
+  color: rgb(var(--v-theme-error)) !important;
   font-weight: 700;
 }
 </style>

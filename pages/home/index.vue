@@ -42,7 +42,7 @@
           height="100%"
           @click="openRequest('wfh')"
         >
-          <v-icon color="blue" size="28" class="mb-2">mdi-home-outline</v-icon>
+          <v-icon color="request-wfh" size="28" class="mb-2">mdi-home-outline</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.wfh') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.wfhDesc') }}</div>
         </v-card>
@@ -56,7 +56,7 @@
           height="100%"
           @click="openRequest('off')"
         >
-          <v-icon color="amber-darken-2" size="28" class="mb-2">mdi-umbrella-beach-outline</v-icon>
+          <v-icon color="request-off" size="28" class="mb-2">mdi-umbrella-beach-outline</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.off') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.offDesc') }}</div>
         </v-card>
@@ -70,7 +70,7 @@
           height="100%"
           @click="openRequest('equipment')"
         >
-          <v-icon color="cyan-darken-1" size="28" class="mb-2">mdi-laptop</v-icon>
+          <v-icon color="request-equipment" size="28" class="mb-2">mdi-laptop</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.equipment') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.equipmentDesc') }}</div>
         </v-card>
@@ -84,7 +84,9 @@
           height="100%"
           @click="openRequest('clock_forget')"
         >
-          <v-icon color="deep-orange" size="28" class="mb-2">mdi-clock-alert-outline</v-icon>
+          <v-icon color="request-clock-forget" size="28" class="mb-2"
+            >mdi-clock-alert-outline</v-icon
+          >
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.clockForget') }}</div>
           <div class="text-caption text-medium-emphasis">
             {{ $t('requestType.clockForgetDesc') }}
@@ -100,7 +102,7 @@
           height="100%"
           @click="openRequest('overtime')"
         >
-          <v-icon color="red" size="28" class="mb-2">mdi-fire</v-icon>
+          <v-icon color="request-overtime" size="28" class="mb-2">mdi-fire</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.overtime') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.overtimeDesc') }}</div>
         </v-card>
@@ -114,7 +116,9 @@
           height="100%"
           @click="openRequest('business_trip')"
         >
-          <v-icon color="teal-darken-1" size="28" class="mb-2">mdi-briefcase-outline</v-icon>
+          <v-icon color="request-business-trip" size="28" class="mb-2"
+            >mdi-briefcase-outline</v-icon
+          >
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.businessTrip') }}</div>
           <div class="text-caption text-medium-emphasis">
             {{ $t('requestType.businessTripDesc') }}
@@ -166,7 +170,7 @@
           <v-chip
             v-if="todayStatus.isWfhToday"
             size="small"
-            color="blue"
+            color="request-wfh"
             variant="tonal"
             prepend-icon="mdi-home-outline"
           >
@@ -433,8 +437,8 @@
           <div class="pa-3 day-summary-sections">
             <!-- WFH section -->
             <div class="day-summary-section">
-              <div class="day-summary-header text-caption font-weight-bold text-blue">
-                <v-icon size="12" color="blue" class="mr-1">mdi-home-outline</v-icon>
+              <div class="day-summary-header text-caption font-weight-bold day-summary-wfh">
+                <v-icon size="12" color="request-wfh" class="mr-1">mdi-home-outline</v-icon>
                 {{ $t('requestType.wfh') }}
                 <span class="text-medium-emphasis font-weight-regular ms-1"
                   >({{ selectedDayWfhUsers.length }})</span
@@ -452,15 +456,15 @@
                   :key="name"
                   class="day-summary-row text-caption"
                 >
-                  <span class="day-summary-dot bg-blue"></span>{{ name }}
+                  <span class="day-summary-dot day-summary-dot--wfh"></span>{{ name }}
                 </div>
               </div>
             </div>
 
             <!-- Leave section -->
             <div class="day-summary-section">
-              <div class="day-summary-header text-caption font-weight-bold text-amber-darken-2">
-                <v-icon size="12" color="amber-darken-2" class="mr-1"
+              <div class="day-summary-header text-caption font-weight-bold day-summary-off">
+                <v-icon size="12" color="request-off" class="mr-1"
                   >mdi-umbrella-beach-outline</v-icon
                 >
                 {{ $t('requestType.off') }}
@@ -480,7 +484,7 @@
                   :key="entry.name"
                   class="day-summary-row text-caption"
                 >
-                  <span class="day-summary-dot bg-amber-darken-2"></span>
+                  <span class="day-summary-dot day-summary-dot--off"></span>
                   <span>{{ entry.name }}</span>
                   <span class="text-medium-emphasis ms-1">· {{ entry.timeLabel }}</span>
                 </div>
@@ -489,8 +493,8 @@
 
             <!-- Overtime section -->
             <div class="day-summary-section">
-              <div class="day-summary-header text-caption font-weight-bold text-red">
-                <v-icon size="12" color="red" class="mr-1">mdi-fire</v-icon>
+              <div class="day-summary-header text-caption font-weight-bold day-summary-overtime">
+                <v-icon size="12" color="request-overtime" class="mr-1">mdi-fire</v-icon>
                 {{ $t('requestType.overtime') }}
                 <span class="text-medium-emphasis font-weight-regular ms-1"
                   >({{ selectedDayOvertimeUsers.length }})</span
@@ -508,15 +512,19 @@
                   :key="name"
                   class="day-summary-row text-caption"
                 >
-                  <span class="day-summary-dot bg-red"></span>{{ name }}
+                  <span class="day-summary-dot day-summary-dot--overtime"></span>{{ name }}
                 </div>
               </div>
             </div>
 
             <!-- Business trip section -->
             <div class="day-summary-section">
-              <div class="day-summary-header text-caption font-weight-bold text-teal-darken-1">
-                <v-icon size="12" color="teal-darken-1" class="mr-1">mdi-briefcase-outline</v-icon>
+              <div
+                class="day-summary-header text-caption font-weight-bold day-summary-business-trip"
+              >
+                <v-icon size="12" color="request-business-trip" class="mr-1"
+                  >mdi-briefcase-outline</v-icon
+                >
                 {{ $t('requestType.businessTrip') }}
                 <span class="text-medium-emphasis font-weight-regular ms-1"
                   >({{ selectedDayBusinessTripUsers.length }})</span
@@ -534,7 +542,7 @@
                   :key="entry.name"
                   class="day-summary-row text-caption"
                 >
-                  <span class="day-summary-dot bg-teal-darken-1"></span>
+                  <span class="day-summary-dot day-summary-dot--business-trip"></span>
                   <span>{{ entry.name }}</span>
                   <span v-if="entry.destination" class="text-medium-emphasis ms-1"
                     >· {{ entry.destination }}</span
@@ -1012,33 +1020,42 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
 }
 
 .calendar-name--wfh {
-  background-color: rgba(33, 150, 243, 0.15);
-  color: #1565c0;
+  border-left: 2px solid var(--badge-wfh-text);
+  background-color: var(--badge-wfh-bg);
+  color: var(--badge-wfh-text);
+  padding-left: 3px;
 }
 
 .calendar-name--off {
-  background-color: rgba(255, 179, 0, 0.18);
-  color: #e65100;
+  border-left: 2px solid var(--badge-off-text);
+  background-color: var(--badge-off-bg);
+  color: var(--badge-off-text);
+  padding-left: 3px;
 }
 
 .calendar-name--overtime {
-  background-color: rgba(244, 67, 54, 0.12);
-  color: #c62828;
+  border-left: 2px solid var(--badge-overtime-text);
+  background-color: var(--badge-overtime-bg);
+  color: var(--badge-overtime-text);
+  padding-left: 3px;
 }
 
 .calendar-name--business-trip {
-  background-color: rgba(0, 150, 136, 0.15);
-  color: #00695c;
+  border-left: 2px solid var(--badge-business-trip-text);
+  background-color: var(--badge-business-trip-bg);
+  color: var(--badge-business-trip-text);
+  padding-left: 3px;
 }
 
 .calendar-name--pending {
   opacity: 0.6;
   font-style: italic;
+  border-left-style: dashed !important;
 }
 
 .calendar-name-overflow {
   font-size: 9px;
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(var(--v-theme-on-surface), 0.45);
   padding-left: 2px;
 }
 
@@ -1055,7 +1072,7 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
 
 .calendar-week-entry--pending {
   opacity: 0.65;
-  border-left: 2px dashed currentColor;
+  border-left-style: dashed !important;
 }
 
 .calendar-week-entry-row {
@@ -1066,27 +1083,31 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
 }
 
 .calendar-week-entry--wfh {
-  background-color: rgba(33, 150, 243, 0.12);
-  color: #1565c0;
+  border-left: 3px solid var(--badge-wfh-text);
+  background-color: var(--badge-wfh-bg);
+  color: var(--badge-wfh-text);
 }
 
 .calendar-week-entry--off {
-  background-color: rgba(255, 179, 0, 0.15);
-  color: #e65100;
+  border-left: 3px solid var(--badge-off-text);
+  background-color: var(--badge-off-bg);
+  color: var(--badge-off-text);
 }
 
 .calendar-week-entry--overtime {
-  background-color: rgba(244, 67, 54, 0.1);
-  color: #c62828;
+  border-left: 3px solid var(--badge-overtime-text);
+  background-color: var(--badge-overtime-bg);
+  color: var(--badge-overtime-text);
 }
 
 .calendar-week-entry--business-trip {
-  background-color: rgba(0, 150, 136, 0.12);
-  color: #00695c;
+  border-left: 3px solid var(--badge-business-trip-text);
+  background-color: var(--badge-business-trip-bg);
+  color: var(--badge-business-trip-text);
 }
 
 .calendar-week-entry-detail {
-  color: rgba(0, 0, 0, 0.55);
+  color: rgba(var(--v-theme-on-surface), 0.55);
   font-size: 9px;
   padding-left: 13px;
 }
@@ -1105,7 +1126,7 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
 }
 
 .day-summary-header {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   padding-bottom: 4px;
   margin-bottom: 2px;
 }
@@ -1130,9 +1151,37 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
   flex-shrink: 0;
 }
 
+/* Header title colors — use badge tokens so they match calendar entries exactly */
+.day-summary-wfh {
+  color: var(--badge-wfh-text);
+}
+.day-summary-off {
+  color: var(--badge-off-text);
+}
+.day-summary-overtime {
+  color: var(--badge-overtime-text);
+}
+.day-summary-business-trip {
+  color: var(--badge-business-trip-text);
+}
+
+/* Dot colors — same tokens */
+.day-summary-dot--wfh {
+  background-color: var(--badge-wfh-text);
+}
+.day-summary-dot--off {
+  background-color: var(--badge-off-text);
+}
+.day-summary-dot--overtime {
+  background-color: var(--badge-overtime-text);
+}
+.day-summary-dot--business-trip {
+  background-color: var(--badge-business-trip-text);
+}
+
 .home-qr-canvas {
   border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
   flex-shrink: 0;
 }
 </style>

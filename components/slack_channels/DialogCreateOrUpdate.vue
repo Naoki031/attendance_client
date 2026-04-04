@@ -111,7 +111,7 @@
                 <v-icon size="14" start>mdi-code-braces</v-icon>
                 {{ $t('slackChannels.codeBlock') }}
               </v-btn>
-              <v-btn size="x-small" variant="tonal" color="teal" @click="loadExampleTemplate">
+              <v-btn size="x-small" variant="tonal" color="action" @click="loadExampleTemplate">
                 <v-icon size="14" start>mdi-text-box-outline</v-icon>
                 {{ $t('slackChannels.loadExample') }}
               </v-btn>

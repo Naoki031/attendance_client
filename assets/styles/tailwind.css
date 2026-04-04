@@ -6,6 +6,7 @@
  * responsive breakpoints.
  */
 @import "tailwindcss" layer(tailwind-utilities);
+@import "./design-tokens.css";
 
 @theme {
   /* Align Tailwind breakpoints with Vuetify 4 display breakpoints */
@@ -14,11 +15,4 @@
   --breakpoint-md: 960px;
   --breakpoint-lg: 1280px;
   --breakpoint-xl: 1920px;
-
-  /* Project theme colors (warm beige/brown palette) */
-  --color-primary: #BF6E3A;
-  --color-primary-light: #D4915E;
-  --color-primary-dark: #9A5628;
-  --color-surface: #FAF5F0;
-  --color-surface-variant: #F5EDE4;
 }

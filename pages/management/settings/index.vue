@@ -23,6 +23,7 @@
               color="primary"
               variant="tonal"
               rounded="lg"
+              class="btn-shine"
               prepend-icon="mdi-reload"
               :loading="isReloadingPrompts"
               @click="reloadPrompts"

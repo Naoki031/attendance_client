@@ -143,7 +143,7 @@ watch(
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.08em;
-  color: rgba(0, 0, 0, 0.5);
+  color: rgba(var(--v-theme-on-surface), 0.5);
   margin-bottom: 4px;
 }
 </style>

@@ -24,6 +24,11 @@ function transformMessage(raw: Record<string, unknown>): ChatMessage {
     editedAt: (raw.editedAt ?? raw.updated_at) as string | undefined,
     parentId: (raw.parentId ?? raw.parent_id ?? null) as number | null,
     replyCount: Number(raw.reply_count ?? raw.replyCount ?? 0),
+    replyParticipants: (raw.reply_participants ?? raw.replyParticipants ?? []) as Array<{
+      userId: number
+      username: string
+      avatar: string
+    }>,
     reactions: (raw.reactions ?? []) as ReactionGroup[],
     createdAt: (raw.createdAt ?? raw.created_at) as string,
   }

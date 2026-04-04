@@ -56,15 +56,23 @@
 
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
-            <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              class="btn-shine"
+              @click="editItem(item)"
+            >
               <v-icon size="16">mdi-pencil-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
             <v-btn
-              icon
               size="x-small"
-              variant="text"
-              color="teal"
+              variant="tonal"
+              color="action"
+              rounded="lg"
+              class="btn-shine"
               @click="openManageApprovers(item)"
             >
               <v-icon size="16">mdi-account-check-outline</v-icon>
@@ -72,7 +80,14 @@
                 $t('companies.manageApprovers')
               }}</v-tooltip>
             </v-btn>
-            <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="error"
+              rounded="lg"
+              class="btn-shine"
+              @click="deleteItem(item)"
+            >
               <v-icon size="16">mdi-delete-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
@@ -86,7 +101,7 @@
               :key="ipEntry"
               size="x-small"
               variant="tonal"
-              color="blue-grey"
+              color="secondary"
             >
               {{ ipEntry.trim() }}
             </v-chip>
@@ -97,7 +112,7 @@
         <!-- Work Schedule -->
         <template #item.work_schedule="{ item }">
           <div v-if="item.work_start_time && item.work_end_time" class="d-flex align-center ga-1">
-            <v-icon size="14" color="teal">mdi-clock-time-eight-outline</v-icon>
+            <v-icon size="14" color="action">mdi-clock-time-eight-outline</v-icon>
             <span class="text-body-2">{{ item.work_start_time }} – {{ item.work_end_time }}</span>
           </div>
           <span v-else class="text-caption text-medium-emphasis">—</span>
@@ -361,6 +376,6 @@ onMounted(async () => {
 
 <style scoped>
 .table-toolbar {
-  background-color: #f5ede4;
+  background-color: var(--color-table-toolbar);
 }
 </style>

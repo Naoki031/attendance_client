@@ -534,12 +534,12 @@ onMounted(() => {
 
 <style scoped>
 .message-input {
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .format-toolbar {
   padding: 2px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06);
   margin-bottom: 4px;
 }
 
@@ -578,16 +578,16 @@ onMounted(() => {
 }
 
 .message-editor :deep(.tiptap code) {
-  background: #fff3e0;
+  background: rgba(var(--v-theme-primary), 0.1);
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 0.85em;
   font-family: monospace;
-  color: #e65100;
+  color: rgb(var(--v-theme-primary));
 }
 
 .message-editor :deep(.tiptap pre) {
-  background: #fff3e0;
+  background: rgba(var(--v-theme-on-surface), 0.06);
   border-radius: 6px;
   padding: 8px;
   overflow-x: auto;
@@ -597,7 +597,7 @@ onMounted(() => {
 .message-editor :deep(.tiptap pre code) {
   background: none;
   padding: 0;
-  color: #e65100;
+  color: rgb(var(--v-theme-primary));
 }
 
 .message-editor :deep(.tiptap blockquote) {
@@ -643,7 +643,7 @@ onMounted(() => {
 <style>
 /* Placeholder styles must be global for TipTap pseudo-element */
 .message-editor .tiptap p.is-editor-empty:first-child::before {
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(var(--v-theme-on-surface), 0.4);
   content: attr(data-placeholder);
   float: left;
   height: 0;

@@ -39,200 +39,206 @@
         />
       </aside>
 
-      <!-- Main chat area -->
-      <main class="chat-main">
-        <!-- Room header -->
-        <div class="chat-header d-flex align-center justify-space-between px-4 py-2">
-          <div class="d-flex align-center ga-2">
-            <v-btn
-              icon
-              size="small"
-              variant="text"
-              class="mobile-sidebar-toggle"
-              @click="showMobileSidebar = true"
-            >
-              <v-icon size="20">mdi-account-group-outline</v-icon>
-            </v-btn>
-            <v-icon size="18" color="medium-emphasis">
-              {{ room?.type === 'direct' ? 'mdi-account-outline' : 'mdi-pound' }}
-            </v-icon>
-            <div>
-              <div class="d-flex align-center ga-2">
-                <span class="text-body-1 font-weight-medium">
-                  {{
-                    room?.type === 'direct'
-                      ? (room?.direct_user?.full_name ?? room?.name)
-                      : room?.name
-                  }}
-                </span>
-                <v-icon v-if="isPrivateRoom" size="14" color="medium-emphasis">mdi-lock</v-icon>
-                <v-chip v-if="isPrivateRoom" size="x-small" variant="tonal" color="orange">
-                  {{ $t('chat.visibilityPrivate') }}
-                </v-chip>
-              </div>
-              <div
-                v-if="room?.type === 'channel' && room?.description"
-                class="d-flex align-center ga-1"
+      <!-- Main area + thread panel share this container -->
+      <div class="chat-content-area">
+        <!-- Main chat area -->
+        <main class="chat-main">
+          <!-- Room header -->
+          <div class="chat-header d-flex align-center justify-space-between px-4 py-2">
+            <div class="d-flex align-center ga-2">
+              <v-btn
+                icon
+                size="small"
+                variant="text"
+                class="mobile-sidebar-toggle"
+                @click="showMobileSidebar = true"
               >
-                <span class="text-caption text-medium-emphasis room-header-description">
-                  {{ room.description }}
-                </span>
-                <v-btn
-                  variant="text"
-                  size="x-small"
-                  color="primary"
-                  class="px-1 flex-shrink-0"
-                  style="min-width: 0; height: 20px"
-                  @click="descriptionDialog = true"
+                <v-icon size="20">mdi-account-group-outline</v-icon>
+              </v-btn>
+              <v-icon size="18" color="medium-emphasis">
+                {{ room?.type === 'direct' ? 'mdi-account-outline' : 'mdi-pound' }}
+              </v-icon>
+              <div>
+                <div class="d-flex align-center ga-2">
+                  <span class="text-body-1 font-weight-medium">
+                    {{
+                      room?.type === 'direct'
+                        ? (room?.direct_user?.full_name ?? room?.name)
+                        : room?.name
+                    }}
+                  </span>
+                  <v-icon v-if="isPrivateRoom" size="14" color="medium-emphasis">mdi-lock</v-icon>
+                  <v-chip v-if="isPrivateRoom" size="x-small" variant="tonal" color="warning">
+                    {{ $t('chat.visibilityPrivate') }}
+                  </v-chip>
+                </div>
+                <div
+                  v-if="room?.type === 'channel' && room?.description"
+                  class="d-flex align-center ga-1"
                 >
-                  {{ $t('chat.seeMore') }}
-                </v-btn>
+                  <span class="text-caption text-medium-emphasis room-header-description">
+                    {{ room.description }}
+                  </span>
+                  <v-btn
+                    variant="text"
+                    size="x-small"
+                    color="primary"
+                    class="px-1 flex-shrink-0"
+                    style="min-width: 0; height: 20px"
+                    @click="descriptionDialog = true"
+                  >
+                    {{ $t('chat.seeMore') }}
+                  </v-btn>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="d-flex align-center ga-2">
-            <v-btn
-              v-if="showInviteButton"
-              variant="tonal"
-              color="primary"
-              size="small"
-              rounded="lg"
-              prepend-icon="mdi-account-plus"
-              @click="inviteDialog = true"
-            >
-              {{ $t('chat.inviteMembers') }}
-            </v-btn>
+            <div class="d-flex align-center ga-2">
+              <v-btn
+                v-if="showInviteButton"
+                variant="tonal"
+                color="primary"
+                size="small"
+                rounded="lg"
+                class="btn-shine"
+                prepend-icon="mdi-account-plus"
+                @click="inviteDialog = true"
+              >
+                {{ $t('chat.inviteMembers') }}
+              </v-btn>
 
-            <v-menu>
-              <template #activator="{ props: menuProps }">
-                <v-btn icon size="small" variant="text" v-bind="menuProps">
-                  <v-icon size="20">mdi-dots-vertical</v-icon>
-                </v-btn>
-              </template>
-              <v-list density="comfortable" rounded="lg">
-                <v-list-item
-                  base-color="error"
-                  prepend-icon="mdi-exit-to-app"
-                  @click="leaveConfirmDialog = true"
-                >
-                  <v-list-item-title>{{ $t('chat.leaveRoom') }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
-        <v-divider />
-
-        <!-- Pinned messages bar -->
-        <div
-          v-if="pinnedMessages.length > 0"
-          class="pinned-bar d-flex align-center px-4 py-2 ga-2 cursor-pointer"
-          @click="pinnedMessagesDialog = true"
-        >
-          <v-icon size="14" color="warning">mdi-pin</v-icon>
-          <span class="text-caption font-weight-medium text-truncate flex-1">
-            {{ pinnedMessages[0]?.content }}
-          </span>
-          <span class="text-caption text-medium-emphasis flex-shrink-0">
-            {{ $t('chat.pinnedCount', { count: pinnedMessages.length }) }}
-          </span>
-        </div>
-
-        <!-- Messages container -->
-        <div ref="messagesContainerReference" class="chat-messages">
-          <!-- Load more sentinel -->
-          <div ref="sentinelReference" class="load-more-sentinel">
-            <v-progress-circular
-              v-if="isLoadingMore"
-              size="20"
-              width="2"
-              indeterminate
-              color="primary"
-            />
-          </div>
-
-          <!-- Message list -->
-          <template v-for="(message, index) in messages" :key="message.id">
-            <!-- Date separator -->
-            <div
-              v-if="shouldShowDateSeparator(index)"
-              class="date-separator d-flex align-center ga-3 px-4 py-2"
-            >
-              <v-divider />
-              <span class="text-caption font-weight-medium text-medium-emphasis flex-shrink-0">
-                {{ formatDateLabel(message.createdAt) }}
-              </span>
-              <v-divider />
+              <v-menu>
+                <template #activator="{ props: menuProps }">
+                  <v-btn icon size="small" variant="text" v-bind="menuProps">
+                    <v-icon size="20">mdi-dots-vertical</v-icon>
+                  </v-btn>
+                </template>
+                <v-list density="comfortable" rounded="lg">
+                  <v-list-item
+                    base-color="error"
+                    prepend-icon="mdi-exit-to-app"
+                    @click="leaveConfirmDialog = true"
+                  >
+                    <v-list-item-title>{{ $t('chat.leaveRoom') }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
             </div>
+          </div>
+          <v-divider />
 
-            <!-- Unread divider -->
-            <div
-              v-if="message.id === firstUnreadMessageId"
-              class="unread-divider d-flex align-center ga-3 px-4 py-2"
-            >
-              <v-divider />
-              <span class="text-caption font-weight-bold text-primary flex-shrink-0">
-                {{ $t('chat.newMessages') }}
-              </span>
-              <v-divider />
-            </div>
-
-            <MessageBubble
-              :id="'message-' + message.id"
-              :message="message"
-              :class="{ 'highlight-message': message.id === scrollToMessageId }"
-              :current-user-id="userStore.user?.id ?? 0"
-              :user-language="userLanguage"
-              :auto-translate="autoTranslate"
-              :last-read-at="lastReadAt"
-              :members="members"
-              :is-admin="isAdmin"
-              @edit="handleEditMessage"
-              @reply="handleReply"
-              @react="handleReact"
-              @pin="handlePin"
-              @unpin="handleUnpin"
-            />
-          </template>
-
-          <!-- Empty state -->
+          <!-- Pinned messages bar -->
           <div
-            v-if="messages.length === 0 && !isLoadingMore"
-            class="text-center text-medium-emphasis text-body-2 py-8"
+            v-if="pinnedMessages.length > 0"
+            class="pinned-bar d-flex align-center px-4 py-2 ga-2 cursor-pointer"
+            @click="pinnedMessagesDialog = true"
           >
-            {{ $t('chat.noMessages') }}
+            <v-icon size="14" color="warning">mdi-pin</v-icon>
+            <span class="text-caption font-weight-medium text-truncate flex-1">
+              {{ pinnedMessages[0]?.content }}
+            </span>
+            <span class="text-caption text-medium-emphasis flex-shrink-0">
+              {{ $t('chat.pinnedCount', { count: pinnedMessages.length }) }}
+            </span>
           </div>
-        </div>
 
-        <!-- Typing indicator -->
-        <TypingIndicator :typing-users="typingUsers" />
+          <!-- Messages container -->
+          <div ref="messagesContainerReference" class="chat-messages">
+            <!-- Load more sentinel -->
+            <div ref="sentinelReference" class="load-more-sentinel">
+              <v-progress-circular
+                v-if="isLoadingMore"
+                size="20"
+                width="2"
+                indeterminate
+                color="primary"
+              />
+            </div>
 
-        <!-- Message input -->
-        <MessageInput
-          :disabled="!isConnected"
+            <!-- Message list -->
+            <template v-for="(message, index) in messages" :key="message.id">
+              <!-- Date separator -->
+              <div
+                v-if="shouldShowDateSeparator(index)"
+                class="date-separator d-flex align-center ga-3 px-4 py-2"
+              >
+                <v-divider />
+                <span class="text-caption font-weight-medium text-medium-emphasis flex-shrink-0">
+                  {{ formatDateLabel(message.createdAt) }}
+                </span>
+                <v-divider />
+              </div>
+
+              <!-- Unread divider -->
+              <div
+                v-if="message.id === firstUnreadMessageId"
+                class="unread-divider d-flex align-center ga-3 px-4 py-2"
+              >
+                <v-divider />
+                <span class="text-caption font-weight-bold text-primary flex-shrink-0">
+                  {{ $t('chat.newMessages') }}
+                </span>
+                <v-divider />
+              </div>
+
+              <MessageBubble
+                :id="'message-' + message.id"
+                :message="message"
+                :class="{ 'highlight-message': message.id === scrollToMessageId }"
+                :current-user-id="userStore.user?.id ?? 0"
+                :user-language="userLanguage"
+                :auto-translate="autoTranslate"
+                :last-read-at="lastReadAt"
+                :members="members"
+                :is-admin="isAdmin"
+                @edit="handleEditMessage"
+                @reply="handleReply"
+                @react="handleReact"
+                @pin="handlePin"
+                @unpin="handleUnpin"
+              />
+            </template>
+
+            <!-- Empty state -->
+            <div
+              v-if="messages.length === 0 && !isLoadingMore"
+              class="text-center text-medium-emphasis text-body-2 py-8"
+            >
+              {{ $t('chat.noMessages') }}
+            </div>
+          </div>
+
+          <!-- Typing indicator -->
+          <TypingIndicator :typing-users="typingUsers" />
+
+          <!-- Message input -->
+          <MessageInput
+            :disabled="!isConnected"
+            :members="members"
+            :placeholder="$t('chat.messagePlaceholder')"
+            @send="sendMessage"
+            @typing="setTyping"
+          />
+        </main>
+
+        <!-- Thread panel -->
+        <ThreadPanel
+          v-if="activeThreadParent"
+          :parent="activeThreadParent"
+          :thread-replies="threadReplies"
+          :is-connected="isConnected"
+          :auto-translate="autoTranslate"
+          :user-language="userLanguage"
+          :current-user-id="userStore.user?.id ?? 0"
+          :last-read-at="lastReadAt"
           :members="members"
-          :placeholder="$t('chat.messagePlaceholder')"
-          @send="sendMessage"
-          @typing="setTyping"
+          @close="closeThread"
+          @edit="handleEditMessage"
+          @send="sendThreadReply"
         />
-      </main>
-
-      <!-- Thread panel -->
-      <ThreadPanel
-        v-if="activeThreadParent"
-        :parent="activeThreadParent"
-        :thread-replies="threadReplies"
-        :is-connected="isConnected"
-        :auto-translate="autoTranslate"
-        :user-language="userLanguage"
-        :current-user-id="userStore.user?.id ?? 0"
-        :last-read-at="lastReadAt"
-        :members="members"
-        @close="closeThread"
-        @edit="handleEditMessage"
-        @send="sendThreadReply"
-      />
+      </div>
+      <!-- end chat-content-area -->
     </div>
+    <!-- end chat-layout -->
 
     <!-- Invite user dialog -->
     <DialogInviteUser
@@ -820,11 +826,21 @@ onMounted(async () => {
   display: flex;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .chat-sidebar {
   width: 280px;
   flex-shrink: 0;
+}
+
+/* Wrapper that holds chat-main + thread panel side-by-side */
+.chat-content-area {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .chat-main {

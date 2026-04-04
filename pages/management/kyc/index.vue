@@ -21,7 +21,7 @@
 
     <!-- Empty state -->
     <div v-else-if="users.length === 0" class="text-center py-16">
-      <v-icon size="64" color="grey-lighten-1" class="mb-4">mdi-face-recognition</v-icon>
+      <v-icon size="64" color="surface-variant" class="mb-4">mdi-face-recognition</v-icon>
       <div class="text-body-1 text-medium-emphasis">
         {{ tabFilter === 'pending' ? $t('face.kyc.noPending') : $t('face.kyc.noSubmission') }}
       </div>

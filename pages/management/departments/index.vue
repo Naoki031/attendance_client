@@ -58,10 +58,11 @@
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
             <v-btn
-              icon
               size="x-small"
-              variant="text"
+              variant="tonal"
               color="primary"
+              rounded="lg"
+              class="btn-shine"
               :to="`/management/departments/${item.id}/users`"
             >
               <v-icon size="16">mdi-account-group</v-icon>
@@ -69,11 +70,25 @@
                 $t('departments.manageUsers')
               }}</v-tooltip>
             </v-btn>
-            <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              class="btn-shine"
+              @click="editItem(item)"
+            >
               <v-icon size="16">mdi-pencil-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
-            <v-btn icon size="x-small" variant="text" color="error" @click="onDeleteItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="error"
+              rounded="lg"
+              class="btn-shine"
+              @click="onDeleteItem(item)"
+            >
               <v-icon size="16">mdi-delete-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
@@ -162,6 +177,6 @@ const onDeleteItem = deleteItem
 
 <style scoped>
 .table-toolbar {
-  background-color: #f5ede4;
+  background-color: var(--color-table-toolbar);
 }
 </style>

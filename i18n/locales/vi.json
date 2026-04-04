@@ -72,7 +72,9 @@
     "clearFilter": "Xóa tất cả",
     "employees": "Nhân viên",
     "members": "Thành viên",
-    "retry": "Thử lại"
+    "retry": "Thử lại",
+    "lightMode": "Giao diện sáng",
+    "darkMode": "Giao diện tối"
   },
   "weekDays": {
     "mon": "T2",

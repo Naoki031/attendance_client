@@ -191,10 +191,24 @@
         >
         <span
           v-if="(message.replyCount ?? 0) > 0"
-          class="reply-count text-caption text-primary cursor-pointer"
+          class="reply-count d-inline-flex align-center ga-1 text-caption text-primary cursor-pointer"
           @click="emit('reply', props.message)"
         >
-          <v-icon size="12" class="mr-1">mdi-comment-text-outline</v-icon>
+          <!-- Participant avatar stack -->
+          <span class="reply-avatars">
+            <v-avatar
+              v-for="participant in (message.replyParticipants ?? []).slice(0, 3)"
+              :key="participant.userId"
+              size="16"
+              :color="participant.avatar ? undefined : 'primary'"
+              class="reply-avatar-item"
+            >
+              <v-img v-if="participant.avatar" :src="participant.avatar" cover />
+              <span v-else class="reply-avatar-initial">
+                {{ participant.username.charAt(0).toUpperCase() }}
+              </span>
+            </v-avatar>
+          </span>
           {{ message.replyCount }}
           {{ message.replyCount === 1 ? $t('chat.reply') : $t('chat.replies') }}
         </span>
@@ -484,6 +498,30 @@ watch(
   display: inline-flex;
   align-items: center;
   cursor: pointer;
+  gap: 4px;
+}
+
+.reply-avatars {
+  display: inline-flex;
+  align-items: center;
+}
+
+.reply-avatar-item {
+  border: 1.5px solid rgb(var(--v-theme-surface));
+  border-radius: 50%;
+  margin-left: -4px;
+  flex-shrink: 0;
+}
+
+.reply-avatar-item:first-child {
+  margin-left: 0;
+}
+
+.reply-avatar-initial {
+  font-size: 8px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
 }
 
 .message-edit {
@@ -533,15 +571,15 @@ watch(
   font-weight: 600;
 }
 .chat-rendered-markdown :deep(code) {
-  background: #fff3e0;
+  background: rgba(var(--v-theme-primary), 0.1);
   border-radius: 3px;
   padding: 1px 4px;
   font-size: 0.85em;
   font-family: monospace;
-  color: #e65100;
+  color: rgb(var(--v-theme-primary));
 }
 .chat-rendered-markdown :deep(pre) {
-  background: #fff3e0;
+  background: rgba(var(--v-theme-on-surface), 0.06);
   border-radius: 6px;
   padding: 8px;
   overflow-x: auto;
@@ -550,7 +588,7 @@ watch(
 .chat-rendered-markdown :deep(pre code) {
   background: none;
   padding: 0;
-  color: #e65100;
+  color: rgb(var(--v-theme-primary));
 }
 .chat-rendered-markdown :deep(blockquote) {
   border-left: 3px solid rgb(var(--v-theme-primary));

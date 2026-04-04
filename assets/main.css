@@ -1,11 +1,11 @@
 /* ============================================================
    Global CSS overrides for Vuetify components
-   Theme: Warm beige / brown palette
-   Primary: #BF6E3A  |  Background: #FAF5F0
+   All colors use design tokens — no hardcoded hex values.
+   See assets/styles/design-tokens.css for token definitions.
    ============================================================ */
 
 /* ----------------------------------------------------------
-   v-data-table: header row — cover all Vuetify 3 selectors
+   v-data-table: header row — cover all Vuetify selectors
    ---------------------------------------------------------- */
 .v-data-table thead tr th,
 .v-data-table thead tr,
@@ -13,16 +13,16 @@
 .v-data-table .v-data-table__thead tr,
 .v-data-table .v-data-table-header th,
 .v-data-table > .v-table__wrapper > table > thead > tr > th {
-  background-color: #f5ede4 !important;
-  color: #5c3d2a !important;
+  background-color: var(--color-table-toolbar) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
   font-weight: 600 !important;
-  border-bottom: 1px solid #e0ccba !important;
+  border-bottom: 1px solid var(--color-border-medium) !important;
 }
 
 /* Sort icon color in header */
 .v-data-table thead th .v-data-table-header__sort-icon,
 .v-data-table thead th .v-icon {
-  color: #9a6642 !important;
+  color: rgba(var(--v-theme-primary), 0.7) !important;
 }
 
 /* ----------------------------------------------------------
@@ -30,9 +30,9 @@
    ---------------------------------------------------------- */
 .v-data-table .v-data-table-footer,
 .v-data-table-footer {
-  background-color: #f5ede4 !important;
-  border-top: 1px solid #e0ccba !important;
-  color: #5c3d2a !important;
+  background-color: var(--color-table-toolbar) !important;
+  border-top: 1px solid var(--color-border-medium) !important;
+  color: rgb(var(--v-theme-on-surface)) !important;
 }
 
 /* Footer text (rows per page label, page info) */
@@ -41,14 +41,14 @@
 .v-data-table-footer .v-select__selection-text,
 .v-data-table-footer span,
 .v-data-table-footer .v-btn {
-  color: #5c3d2a !important;
+  color: rgba(var(--v-theme-on-surface), 0.8) !important;
 }
 
 /* ----------------------------------------------------------
    v-data-table: body rows — subtle hover
    ---------------------------------------------------------- */
 .v-data-table .v-data-table__tr:hover td {
-  background-color: #fdf7f2 !important;
+  background-color: var(--color-hover-bg) !important;
 }
 
 /* ============================================================
@@ -67,7 +67,7 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
-  color: #7a6555;
+  color: var(--color-label);
   margin-bottom: 4px;
 }
 
@@ -76,8 +76,8 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: #bf6e3a;
-  border-bottom: 1px solid #e0ccba;
+  color: rgb(var(--v-theme-primary));
+  border-bottom: 1px solid var(--color-border-medium);
   padding-bottom: 6px;
   margin-top: 4px;
 }
@@ -87,7 +87,7 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background-color: #fdecea;
+  background-color: rgba(var(--v-theme-error), 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -103,6 +103,27 @@
   line-height: 1.35;
   word-break: break-word;
   overflow: visible;
+}
+
+/* ============================================================
+   Chip design — global polish for all tonal chips
+   ============================================================ */
+
+/*
+  Tonal chips: stronger font + subtle inset border using color-mix().
+  color-mix(in srgb, currentColor 28%, transparent) = 28% opacity of the
+  chip's text color — gives each request/status type its own subtle ring.
+  Supported: Chrome 111+, Firefox 113+, Safari 16.2+
+*/
+.v-chip--variant-tonal {
+  font-weight: 600 !important;
+  letter-spacing: 0.025em !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 28%, transparent) !important;
+}
+
+/* Size-specific padding tightening for x-small chips */
+.v-chip--size-x-small.v-chip--variant-tonal {
+  padding: 0 8px !important;
 }
 
 /* ============================================================
@@ -203,6 +224,19 @@
 /* Force table to not shrink below content width */
 .table-responsive-card :deep(.v-data-table table) {
   min-width: max-content;
+}
+
+/* ============================================================
+   v-tooltip: high-contrast in both light and dark themes
+   Vuetify's built-in inverse logic doesn't cover custom theme names,
+   so we force on-surface/surface colors for guaranteed readability.
+   ============================================================ */
+.v-tooltip > .v-overlay__content {
+  background-color: rgba(var(--v-theme-on-surface), 0.88) !important;
+  color: rgb(var(--v-theme-surface)) !important;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
 }
 
 /* ============================================================

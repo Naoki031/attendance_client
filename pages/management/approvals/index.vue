@@ -104,16 +104,20 @@
 
         <!-- Type -->
         <template #item.type="{ item }">
-          <v-chip size="x-small" :color="typeColor(item.type)" variant="tonal">
-            {{ typeLabel(item.type) }}
-          </v-chip>
+          <v-chip
+            size="x-small"
+            :color="typeColor(item.type)"
+            :prepend-icon="typeIcon(item.type)"
+            variant="tonal"
+            >{{ typeLabel(item.type) }}</v-chip
+          >
         </template>
 
         <!-- Status -->
         <template #item.status="{ item }">
           <div class="d-flex align-center ga-2">
             <span class="status-dot" :class="`status-dot--${item.status}`"></span>
-            <span class="text-body-2 text-capitalize">{{ item.status }}</span>
+            <span class="text-body-2">{{ t(`requestStatus.${item.status}`) || item.status }}</span>
           </div>
         </template>
 
@@ -250,6 +254,7 @@ import type {
 import EmployeeRequestService from '@/services/EmployeeRequestService'
 import { useSocketEvent } from '@/composables/useSocket'
 import { useApprovalsStore } from '@/stores/approvals'
+import { REQUEST_TYPE_COLOR, REQUEST_TYPE_ICON } from '@/config/colors'
 /* END IMPORT */
 
 const { t } = useI18n()
@@ -406,18 +411,10 @@ const typeLabel = (type?: EmployeeRequestType | string): string => {
   return labels[type] ?? type
 }
 
-const typeColor = (type?: EmployeeRequestType | string): string => {
-  const colors: Record<string, string> = {
-    wfh: 'blue',
-    off: 'amber-darken-2',
-    overtime: 'red',
-    equipment: 'cyan-darken-1',
-    clock_forget: 'deep-orange',
-    business_trip: 'teal-darken-1',
-  }
-
-  return colors[type ?? ''] ?? 'default'
-}
+const typeColor = (type?: EmployeeRequestType | string): string =>
+  REQUEST_TYPE_COLOR[(type ?? '') as EmployeeRequestType] ?? 'secondary'
+const typeIcon = (type?: EmployeeRequestType | string): string =>
+  REQUEST_TYPE_ICON[(type ?? '') as EmployeeRequestType] ?? 'mdi-help-circle-outline'
 
 const getInitials = (name?: string): string => {
   if (!name) return '?'
@@ -509,7 +506,7 @@ useSocketEvent<EmployeeRequestModel>('request:updated', () => {
 
 <style scoped>
 .table-toolbar {
-  background-color: #f5ede4;
+  background-color: var(--color-table-toolbar);
 }
 
 .status-dot {
@@ -521,15 +518,15 @@ useSocketEvent<EmployeeRequestModel>('request:updated', () => {
 }
 
 .status-dot--pending {
-  background-color: #f59e0b;
+  background-color: var(--color-status-pending);
 }
 
 .status-dot--approved {
-  background-color: #388e3c;
+  background-color: var(--color-status-active);
 }
 
 .status-dot--rejected {
-  background-color: #e53935;
+  background-color: var(--color-status-rejected);
 }
 
 .reason-cell {

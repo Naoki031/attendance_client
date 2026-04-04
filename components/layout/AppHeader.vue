@@ -219,6 +219,15 @@
         </v-card>
       </v-menu>
 
+      <!-- Theme toggle -->
+      <v-tooltip :text="isDark ? $t('common.lightMode') : $t('common.darkMode')" location="bottom">
+        <template #activator="{ props }">
+          <v-btn v-bind="props" icon variant="text" class="text-white" @click="toggleTheme">
+            <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+          </v-btn>
+        </template>
+      </v-tooltip>
+
       <!-- Language switcher -->
       <HeaderLanguageSwitcher />
 
@@ -230,6 +239,7 @@
 
 <script setup lang="ts">
 /** START IMPORT */
+import { useTheme } from 'vuetify'
 import HeaderLanguageSwitcher from '@/components/layout/HeaderLanguageSwitcher.vue'
 import HeaderUserMenu from '@/components/layout/HeaderUserMenu.vue'
 import { useDrawer } from '@/composables/useDrawer'
@@ -242,6 +252,16 @@ import { useChatUnread } from '@/composables/useChatUnread'
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const approvalsStore = useApprovalsStore()
+const theme = useTheme()
+const THEME_STORAGE_KEY = 'attendance-theme'
+const isDark = computed(() => theme.global.name.value === 'sandstone-dark')
+
+const toggleTheme = () => {
+  const next = isDark.value ? 'light' : 'sandstone-dark'
+  theme.global.name.value = next
+  localStorage.setItem(THEME_STORAGE_KEY, next)
+}
+
 const kycStore = useKycStore()
 const drawer = useDrawer()
 const route = useRoute()
@@ -316,7 +336,18 @@ function handleUnreadMessageClick(message: (typeof unreadMessages.value)[number]
 
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
+  // Restore saved theme preference; default to 'light' when no preference is saved
+  const saved = localStorage.getItem(THEME_STORAGE_KEY)
+
+  if (saved === 'light' || saved === 'sandstone-dark') {
+    theme.global.name.value = saved
+  } else {
+    theme.global.name.value = 'light'
+    localStorage.setItem(THEME_STORAGE_KEY, 'light')
+  }
+
   fetchUnreadCounts()
+
   // Poll every 30s as fallback for when WebSocket isn't connected
   pollingTimer = setInterval(() => {
     fetchUnreadCounts()

@@ -4,7 +4,7 @@
     <v-img :src="imageSource" height="220" cover class="bg-grey-lighten-3">
       <template #error>
         <div class="d-flex align-center justify-center fill-height">
-          <v-icon size="48" color="grey">mdi-image-off-outline</v-icon>
+          <v-icon size="48" color="secondary">mdi-image-off-outline</v-icon>
         </div>
       </template>
     </v-img>

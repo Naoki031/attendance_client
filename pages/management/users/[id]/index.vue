@@ -229,13 +229,13 @@ onMounted(() => {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.07em;
-  color: #9a7a65;
+  color: rgb(var(--v-theme-secondary));
   margin-bottom: 2px;
 }
 
 .info-value {
   font-size: 14px;
-  color: #3a2a1e;
+  color: rgb(var(--v-theme-primary-darken));
   margin-bottom: 16px;
 }
 </style>

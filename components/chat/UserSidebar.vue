@@ -324,7 +324,7 @@ watch(
 <style scoped>
 .user-sidebar {
   overflow: hidden;
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid rgba(var(--v-theme-on-surface), 0.08);
 }
 
 .position-relative {

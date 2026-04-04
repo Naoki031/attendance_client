@@ -168,15 +168,23 @@
         <!-- Actions: icon buttons with tooltip -->
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
-            <v-btn icon size="x-small" variant="text" color="primary" @click="editItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              class="btn-shine"
+              @click="editItem(item)"
+            >
               <v-icon size="16">mdi-pencil-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.edit') }}</v-tooltip>
             </v-btn>
             <v-btn
-              icon
               size="x-small"
-              variant="text"
-              color="primary"
+              variant="tonal"
+              color="action"
+              rounded="lg"
+              class="btn-shine"
               @click="manageDepartments(item)"
             >
               <v-icon size="16">mdi-office-building-outline</v-icon>
@@ -184,7 +192,14 @@
                 $t('users.manageDepartments')
               }}</v-tooltip>
             </v-btn>
-            <v-btn icon size="x-small" variant="text" color="teal" @click="openWorkSchedule(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="action"
+              rounded="lg"
+              class="btn-shine"
+              @click="openWorkSchedule(item)"
+            >
               <v-icon size="16">mdi-clock-time-eight-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{
                 $t('users.manageWorkSchedule')
@@ -206,7 +221,14 @@
                 $t('face.kyc.cancelKyc')
               }}</v-tooltip>
             </v-btn>
-            <v-btn icon size="x-small" variant="text" color="error" @click="deleteItem(item)">
+            <v-btn
+              size="x-small"
+              variant="tonal"
+              color="error"
+              rounded="lg"
+              class="btn-shine"
+              @click="deleteItem(item)"
+            >
               <v-icon size="16">mdi-delete-outline</v-icon>
               <v-tooltip activator="parent" location="top">{{ $t('common.delete') }}</v-tooltip>
             </v-btn>
@@ -596,19 +618,19 @@ onMounted(async () => {
 }
 
 .status-dot--active {
-  background-color: #388e3c;
+  background-color: var(--color-status-active);
 }
 
 .status-dot--inactive {
-  background-color: #9e9e9e;
+  background-color: var(--color-status-inactive);
 }
 
 .table-toolbar {
-  background-color: #f5ede4;
+  background-color: var(--color-table-toolbar);
 }
 
 .row-link {
-  color: #bf6e3a;
+  color: var(--color-row-link);
   text-decoration: none;
 }
 

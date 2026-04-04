@@ -55,24 +55,30 @@
             <v-btn
               icon="mdi-account-multiple-outline"
               size="x-small"
-              variant="text"
-              color="teal"
+              variant="tonal"
+              color="action"
+              rounded="lg"
+              class="btn-shine"
               :title="$t('groups.manageMembers')"
               @click="openMembersDialog(item)"
             />
             <v-btn
               icon="mdi-pencil-outline"
               size="x-small"
-              variant="text"
+              variant="tonal"
               color="primary"
+              rounded="lg"
+              class="btn-shine"
               :title="$t('common.edit')"
               @click="openEditDialog(item)"
             />
             <v-btn
               icon="mdi-delete-outline"
               size="x-small"
-              variant="text"
+              variant="tonal"
               color="error"
+              rounded="lg"
+              class="btn-shine"
               :title="$t('common.delete')"
               @click="openDeleteDialog(item)"
             />

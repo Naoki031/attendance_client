@@ -222,11 +222,11 @@ watch(
 .field-label {
   font-size: 12px;
   font-weight: 500;
-  color: rgb(100, 100, 100);
+  color: rgba(var(--v-theme-on-surface), 0.6);
   margin-bottom: 4px;
 }
 
 .border {
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
 }
 </style>
