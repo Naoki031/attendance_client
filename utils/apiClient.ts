@@ -37,6 +37,7 @@ export const apiClient = {
    */
   postForm<T>(url: string, formData: FormData): Promise<T> {
     const { $apiFetch } = useNuxtApp()
+
     return ($apiFetch as typeof $fetch)<T>(url, {
       method: 'POST',
       body: formData,

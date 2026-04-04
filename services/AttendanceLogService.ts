@@ -39,4 +39,13 @@ export default class AttendanceLogService {
   public static async getEditHistory(id: number): Promise<AttendanceLogEditModel[]> {
     return await apiClient.get<AttendanceLogEditModel[]>(`attendance-logs/${id}/history`)
   }
+
+  /**
+   * Returns the current user's attendance logs for a given month.
+   * @param month - YYYY-MM format. Defaults to current month if omitted.
+   */
+  public static async getMyHistory(month?: string): Promise<AttendanceLogModel[]> {
+    const query = month ? `?month=${month}` : ''
+    return await apiClient.get<AttendanceLogModel[]>(`attendance-logs/my${query}`)
+  }
 }

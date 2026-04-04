@@ -157,7 +157,7 @@
                         hide-header
                         @update:model-value="
                           (selectedDate: Date) => {
-                            dateOfBirth = formatDate(selectedDate)
+                            setProfileField('date_of_birth', formatDate(selectedDate))
                             menuDateOfBirth = false
                           }
                         "
@@ -292,7 +292,10 @@ const profileSchema = computed(() =>
     first_name: Yup.string().required(t('validation.firstNameRequired')),
     last_name: Yup.string().required(t('validation.lastNameRequired')),
     position: Yup.string().nullable().optional(),
-    phone_number: Yup.string().nullable().optional(),
+    phone_number: Yup.string()
+      .nullable()
+      .optional()
+      .matches(/^[0-9+\s\-().]*$/, t('validation.matches', { field: t('profile.phone') })),
     address: Yup.string().nullable().optional(),
     date_of_birth: Yup.string().nullable().optional(),
   }),

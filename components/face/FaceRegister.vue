@@ -312,6 +312,7 @@ const stopFaceTracking = () => {
     clearInterval(faceTrackingTimer)
     faceTrackingTimer = null
   }
+
   isFaceDetected.value = false
 }
 
@@ -337,10 +338,12 @@ const resetCapture = () => {
  */
 const averageDescriptors = (descriptors: Float32Array[]): Float32Array => {
   const result = new Float32Array(128)
+
   for (let index = 0; index < 128; index++) {
     result[index] =
       descriptors.reduce((sum, desc) => sum + (desc[index] ?? 0), 0) / descriptors.length
   }
+
   return result
 }
 
@@ -386,13 +389,16 @@ const startKyc = async () => {
         const sharpness = checkSharpness(videoRef.value)
         if (sharpness < KYC_SHARPNESS_THRESHOLD) {
           retries++
+
           if (retries > KYC_MAX_RETRIES) {
             showStatus(
               'Ảnh quá mờ, không thể nhận diện. Hãy đảm bảo đủ ánh sáng và đứng yên.',
               'error',
             )
+
             return
           }
+
           showStatus(`Ảnh mờ, vui lòng thử lại (${retries}/${KYC_MAX_RETRIES})`, 'error')
           // Brief pause so user can read the message before re-running the challenge
           await new Promise((resolve) => setTimeout(resolve, 1500))
@@ -403,10 +409,13 @@ const startKyc = async () => {
         const descriptor = await detectFace(videoRef.value)
         if (!descriptor) {
           retries++
+
           if (retries > KYC_MAX_RETRIES) {
             showStatus('Không nhận diện được khuôn mặt. Vui lòng thử lại.', 'error')
+
             return
           }
+
           statusMessage.value = null
           continue
         }
@@ -416,6 +425,7 @@ const startKyc = async () => {
         // Capture the avatar photo only on step 1 (front-facing smile)
         if (index === 0) {
           stepBlob = await captureFrame()
+
           if (stepBlob) {
             capturedBlob.value = stepBlob
             capturedUrl.value = URL.createObjectURL(stepBlob)

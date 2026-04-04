@@ -202,6 +202,101 @@
         </v-card>
       </v-col>
     </v-row>
+
+    <!-- Attendance history -->
+    <v-card rounded="lg" class="mt-4">
+      <v-card-title class="pa-5 pb-3 d-flex align-center justify-space-between flex-wrap ga-3">
+        <div class="d-flex align-center">
+          <v-icon size="18" color="primary" class="mr-2">mdi-calendar-clock</v-icon>
+          <span class="text-body-1 font-weight-bold">{{ $t('profile.attendanceHistory') }}</span>
+        </div>
+        <div class="d-flex ga-2">
+          <v-select
+            v-model="selectedMonth"
+            :items="monthOptions"
+            item-title="label"
+            item-value="value"
+            :label="$t('requests.filterByMonth')"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
+            hide-details
+            style="min-width: 130px"
+          />
+          <v-select
+            v-model="selectedYear"
+            :items="yearOptions"
+            :label="$t('requests.filterByYear')"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
+            hide-details
+            style="min-width: 100px"
+          />
+        </div>
+      </v-card-title>
+      <v-divider />
+      <v-card-text class="pa-0">
+        <div v-if="isLoadingAttendance" class="d-flex justify-center pa-6">
+          <v-progress-circular indeterminate color="primary" size="32" />
+        </div>
+        <div
+          v-else-if="attendanceLogs.length === 0"
+          class="text-center text-medium-emphasis text-body-2 pa-8"
+        >
+          <v-icon size="40" class="mb-2 d-block" color="medium-emphasis"
+            >mdi-calendar-blank-outline</v-icon
+          >
+          {{ $t('profile.noAttendanceLogs') }}
+        </div>
+        <v-table v-else density="compact">
+          <thead>
+            <tr>
+              <th class="text-left">{{ $t('common.date') }}</th>
+              <th class="text-left">{{ $t('profile.scheduledHours') }}</th>
+              <th class="text-left">{{ $t('home.clockIn') }}</th>
+              <th class="text-left">{{ $t('home.clockOut') }}</th>
+              <th class="text-left">{{ $t('common.status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="log in attendanceLogs" :key="log.id">
+              <td class="text-body-2">{{ log.date }}</td>
+              <td class="text-body-2 text-medium-emphasis">
+                <span v-if="log.scheduled_start && log.scheduled_end">
+                  {{ log.scheduled_start.substring(0, 5) }} –
+                  {{ log.scheduled_end.substring(0, 5) }}
+                </span>
+                <span v-else>—</span>
+              </td>
+              <td class="text-body-2">
+                <span v-if="log.clock_in" class="text-success">
+                  {{ log.clock_in.substring(0, 5) }}
+                </span>
+                <span v-else class="text-medium-emphasis">—</span>
+              </td>
+              <td class="text-body-2">
+                <span v-if="log.clock_out" class="text-medium-emphasis">
+                  {{ log.clock_out.substring(0, 5) }}
+                </span>
+                <span v-else class="text-medium-emphasis">—</span>
+              </td>
+              <td>
+                <v-chip
+                  :color="log.attendance_count > 0 ? 'success' : 'error'"
+                  size="x-small"
+                  variant="tonal"
+                >
+                  {{ log.attendance_count > 0 ? $t('profile.present') : $t('profile.absent') }}
+                </v-chip>
+              </td>
+            </tr>
+          </tbody>
+        </v-table>
+      </v-card-text>
+    </v-card>
   </v-container>
 
   <!-- KYC registration dialog -->
@@ -229,6 +324,9 @@ import DialogReportBug from '@/components/common/DialogReportBug.vue'
 import AvatarUpload from '@/components/profile/AvatarUpload.vue'
 import FaceRegister from '@/components/face/FaceRegister.vue'
 import KycStatusPanel from '@/components/kyc/KycStatusPanel.vue'
+import AttendanceLogService from '@/services/AttendanceLogService'
+import { useMoment } from '@/composables/useMoment'
+import type { AttendanceLogModel } from '@/interfaces/models/AttendanceLogModel'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -239,13 +337,43 @@ definePageMeta({
 /* END DEFINE */
 
 /** START DEFINE STATE */
+const { t } = useI18n()
 const userStore = useUserStore()
 const user = computed(() => userStore.user)
 const dialogReportBug = ref(false)
 const kycDialog = ref(false)
+
+const { moment } = useMoment()
+const now = moment()
+const attendanceLogs = ref<AttendanceLogModel[]>([])
+const isLoadingAttendance = ref(false)
+const selectedMonth = ref(now.month() + 1)
+const selectedYear = ref(now.year())
+
+const monthOptions = computed(() =>
+  Array.from({ length: 12 }, (_, index) => ({
+    label: t(`months.${index + 1}`),
+    value: index + 1,
+  })),
+)
+const yearOptions = Array.from({ length: 3 }, (_, index) => now.year() - index)
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+const loadAttendanceLogs = async () => {
+  if (isLoadingAttendance.value) return
+
+  try {
+    isLoadingAttendance.value = true
+    const month = `${selectedYear.value}-${String(selectedMonth.value).padStart(2, '0')}`
+    attendanceLogs.value = await AttendanceLogService.getMyHistory(month)
+  } catch (error) {
+    console.error('Failed to load attendance logs:', error)
+  } finally {
+    isLoadingAttendance.value = false
+  }
+}
+
 const formatDate = (value?: string | null): string => {
   if (!value) return '—'
   return value.substring(0, 10)
@@ -272,9 +400,16 @@ const onKycSubmitted = (updatedUser: {
 }
 /* END DEFINE METHOD */
 
+/** START DEFINE WATCHER */
+watch([selectedMonth, selectedYear], () => {
+  loadAttendanceLogs()
+})
+/* END DEFINE WATCHER */
+
 /** START DEFINE LIFE CYCLE HOOK */
 onMounted(() => {
   userStore.getUser()
+  loadAttendanceLogs()
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>

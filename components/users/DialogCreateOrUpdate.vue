@@ -98,6 +98,7 @@
                 rounded="lg"
                 flat
                 density="comfortable"
+                type="tel"
                 :error-messages="errors.phone_number"
                 required
                 autocomplete="off"
@@ -312,7 +313,7 @@
                 density="comfortable"
                 type="number"
                 placeholder="e.g. 1"
-                hint="ZKTeco device PIN — the number assigned to this employee on the device"
+                :hint="$t('users.devicePinHint')"
                 persistent-hint
                 autocomplete="off"
               ></v-text-field>
@@ -469,7 +470,7 @@
                 rounded="lg"
                 flat
                 density="comfortable"
-                :placeholder="props.item ? 'Leave blank to keep current' : ''"
+                :placeholder="props.item ? $t('users.passwordLeaveBlank') : ''"
                 :error-messages="errors.password"
                 type="password"
                 autocomplete="new-password"
@@ -489,7 +490,7 @@
                 rounded="lg"
                 flat
                 density="comfortable"
-                :placeholder="props.item ? 'Leave blank to keep current' : ''"
+                :placeholder="props.item ? $t('users.passwordLeaveBlank') : ''"
                 :error-messages="errors.confirm_password"
                 type="password"
                 autocomplete="new-password"
@@ -588,9 +589,12 @@ const schema = computed(() =>
     first_name: Yup.string().required(t('validation.firstNameRequired')),
     last_name: Yup.string().required(t('validation.lastNameRequired')),
     position: Yup.string().required(t('validation.positionRequired')),
-    phone_number: Yup.string().required(t('validation.phoneNumberRequired')),
+    phone_number: Yup.string()
+      .matches(/^\+?[\d\s\-().]{7,20}$/, t('validation.phoneNumberInvalid'))
+      .required(t('validation.phoneNumberRequired')),
     email: Yup.string().email(t('validation.invalidEmail')).required(t('validation.emailRequired')),
     address: Yup.string().required(t('validation.addressRequired')),
+
     // Password is required only when creating; optional (but min 6 if provided) when editing
     password: props.item
       ? Yup.string()

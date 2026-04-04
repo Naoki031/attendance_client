@@ -123,39 +123,42 @@
                 max-height="380"
                 style="overflow-y: auto"
               >
-                <v-list-item
-                  v-for="message in sortedUnreadMessages"
-                  :key="message.id"
-                  class="px-3 py-2"
-                  @click="handleUnreadMessageClick(message)"
-                >
-                  <template #prepend>
-                    <v-avatar
-                      size="32"
-                      :color="message.senderAvatar ? undefined : 'primary'"
-                      class="mr-3"
-                    >
-                      <v-img v-if="message.senderAvatar" :src="message.senderAvatar" cover />
-                      <span v-else class="text-caption text-white font-weight-bold">
-                        {{ getInitials(message.senderName) }}
-                      </span>
-                    </v-avatar>
-                  </template>
-                  <div style="min-width: 0">
-                    <div class="d-flex align-center ga-1">
-                      <span class="text-body-2 font-weight-medium text-truncate">
-                        {{ message.senderName }}
-                      </span>
-                      <span class="text-caption text-medium-emphasis flex-shrink-0">
-                        {{ formatMessageTime(message.createdAt) }}
-                      </span>
+                <template v-for="(message, index) in sortedUnreadMessages" :key="message.id">
+                  <v-divider v-if="index > 0" />
+                  <v-list-item class="px-3 py-2" @click="handleUnreadMessageClick(message)">
+                    <template #prepend>
+                      <v-avatar
+                        size="36"
+                        :color="message.senderAvatar ? undefined : 'primary'"
+                        class="mr-3 flex-shrink-0"
+                      >
+                        <v-img v-if="message.senderAvatar" :src="message.senderAvatar" cover />
+                        <span v-else class="text-caption text-white font-weight-bold">
+                          {{ getInitials(message.senderName) }}
+                        </span>
+                      </v-avatar>
+                    </template>
+                    <div style="min-width: 0">
+                      <div class="d-flex align-center justify-space-between ga-2">
+                        <span class="text-body-2 font-weight-bold text-truncate">
+                          {{ message.senderName }}
+                        </span>
+                        <span class="text-caption text-medium-emphasis flex-shrink-0">
+                          {{ formatMessageTime(message.createdAt) }}
+                        </span>
+                      </div>
+                      <div class="text-caption text-medium-emphasis text-truncate mb-0.5">
+                        <v-icon size="12" class="mr-0.5">
+                          {{ message.roomType === 'direct' ? 'mdi-account' : 'mdi-pound' }}
+                        </v-icon>
+                        {{ message.roomType === 'direct' ? message.senderName : message.roomName }}
+                      </div>
+                      <div class="text-body-2 text-truncate">
+                        {{ stripMarkdown(message.content) || $t('chat.emojiMessage') }}
+                      </div>
                     </div>
-                    <div class="text-caption text-medium-emphasis text-truncate">
-                      {{ message.roomType === 'direct' ? message.senderName : message.roomName }}
-                    </div>
-                    <div class="text-body-2 text-truncate mt-0.5">{{ message.content }}</div>
-                  </div>
-                </v-list-item>
+                  </v-list-item>
+                </template>
               </v-list>
               <div v-else class="text-center text-medium-emphasis text-body-2 py-6">
                 {{ $t('chat.noUnreadMessages') }}
@@ -171,39 +174,42 @@
                 max-height="380"
                 style="overflow-y: auto"
               >
-                <v-list-item
-                  v-for="message in sortedReadMessages"
-                  :key="message.id"
-                  class="px-3 py-2"
-                  @click="handleUnreadMessageClick(message)"
-                >
-                  <template #prepend>
-                    <v-avatar
-                      size="32"
-                      :color="message.senderAvatar ? undefined : 'primary'"
-                      class="mr-3"
-                    >
-                      <v-img v-if="message.senderAvatar" :src="message.senderAvatar" cover />
-                      <span v-else class="text-caption text-white font-weight-bold">
-                        {{ getInitials(message.senderName) }}
-                      </span>
-                    </v-avatar>
-                  </template>
-                  <div style="min-width: 0">
-                    <div class="d-flex align-center ga-1">
-                      <span class="text-body-2 font-weight-medium text-truncate">
-                        {{ message.senderName }}
-                      </span>
-                      <span class="text-caption text-medium-emphasis flex-shrink-0">
-                        {{ formatMessageTime(message.createdAt) }}
-                      </span>
+                <template v-for="(message, index) in sortedReadMessages" :key="message.id">
+                  <v-divider v-if="index > 0" />
+                  <v-list-item class="px-3 py-2" @click="handleUnreadMessageClick(message)">
+                    <template #prepend>
+                      <v-avatar
+                        size="36"
+                        :color="message.senderAvatar ? undefined : 'primary'"
+                        class="mr-3 flex-shrink-0"
+                      >
+                        <v-img v-if="message.senderAvatar" :src="message.senderAvatar" cover />
+                        <span v-else class="text-caption text-white font-weight-bold">
+                          {{ getInitials(message.senderName) }}
+                        </span>
+                      </v-avatar>
+                    </template>
+                    <div style="min-width: 0">
+                      <div class="d-flex align-center justify-space-between ga-2">
+                        <span class="text-body-2 font-weight-bold text-truncate">
+                          {{ message.senderName }}
+                        </span>
+                        <span class="text-caption text-medium-emphasis flex-shrink-0">
+                          {{ formatMessageTime(message.createdAt) }}
+                        </span>
+                      </div>
+                      <div class="text-caption text-medium-emphasis text-truncate mb-0.5">
+                        <v-icon size="12" class="mr-0.5">
+                          {{ message.roomType === 'direct' ? 'mdi-account' : 'mdi-pound' }}
+                        </v-icon>
+                        {{ message.roomType === 'direct' ? message.senderName : message.roomName }}
+                      </div>
+                      <div class="text-body-2 text-truncate">
+                        {{ stripMarkdown(message.content) || $t('chat.emojiMessage') }}
+                      </div>
                     </div>
-                    <div class="text-caption text-medium-emphasis text-truncate">
-                      {{ message.roomType === 'direct' ? message.senderName : message.roomName }}
-                    </div>
-                    <div class="text-body-2 text-truncate mt-0.5">{{ message.content }}</div>
-                  </div>
-                </v-list-item>
+                  </v-list-item>
+                </template>
               </v-list>
               <div v-else class="text-center text-medium-emphasis text-body-2 py-6">
                 {{ $t('chat.noReadMessages') }}
@@ -259,6 +265,20 @@ const sortedReadMessages = computed(() =>
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\\\n/g, ' ') // markdown hard line break \<newline> → space
+    .replace(/\\(.)/g, '$1') // unescape \[ \] \\ etc.
+    .replace(/:[a-z0-9-]+:/g, '') // strip custom emoji codes :blob-thumbs-up:
+    .replace(/\*\*(.+?)\*\*/g, '$1') // bold
+    .replace(/_(.+?)_/g, '$1') // italic
+    .replace(/~~(.+?)~~/g, '$1') // strikethrough
+    .replace(/`(.+?)`/g, '$1') // inline code
+    .replace(/^(?:\d+\.\s+|[>#\-*]\s+)/gm, '') // block prefixes (numbered + bullet lists)
+    .replace(/\n+/g, ' ') // newlines → space
+    .trim()
+}
+
 function getInitials(name: string): string {
   const parts = name.trim().split(' ')
 

@@ -172,6 +172,7 @@ const featureLabel = (feature: SlackChannelFeature): string => {
     equipment: t('requestType.equipment'),
     clock_forget: t('requestType.clockForget'),
     overtime: t('requestType.overtime'),
+    business_trip: t('requestType.businessTrip'),
     error: t('slackChannels.errorNotification'),
   }
 
@@ -181,11 +182,12 @@ const featureLabel = (feature: SlackChannelFeature): string => {
 const featureColor = (feature: SlackChannelFeature): string => {
   const colors: Record<SlackChannelFeature, string> = {
     wfh: 'blue',
-    off: 'green',
-    equipment: 'orange',
-    clock_forget: 'purple',
+    off: 'amber-darken-2',
     overtime: 'red',
-    error: 'deep-orange',
+    equipment: 'cyan-darken-1',
+    clock_forget: 'deep-orange',
+    business_trip: 'teal-darken-1',
+    error: 'grey',
   }
 
   return colors[feature] ?? 'default'

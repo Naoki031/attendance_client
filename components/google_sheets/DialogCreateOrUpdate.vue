@@ -165,7 +165,7 @@
 
               <v-select
                 v-model="configItem.field"
-                :items="fieldOptions"
+                :items="filteredFieldOptions"
                 item-title="label"
                 item-value="value"
                 :label="$t('googleSheets.fieldLabel')"
@@ -323,41 +323,80 @@ const REQUEST_TYPE_OPTIONS = [
   { value: 'equipment', label: 'Equipment Request (equipment)' },
   { value: 'clock_forget', label: 'Forgot Clock In/Out (clock_forget)' },
   { value: 'overtime', label: 'Overtime (overtime)' },
+  { value: 'business_trip', label: 'Business Trip (business_trip)' },
   { value: 'attendance_log', label: 'Attendance Log (attendance_log)' },
 ]
 
-const FIELD_OPTIONS = [
+// Common fields shared across all request types (except attendance_log)
+const COMMON_FIELDS = [
   { value: 'id', label: 'id — Request ID' },
   { value: 'created_at', label: 'created_at — Submit Time' },
   { value: 'user.email', label: 'user.email — Email' },
   { value: 'user.position', label: 'user.position — Position' },
   { value: 'user.full_name', label: 'user.full_name — Full Name' },
   { value: 'type', label: 'type — Request Type' },
-  { value: 'leave_type', label: 'leave_type — Leave Type' },
   { value: 'from_datetime', label: 'from_datetime — From Date' },
   { value: 'to_datetime', label: 'to_datetime — To Date' },
-  { value: 'unit_hours', label: 'unit_hours — Hours' },
   { value: 'reason', label: 'reason — Reason' },
   { value: 'note', label: 'note — Note' },
   { value: 'status', label: 'status — Status' },
   { value: 'approver.full_name', label: 'approver.full_name — Approver Name' },
   { value: 'approver_note', label: 'approver_note — Approver Note' },
-  { value: 'equipment_name', label: 'equipment_name — Equipment Name' },
-  { value: 'location', label: 'location — Location' },
-  { value: 'quantity', label: 'quantity — Quantity' },
-  { value: 'clock_type', label: 'clock_type — Clock Type' },
-  { value: 'forget_date', label: 'forget_date — Forget Date' },
-  { value: 'overtime_type', label: 'overtime_type — Overtime Type' },
-  // Attendance log fields
-  { value: 'date', label: 'date — Work Date' },
-  { value: 'clock_in', label: 'clock_in — Clock In' },
-  { value: 'clock_out', label: 'clock_out — Clock Out' },
-  { value: 'scheduled_start', label: 'scheduled_start — Scheduled Start' },
-  { value: 'scheduled_end', label: 'scheduled_end — Scheduled End' },
-  { value: 'schedule_type', label: 'schedule_type — Schedule Type' },
-  { value: 'attendance_count', label: 'attendance_count — Attendance Count' },
-  { value: 'user.device_user_id', label: 'user.device_user_id — Device User ID' },
 ]
+
+const FIELD_OPTIONS_BY_TYPE: Record<string, { value: string; label: string }[]> = {
+  all: [
+    ...COMMON_FIELDS,
+    { value: 'leave_type', label: 'leave_type — Leave Type' },
+    { value: 'unit_hours', label: 'unit_hours — Hours' },
+    { value: 'equipment_name', label: 'equipment_name — Equipment Name' },
+    { value: 'location', label: 'location — Location' },
+    { value: 'quantity', label: 'quantity — Quantity' },
+    { value: 'clock_type', label: 'clock_type — Clock Type' },
+    { value: 'forget_date', label: 'forget_date — Forget Date' },
+    { value: 'overtime_type', label: 'overtime_type — Overtime Type' },
+    { value: 'trip_destination', label: 'trip_destination — Destination' },
+  ],
+  wfh: COMMON_FIELDS,
+  off: [
+    ...COMMON_FIELDS,
+    { value: 'leave_type', label: 'leave_type — Leave Type' },
+    { value: 'unit_hours', label: 'unit_hours — Hours' },
+  ],
+  equipment: [
+    ...COMMON_FIELDS,
+    { value: 'equipment_name', label: 'equipment_name — Equipment Name' },
+    { value: 'location', label: 'location — Location' },
+    { value: 'quantity', label: 'quantity — Quantity' },
+  ],
+  clock_forget: [
+    ...COMMON_FIELDS,
+    { value: 'clock_type', label: 'clock_type — Clock Type' },
+    { value: 'forget_date', label: 'forget_date — Forget Date' },
+  ],
+  overtime: [
+    ...COMMON_FIELDS,
+    { value: 'overtime_type', label: 'overtime_type — Overtime Type' },
+    { value: 'unit_hours', label: 'unit_hours — Hours' },
+  ],
+  business_trip: [
+    ...COMMON_FIELDS,
+    { value: 'trip_destination', label: 'trip_destination — Destination' },
+  ],
+  attendance_log: [
+    { value: 'date', label: 'date — Work Date' },
+    { value: 'user.email', label: 'user.email — Email' },
+    { value: 'user.full_name', label: 'user.full_name — Full Name' },
+    { value: 'user.position', label: 'user.position — Position' },
+    { value: 'clock_in', label: 'clock_in — Clock In' },
+    { value: 'clock_out', label: 'clock_out — Clock Out' },
+    { value: 'scheduled_start', label: 'scheduled_start — Scheduled Start' },
+    { value: 'scheduled_end', label: 'scheduled_end — Scheduled End' },
+    { value: 'schedule_type', label: 'schedule_type — Schedule Type' },
+    { value: 'attendance_count', label: 'attendance_count — Attendance Count' },
+    { value: 'user.device_user_id', label: 'user.device_user_id — Device User ID' },
+  ],
+}
 
 /* end define property and emits */
 
@@ -400,7 +439,6 @@ const columnConfig = ref<ColumnConfigItem[]>(
 )
 
 const requestTypeOptions = ref(REQUEST_TYPE_OPTIONS)
-const fieldOptions = ref(FIELD_OPTIONS)
 
 const errors = computed(() => ({
   company_id: companyIdError.value ? [companyIdError.value] : [],
@@ -412,6 +450,10 @@ const errors = computed(() => ({
 const title = computed(() =>
   props.item ? t('googleSheets.editConfig') : t('googleSheets.newConfig'),
 )
+
+const filteredFieldOptions = computed(() => {
+  return FIELD_OPTIONS_BY_TYPE[requestType.value] ?? FIELD_OPTIONS_BY_TYPE['all']
+})
 
 const sortedColumnConfig = computed(() => {
   return [...columnConfig.value].sort((itemA, itemB) => {

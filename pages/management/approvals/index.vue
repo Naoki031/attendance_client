@@ -127,6 +127,16 @@
           </span>
         </template>
 
+        <!-- Reason -->
+        <template #item.reason="{ item }">
+          <v-tooltip v-if="item.reason" :text="item.reason" location="top" max-width="300">
+            <template #activator="{ props: tooltipProps }">
+              <span v-bind="tooltipProps" class="text-body-2 reason-cell">{{ item.reason }}</span>
+            </template>
+          </v-tooltip>
+          <span v-else class="text-body-2 text-medium-emphasis">—</span>
+        </template>
+
         <!-- Approver -->
         <template #item.approver="{ item }">
           <span class="text-body-2">{{ item.approver?.full_name ?? '—' }}</span>
@@ -337,6 +347,7 @@ const headers = computed(() => [
   { title: t('common.type'), key: 'type' },
   { title: t('common.status'), key: 'status' },
   { title: t('common.date'), key: 'date_range', sortable: false },
+  { title: t('common.reason'), key: 'reason', sortable: false },
   { title: t('approvals.approver'), key: 'approver', sortable: false },
   { title: t('common.actions'), key: 'actions', sortable: false },
 ])
@@ -398,9 +409,11 @@ const typeLabel = (type?: EmployeeRequestType | string): string => {
 const typeColor = (type?: EmployeeRequestType | string): string => {
   const colors: Record<string, string> = {
     wfh: 'blue',
-    off: 'green',
-    equipment: 'orange',
-    clock_forget: 'purple',
+    off: 'amber-darken-2',
+    overtime: 'red',
+    equipment: 'cyan-darken-1',
+    clock_forget: 'deep-orange',
+    business_trip: 'teal-darken-1',
   }
 
   return colors[type ?? ''] ?? 'default'
@@ -517,5 +530,14 @@ useSocketEvent<EmployeeRequestModel>('request:updated', () => {
 
 .status-dot--rejected {
   background-color: #e53935;
+}
+
+.reason-cell {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 200px;
+  cursor: default;
 }
 </style>

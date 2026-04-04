@@ -1,6 +1,12 @@
 import type { UserModel } from '@/interfaces/models/UserModel'
 
-export type EmployeeRequestType = 'wfh' | 'off' | 'equipment' | 'clock_forget' | 'overtime'
+export type EmployeeRequestType =
+  | 'wfh'
+  | 'off'
+  | 'equipment'
+  | 'clock_forget'
+  | 'overtime'
+  | 'business_trip'
 export type EmployeeRequestStatus = 'pending' | 'approved' | 'rejected'
 export type LeaveType =
   | 'paid_leave'
@@ -19,6 +25,7 @@ export interface EmployeeRequestModel {
   approver_id?: number
   type: EmployeeRequestType
   status: EmployeeRequestStatus
+
   // WFH / OFF
   from_datetime?: string
   to_datetime?: string
@@ -26,18 +33,26 @@ export interface EmployeeRequestModel {
   cc_user_ids?: number[]
   note?: string
   approver_note?: string
+
   // OFF-specific
   leave_type?: LeaveType
   unit_hours?: number
+
   // Equipment-specific
   equipment_name?: string
   location?: string
   quantity?: number
+
   // Clock forget-specific
   clock_type?: ClockType
   forget_date?: string
+
   // Overtime-specific
   overtime_type?: OvertimeType
+
+  // Business trip-specific
+  trip_destination?: string
+
   // Relations
   user?: UserModel
   approver?: UserModel

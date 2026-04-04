@@ -196,7 +196,7 @@
       </div>
 
       <!-- Bottom action bar -->
-      <div class="d-flex ga-0 mt-1">
+      <div class="d-flex align-center ga-0 mt-1">
         <v-tooltip :text="showToolbar ? 'Hide Formatting' : 'Show Formatting'" location="top">
           <template #activator="{ props: tooltipProps }">
             <v-btn
@@ -221,6 +221,21 @@
           </template>
           <EmojiPicker @select="insertEmoji" />
         </v-menu>
+
+        <span class="text-caption text-medium-emphasis ml-2">{{ $t('chat.shiftEnterHint') }}</span>
+        <v-spacer />
+        <span
+          class="text-caption char-counter"
+          :class="
+            charCount >= MAX_CHARS
+              ? 'text-error'
+              : charCount >= MAX_CHARS - 200
+                ? 'text-warning'
+                : 'text-disabled'
+          "
+        >
+          {{ charCount }} / {{ MAX_CHARS }}
+        </span>
       </div>
     </v-sheet>
   </div>
@@ -263,18 +278,20 @@ const emit = defineEmits<{
 /* END DEFINE EMITS */
 
 /** START DEFINE STATE */
+const MAX_CHARS = 5000
 const showToolbar = ref(false)
 const showEmojiPicker = ref(false)
 const mentionSearch = ref<string | null>(null)
 const mentionStartIndex = ref(0)
 const mentionSelectedIndex = ref(0)
+const charCount = ref(0)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
 const canSend = computed(() => {
   if (!editor.value || props.disabled) return false
 
-  return editor.value.getText().trim().length > 0
+  return editor.value.getText().trim().length > 0 && charCount.value <= MAX_CHARS
 })
 
 const filteredMembers = computed(() => {
@@ -318,7 +335,38 @@ const editor = useEditor({
     attributes: {
       class: 'tiptap-editor',
     },
+    handlePaste: (_view, event) => {
+      const text = event.clipboardData?.getData('text/plain') ?? ''
+      const currentLength = editor.value?.getText().length ?? 0
+      const remaining = MAX_CHARS - currentLength
+
+      if (remaining <= 0) {
+        event.preventDefault()
+        return true
+      }
+
+      if (text.length > remaining) {
+        event.preventDefault()
+        editor.value?.chain().focus().insertContent(text.slice(0, remaining)).run()
+        return true
+      }
+
+      return false
+    },
     handleKeyDown: (_view, event) => {
+      // Block input when at character limit (allow control keys)
+      if (
+        charCount.value >= MAX_CHARS &&
+        event.key.length === 1 &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        !event.altKey
+      ) {
+        event.preventDefault()
+
+        return true
+      }
+
       // Mention dropdown navigation
       if (showMentionDropdown.value) {
         if (event.key === 'ArrowDown') {
@@ -355,8 +403,12 @@ const editor = useEditor({
         }
       }
 
-      // Enter to send (without shift)
+      // Enter to send (without shift), but let TipTap handle Enter inside lists
       if (event.key === 'Enter' && !event.shiftKey) {
+        const inList = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList')
+
+        if (inList) return false
+
         event.preventDefault()
         handleSend()
 
@@ -367,6 +419,7 @@ const editor = useEditor({
     },
   },
   onUpdate: ({ editor: updatedEditor }) => {
+    charCount.value = updatedEditor.getText().length
     emit('typing', true)
 
     const { from } = updatedEditor.state.selection

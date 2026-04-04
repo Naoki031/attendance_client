@@ -126,18 +126,6 @@ const adminGroups: RouteGroup[] = [
     active: 'Attendance',
     children: [
       {
-        icon: 'mdi-qrcode',
-        link: '/management/qr-clock',
-        textKey: 'nav.qrClockCode',
-        name: 'admin.qr-clock.index',
-      },
-      {
-        icon: 'mdi-clock-check-outline',
-        link: '/management/attendance-sync',
-        textKey: 'nav.attendanceSync',
-        name: 'admin.attendance-sync.index',
-      },
-      {
         icon: 'mdi-clipboard-clock-outline',
         link: '/management/attendance-logs',
         textKey: 'nav.attendanceLogs',
@@ -148,6 +136,12 @@ const adminGroups: RouteGroup[] = [
         link: '/management/kyc',
         textKey: 'nav.kycApproval',
         name: 'admin.kyc.index',
+      },
+      {
+        icon: 'mdi-help-circle-outline',
+        link: '/management/how-it-works',
+        textKey: 'nav.howItWorks',
+        name: 'admin.how-it-works.index',
       },
     ],
   },

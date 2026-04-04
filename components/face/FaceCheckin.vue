@@ -245,6 +245,7 @@ const stopFaceTracking = () => {
     clearInterval(faceTrackingTimer)
     faceTrackingTimer = null
   }
+
   isFaceDetected.value = false
 }
 
@@ -267,20 +268,23 @@ const handleCheckin = async () => {
   try {
     // Step 1: liveness check
     if (!videoRef.value) throw new Error('Camera not available')
+
     try {
       await runChallenge(videoRef.value)
     } catch {
       errorMessage.value = t('face.liveness.timeout')
       emit('error', errorMessage.value)
+
       return
     }
 
     // Step 2: detect face
-
     const descriptor = await detectFace(videoRef.value!)
+
     if (!descriptor) {
-      errorMessage.value = 'Không nhận ra khuôn mặt. Vui lòng thử lại hoặc đảm bảo đủ ánh sáng.'
+      errorMessage.value = t('face.error.notDetected')
       emit('error', errorMessage.value)
+
       return
     }
 
@@ -305,11 +309,28 @@ const handleCheckin = async () => {
       checkinResult.value = null
     }, 3000)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Lỗi kết nối. Vui lòng thử lại.'
-    const isNotRecognized = message.includes('not recognized') || message.includes('Face not')
-    errorMessage.value = isNotRecognized
-      ? 'Không nhận ra khuôn mặt. Vui lòng thử lại.'
-      : 'Lỗi kết nối. Vui lòng thử lại.'
+    const fetchError = error as {
+      data?: { message?: string }
+      status?: number
+      statusCode?: number
+    }
+    const apiMessage = fetchError.data?.message ?? ''
+    const status = fetchError.status ?? fetchError.statusCode ?? 0
+
+    if (status === 403) {
+      if (apiMessage.includes('yourself')) {
+        errorMessage.value = t('face.error.wrongUser')
+      } else if (apiMessage.includes('No IP whitelist')) {
+        errorMessage.value = t('face.error.noIpConfig')
+      } else {
+        errorMessage.value = t('face.error.ipRestricted')
+      }
+    } else if (status === 400 || apiMessage.toLowerCase().includes('not recognized')) {
+      errorMessage.value = t('face.error.notRecognized')
+    } else {
+      errorMessage.value = t('face.error.connectionError')
+    }
+
     emit('error', errorMessage.value)
     console.error('Face checkin error:', error)
   } finally {

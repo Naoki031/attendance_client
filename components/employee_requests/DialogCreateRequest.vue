@@ -15,6 +15,19 @@
 
       <v-card-text class="px-6 py-0">
         <v-container class="pa-0">
+          <!-- Request type hint — shown only when creating a new request -->
+          <v-alert
+            v-if="!editItemId"
+            variant="tonal"
+            color="primary"
+            density="compact"
+            rounded="lg"
+            class="mb-4 text-body-2"
+            icon="mdi-information-outline"
+          >
+            {{ $t(`requests.hint.${type}`) }}
+          </v-alert>
+
           <!-- ======================== OFF FORM ======================== -->
           <template v-if="type === 'off'">
             <div class="field-label">{{ $t('requests.leaveType').toUpperCase() }}</div>
@@ -71,7 +84,7 @@
               flat
               density="comfortable"
               :error-messages="formErrors.unitHours ?? []"
-              hint="Auto-calculated: Mon–Fri, 08:00–17:00, excl. lunch 12:00–13:00. You can override manually."
+              :hint="$t('requests.unitHoursHint')"
               persistent-hint
             ></v-text-field>
 
@@ -247,11 +260,72 @@
               flat
               density="comfortable"
               :error-messages="formErrors.unitHours ?? []"
-              hint="Auto-calculated: total elapsed time minus working hours (Mon–Fri 08:00–17:00). You can override manually."
+              :hint="$t('requests.totalHoursOtHint')"
               persistent-hint
             ></v-text-field>
 
             <div class="field-label mt-3">{{ $t('requests.reasonForOvertime').toUpperCase() }}</div>
+            <v-textarea
+              v-model="reason"
+              variant="filled"
+              rounded="lg"
+              flat
+              density="comfortable"
+              rows="3"
+              no-resize
+              :error-messages="formErrors.reason ?? []"
+            ></v-textarea>
+
+            <div class="field-label">{{ $t('common.note').toUpperCase() }}</div>
+            <v-textarea
+              v-model="note"
+              variant="filled"
+              rounded="lg"
+              flat
+              density="comfortable"
+              rows="2"
+              no-resize
+            ></v-textarea>
+          </template>
+
+          <!-- ======================== BUSINESS TRIP FORM ======================== -->
+          <template v-else-if="type === 'business_trip'">
+            <v-row>
+              <v-col cols="12" md="6">
+                <div class="field-label">{{ $t('requests.startDate').toUpperCase() }}</div>
+                <CommonDatePickerField
+                  v-model="fromDate"
+                  :error-messages="formErrors.fromDate ?? []"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="field-label">{{ $t('requests.startTime').toUpperCase() }}</div>
+                <CommonTimePickerField
+                  v-model="fromTime"
+                  :error-messages="formErrors.fromTime ?? []"
+                />
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="field-label">{{ $t('requests.endDate').toUpperCase() }}</div>
+                <CommonDatePickerField v-model="toDate" :error-messages="formErrors.toDate ?? []" />
+              </v-col>
+              <v-col cols="12" md="6">
+                <div class="field-label">{{ $t('requests.endTime').toUpperCase() }}</div>
+                <CommonTimePickerField v-model="toTime" :error-messages="formErrors.toTime ?? []" />
+              </v-col>
+            </v-row>
+
+            <div class="field-label">{{ $t('requests.tripDestination').toUpperCase() }}</div>
+            <v-text-field
+              v-model="tripDestination"
+              variant="filled"
+              rounded="lg"
+              flat
+              density="comfortable"
+              :error-messages="formErrors.tripDestination ?? []"
+            ></v-text-field>
+
+            <div class="field-label">{{ $t('requests.tripPurpose').toUpperCase() }}</div>
             <v-textarea
               v-model="reason"
               variant="filled"
@@ -321,10 +395,10 @@
           </template>
 
           <!-- ======================== CC (all types) ======================== -->
-          <div class="field-label mt-2">{{ $t('requests.ccOptional').toUpperCase() }}</div>
+          <div class="field-label mt-2">{{ $t('requests.ccIndividuals').toUpperCase() }}</div>
           <v-autocomplete
             v-model="ccUserIds"
-            :items="availableUsers"
+            :items="nonApproverUsers"
             :item-title="
               (user: UserModel) => user.full_name || `${user.first_name} ${user.last_name}`
             "
@@ -337,7 +411,25 @@
             closable-chips
             chips
             :loading="isLoadingUsers"
-            hint="Notify additional people about this request"
+            :hint="$t('requests.ccHint')"
+            persistent-hint
+          ></v-autocomplete>
+
+          <div class="field-label mt-3">{{ $t('requests.ccGroups').toUpperCase() }}</div>
+          <v-autocomplete
+            v-model="ccGroupIds"
+            :items="availableGroups"
+            item-title="name"
+            item-value="id"
+            variant="filled"
+            rounded="lg"
+            flat
+            density="comfortable"
+            multiple
+            closable-chips
+            chips
+            :loading="isLoadingGroups"
+            :hint="$t('requests.ccGroupsHint')"
             persistent-hint
           ></v-autocomplete>
         </v-container>
@@ -366,8 +458,11 @@ import type {
   OvertimeType,
 } from '@/interfaces/models/EmployeeRequestModel'
 import type { UserModel } from '@/interfaces/models/UserModel'
+import type { GroupModel } from '@/interfaces/models/GroupModel'
 import EmployeeRequestService from '@/services/EmployeeRequestService'
 import UserService from '@/services/UserService'
+import GroupService from '@/services/GroupService'
+import CompanyService from '@/services/CompanyService'
 /* end import */
 
 /** start define property and emits */
@@ -413,11 +508,16 @@ const quantity = ref<number | null>(null)
 const clockType = ref<ClockType>('clock_in')
 const forgetDate = ref<string>('')
 const overtimeType = ref<OvertimeType | ''>('')
+const tripDestination = ref<string>('')
 const ccUserIds = ref<number[]>([])
+const ccGroupIds = ref<number[]>([])
 const isSaving = ref(false)
 const submitted = ref(false)
 const availableUsers = ref<UserModel[]>([])
 const isLoadingUsers = ref(false)
+const approverIds = ref<Set<number>>(new Set())
+const availableGroups = ref<GroupModel[]>([])
+const isLoadingGroups = ref(false)
 
 const { t } = useI18n()
 
@@ -439,6 +539,11 @@ const overtimeTypeOptions = computed(() => [
 /* end defined state */
 
 /** start defined computed */
+
+/** Exclude company approvers — they approve requests, not CC recipients */
+const nonApproverUsers = computed(() =>
+  availableUsers.value.filter((user) => !approverIds.value.has(user.id)),
+)
 
 const formErrors = computed<Record<string, string[]>>(() => {
   if (!submitted.value) return {}
@@ -498,6 +603,15 @@ const formErrors = computed<Record<string, string[]>>(() => {
       errors.toDate = [t('validation.endDateTimeAfterStart')]
     required(unitHours.value, 'unitHours', 'validation.totalHoursRequired')
     required(reason.value, 'reason', 'validation.reasonRequired')
+  } else if (props.type === 'business_trip') {
+    required(fromDate.value, 'fromDate', 'validation.startDateRequired')
+    required(fromTime.value, 'fromTime', 'validation.startTimeRequired')
+    required(toDate.value, 'toDate', 'validation.endDateRequired')
+    required(toTime.value, 'toTime', 'validation.endTimeRequired')
+    if (dateOrderInvalid(fromDate.value, toDate.value, fromTime.value, toTime.value))
+      errors.toDate = [t('validation.endDateTimeAfterStart')]
+    required(tripDestination.value, 'tripDestination', 'validation.tripDestinationRequired')
+    required(reason.value, 'reason', 'validation.reasonRequired')
   }
 
   return errors
@@ -512,6 +626,7 @@ const title = computed(() => {
     equipment: t('requests.equipmentRequest'),
     clock_forget: t('requests.clockForgetRequest'),
     overtime: t('requests.overtimeRequest'),
+    business_trip: t('requests.businessTripRequest'),
   }
   const editLabels: Record<EmployeeRequestType, string> = {
     wfh: t('requests.editWfhRequest'),
@@ -519,6 +634,7 @@ const title = computed(() => {
     equipment: t('requests.editEquipmentRequest'),
     clock_forget: t('requests.editClockForgetRequest'),
     overtime: t('requests.editOvertimeRequest'),
+    business_trip: t('requests.editBusinessTripRequest'),
   }
   return props.editItemId
     ? (editLabels[props.type] ?? t('requests.editRequest'))
@@ -626,17 +742,38 @@ const populateFromItem = (item: EmployeeRequestModel) => {
   if (item.clock_type) clockType.value = item.clock_type
   forgetDate.value = item.forget_date ?? ''
   overtimeType.value = item.overtime_type ?? ''
+  tripDestination.value = item.trip_destination ?? ''
   ccUserIds.value = item.cc_user_ids ?? []
 }
 
 const loadUsers = async () => {
   try {
     isLoadingUsers.value = true
-    availableUsers.value = await UserService.getAll()
+    const userStore = useUserStore()
+    const companyId = userStore.user?.user_departments?.[0]?.company_id
+
+    const [users, approvers] = await Promise.all([
+      UserService.getAll(),
+      companyId ? CompanyService.getApprovers(companyId) : Promise.resolve([]),
+    ])
+
+    availableUsers.value = users
+    approverIds.value = new Set(approvers.map((approver) => approver.id))
   } catch (error) {
     console.error('Failed to load users:', error)
   } finally {
     isLoadingUsers.value = false
+  }
+}
+
+const loadGroups = async () => {
+  try {
+    isLoadingGroups.value = true
+    availableGroups.value = await GroupService.getAll()
+  } catch (error) {
+    console.error('Failed to load groups:', error)
+  } finally {
+    isLoadingGroups.value = false
   }
 }
 
@@ -655,7 +792,9 @@ const resetForm = () => {
   clockType.value = 'clock_in'
   forgetDate.value = ''
   overtimeType.value = ''
+  tripDestination.value = ''
   ccUserIds.value = []
+  ccGroupIds.value = []
   submitted.value = false
 }
 
@@ -697,11 +836,27 @@ const confirm = async () => {
         payload.unit_hours = parseFloat(String(unitHours.value))
       if (reason.value) payload.reason = reason.value
       if (note.value) payload.note = note.value
+    } else if (props.type === 'business_trip') {
+      if (combinedFromDatetime.value) payload.from_datetime = combinedFromDatetime.value
+      if (combinedToDatetime.value) payload.to_datetime = combinedToDatetime.value
+      if (tripDestination.value) payload.trip_destination = tripDestination.value
+      if (reason.value) payload.reason = reason.value
+      if (note.value) payload.note = note.value
     }
 
+    // Resolve group members and merge with individually selected users
+    let groupMemberIds: number[] = []
+    if (ccGroupIds.value.length > 0) {
+      const memberArrays = await Promise.all(
+        ccGroupIds.value.map((groupId) => GroupService.getMembers(groupId)),
+      )
+      groupMemberIds = memberArrays.flat().map((member) => member.user_id)
+    }
+    const allCcUserIds = [...new Set([...ccUserIds.value, ...groupMemberIds])]
+
     // Always include cc_user_ids for update (empty array to remove all CCs)
-    if (props.editItemId || ccUserIds.value.length > 0) {
-      payload.cc_user_ids = ccUserIds.value
+    if (props.editItemId || allCcUserIds.length > 0) {
+      payload.cc_user_ids = allCcUserIds
     }
 
     if (props.editItemId) {
@@ -728,6 +883,7 @@ const close = () => {
 /** start define life cycle hook */
 onMounted(() => {
   loadUsers()
+  loadGroups()
 })
 /* end define life cycle hook */
 

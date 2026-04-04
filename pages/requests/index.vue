@@ -221,6 +221,7 @@ const typeLabel = (type: EmployeeRequestType): string => {
     overtime: t('requestType.overtime'),
     equipment: t('requestType.equipment'),
     clock_forget: t('requestType.clockForget'),
+    business_trip: t('requestType.businessTrip'),
   }
 
   return labels[type] ?? type
@@ -229,10 +230,11 @@ const typeLabel = (type: EmployeeRequestType): string => {
 const typeColor = (type: EmployeeRequestType): string => {
   const colors: Record<EmployeeRequestType, string> = {
     wfh: 'blue',
-    off: 'green',
+    off: 'amber-darken-2',
     overtime: 'red',
-    equipment: 'orange',
-    clock_forget: 'purple',
+    equipment: 'cyan-darken-1',
+    clock_forget: 'deep-orange',
+    business_trip: 'teal-darken-1',
   }
 
   return colors[type] ?? 'grey'

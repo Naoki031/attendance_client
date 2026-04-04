@@ -50,6 +50,7 @@
           v-model="selectedTargetUser"
           v-model:search="userSearch"
           :items="filteredDirectUsers"
+          :loading="isSearchingUsers"
           item-title="full_name"
           item-value="id"
           :label="$t('chat.selectUser')"
@@ -91,6 +92,7 @@
           v-model="selectedMembers"
           v-model:search="userSearch"
           :items="filteredSearchUsers"
+          :loading="isSearchingUsers"
           item-title="full_name"
           item-value="id"
           :label="$t('chat.inviteMembers')"
@@ -217,6 +219,7 @@ const selectedGroupIds = ref<number[]>([])
 const allGroups = ref<Array<GroupModel>>([])
 const userSearch = ref('')
 const searchedUsers = ref<Array<UserModel>>([])
+const isSearchingUsers = ref(false)
 const groupMemberUserIds = ref<Set<number>>(new Set())
 const directPartnerIds = ref<Set<number>>(new Set())
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
@@ -275,13 +278,18 @@ async function fetchDirectPartners() {
 async function searchUsers(query: string) {
   if (!query || query.length < 2) {
     searchedUsers.value = []
+    isSearchingUsers.value = false
     return
   }
+
+  isSearchingUsers.value = true
 
   try {
     searchedUsers.value = await UserService.search(query)
   } catch (error) {
     console.error('Failed to search users:', error)
+  } finally {
+    isSearchingUsers.value = false
   }
 }
 
@@ -391,10 +399,12 @@ watch(userSearch, (query) => {
 
   if (!query || query.length < 2) {
     searchedUsers.value = []
+    isSearchingUsers.value = false
 
     return
   }
 
+  isSearchingUsers.value = true
   searchDebounceTimer = setTimeout(() => searchUsers(query), 300)
 })
 

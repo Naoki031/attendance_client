@@ -8,6 +8,7 @@ import type {
   ChatUserInfo,
   ChatMessagesResponse,
 } from '@/types/chat'
+import type { PinnedMessageModel } from '@/interfaces/models/PinnedMessageModel'
 
 function transformMessage(raw: Record<string, unknown>): ChatMessage {
   return {
@@ -45,6 +46,9 @@ export function useChat() {
   // Thread state
   const activeThreadParent = ref<ChatMessage | null>(null)
   const threadReplies = ref<ChatMessage[]>([])
+
+  // Pinned messages state
+  const pinnedMessages = ref<PinnedMessageModel[]>([])
 
   // Mention notification state
   const mentionNotification = ref<{
@@ -98,6 +102,15 @@ export function useChat() {
   function handleTranslationsReady(data: { id: number; translations: Record<string, string> }) {
     updateInAllLists(data.id, (message) => ({
       translations: { ...message.translations, ...data.translations },
+    }))
+  }
+
+  function handleTranslationStream(data: { id: number; lang: string; chunk: string }) {
+    updateInAllLists(data.id, (message) => ({
+      translations: {
+        ...message.translations,
+        [data.lang]: (message.translations[data.lang] ?? '') + data.chunk,
+      },
     }))
   }
 
@@ -231,6 +244,7 @@ export function useChat() {
     messages.value = []
     onlineUsers.value = []
     typingUsers.value = []
+    pinnedMessages.value = []
     hasMore.value = true
     isLoadingMore.value = false
     cursor.value = null
@@ -257,6 +271,7 @@ export function useChat() {
     socket.on('message_new', handleMessageNew)
     socket.on('message_edited', handleMessageEdited)
     socket.on('message_translations_ready', handleTranslationsReady)
+    socket.on('message_translation_stream', handleTranslationStream)
     socket.on('thread_reply_new', handleThreadReplyNew)
     socket.on('reaction_updated', handleReactionUpdated)
     socket.on('user_joined', handleUserJoined)
@@ -266,6 +281,20 @@ export function useChat() {
     socket.on('room_users', handleRoomUsers)
     socket.on('mention_notification', handleMentionNotification)
     socket.on('error', handleError)
+
+    socket.on(
+      'message_pinned',
+      (data: { messageId: number; pinnedByUserId: number; pinnedByName: string }) => {
+        updateInAllLists(data.messageId, () => ({ isPinned: true }))
+      },
+    )
+
+    socket.on('message_unpinned', (data: { messageId: number }) => {
+      updateInAllLists(data.messageId, () => ({ isPinned: false }))
+      pinnedMessages.value = pinnedMessages.value.filter(
+        (pinned) => pinned.messageId !== data.messageId,
+      )
+    })
 
     // Real-time unread updates from other rooms
     const { incrementUnread } = useChatUnread()
@@ -413,6 +442,16 @@ export function useChat() {
     socket.emit('toggle_reaction', { roomUuid: currentRoomUuid, messageId, emoji })
   }
 
+  function pinMessage(messageId: number) {
+    if (!socket || !currentRoomUuid) return
+    socket.emit('pin_message', { roomUuid: currentRoomUuid, messageId })
+  }
+
+  function unpinMessage(messageId: number) {
+    if (!socket || !currentRoomUuid) return
+    socket.emit('unpin_message', { roomUuid: currentRoomUuid, messageId })
+  }
+
   // Cleanup on component unmount
   onUnmounted(() => {
     disconnect()
@@ -429,6 +468,7 @@ export function useChat() {
     activeThreadParent,
     threadReplies,
     mentionNotification,
+    pinnedMessages,
     // Methods
     connect,
     disconnect,
@@ -441,5 +481,7 @@ export function useChat() {
     closeThread,
     sendThreadReply,
     toggleReaction,
+    pinMessage,
+    unpinMessage,
   }
 }

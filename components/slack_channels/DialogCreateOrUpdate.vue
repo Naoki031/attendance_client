@@ -353,6 +353,16 @@ const featureVariables: Record<string, string[]> = {
     'overtime_type',
     'reason',
   ],
+  business_trip: [
+    'approvers',
+    'requester',
+    'requester_name',
+    'cc_users',
+    'from_datetime',
+    'to_datetime',
+    'trip_destination',
+    'reason',
+  ],
   error: ['approvers', 'requester', 'requester_name'],
 }
 
@@ -376,6 +386,7 @@ const featureOptions = computed(() => [
   { label: t('requests.equipmentRequest'), value: 'equipment' },
   { label: t('requests.clockForgetRequest'), value: 'clock_forget' },
   { label: t('requests.overtimeRequest'), value: 'overtime' },
+  { label: t('requests.businessTripRequest'), value: 'business_trip' },
   { label: t('slackChannels.errorNotification'), value: 'error' },
 ])
 /* end defined state */
@@ -519,6 +530,21 @@ const exampleTemplates: Record<string, string> = {
     '',
     'Total hours: {{unit_hours}}',
     'Type: {{overtime_type}}',
+    '',
+    'Reason: {{reason}}',
+    '',
+    'Thank you!',
+    '```',
+  ].join('\n'),
+  business_trip: [
+    '{{approvers}}',
+    'cc {{requester}}',
+    '{{requester}} have a Business Trip request :airplane:.',
+    '```',
+    'From: {{from_datetime}}',
+    'To: {{to_datetime}}',
+    '',
+    'Destination: {{trip_destination}}',
     '',
     'Reason: {{reason}}',
     '',

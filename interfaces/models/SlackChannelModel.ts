@@ -7,6 +7,7 @@ export type SlackChannelFeature =
   | 'equipment'
   | 'clock_forget'
   | 'overtime'
+  | 'business_trip'
   | 'error'
 
 export interface SlackChannelModel {

@@ -83,6 +83,7 @@ onMounted(async () => {
 
   if (url.startsWith('http://') || url.startsWith('https://')) {
     imageSource.value = url
+
     return
   }
 

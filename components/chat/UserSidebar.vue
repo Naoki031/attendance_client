@@ -9,13 +9,12 @@
     </div>
     <v-divider />
 
-    <!-- Online section -->
-    <div class="flex-shrink-0">
-      <div class="px-4 pt-2 pb-1 text-caption font-weight-bold text-medium-emphasis">
+    <!-- User lists: fills remaining space and scrolls -->
+    <div class="user-list-area px-2">
+      <!-- Online section -->
+      <div class="px-2 pt-2 pb-1 text-caption font-weight-bold text-medium-emphasis">
         {{ $t('chat.online') }} — {{ onlineMembers.length }}
       </div>
-    </div>
-    <div class="user-list-scroll px-2">
       <v-list density="compact" bg-color="transparent" class="pa-0">
         <v-list-item
           v-for="member in onlineMembers"
@@ -78,17 +77,13 @@
           </template>
         </v-list-item>
       </v-list>
-    </div>
 
-    <!-- Offline section -->
-    <template v-if="offlineMembers.length > 0">
-      <div class="flex-shrink-0">
-        <v-divider class="mx-4 my-1" />
-        <div class="px-4 pt-1 pb-1 text-caption font-weight-bold text-medium-emphasis">
+      <!-- Offline section -->
+      <template v-if="offlineMembers.length > 0">
+        <v-divider class="mx-2 my-1" />
+        <div class="px-2 pt-1 pb-1 text-caption font-weight-bold text-medium-emphasis">
           {{ $t('chat.offline') }} — {{ offlineMembers.length }}
         </div>
-      </div>
-      <div class="user-list-scroll px-2">
         <v-list density="compact" bg-color="transparent" class="pa-0">
           <v-list-item
             v-for="member in offlineMembers"
@@ -143,8 +138,8 @@
             </template>
           </v-list-item>
         </v-list>
-      </div>
-    </template>
+      </template>
+    </div>
 
     <!-- Kick member confirmation dialog -->
     <DialogKickMember
@@ -154,8 +149,6 @@
       @member-removed="onMemberRemoved"
       @close-modal="kickDialog = false"
     />
-
-    <v-spacer />
 
     <!-- Bottom controls -->
     <div class="flex-shrink-0">
@@ -357,9 +350,10 @@ watch(
   opacity: 0.5;
 }
 
-.user-list-scroll {
+.user-list-area {
+  flex: 1;
   overflow-y: auto;
-  max-height: 200px;
+  min-height: 0;
 }
 
 .text-truncate {

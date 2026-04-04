@@ -56,15 +56,39 @@
             <v-icon size="18" color="medium-emphasis">
               {{ room?.type === 'direct' ? 'mdi-account-outline' : 'mdi-pound' }}
             </v-icon>
-            <span class="text-body-1 font-weight-medium">
-              {{
-                room?.type === 'direct' ? (room?.direct_user?.full_name ?? room?.name) : room?.name
-              }}
-            </span>
-            <v-icon v-if="isPrivateRoom" size="14" color="medium-emphasis">mdi-lock</v-icon>
-            <v-chip v-if="isPrivateRoom" size="x-small" variant="tonal" color="orange">
-              {{ $t('chat.visibilityPrivate') }}
-            </v-chip>
+            <div>
+              <div class="d-flex align-center ga-2">
+                <span class="text-body-1 font-weight-medium">
+                  {{
+                    room?.type === 'direct'
+                      ? (room?.direct_user?.full_name ?? room?.name)
+                      : room?.name
+                  }}
+                </span>
+                <v-icon v-if="isPrivateRoom" size="14" color="medium-emphasis">mdi-lock</v-icon>
+                <v-chip v-if="isPrivateRoom" size="x-small" variant="tonal" color="orange">
+                  {{ $t('chat.visibilityPrivate') }}
+                </v-chip>
+              </div>
+              <div
+                v-if="room?.type === 'channel' && room?.description"
+                class="d-flex align-center ga-1"
+              >
+                <span class="text-caption text-medium-emphasis room-header-description">
+                  {{ room.description }}
+                </span>
+                <v-btn
+                  variant="text"
+                  size="x-small"
+                  color="primary"
+                  class="px-1 flex-shrink-0"
+                  style="min-width: 0; height: 20px"
+                  @click="descriptionDialog = true"
+                >
+                  {{ $t('chat.seeMore') }}
+                </v-btn>
+              </div>
+            </div>
           </div>
           <div class="d-flex align-center ga-2">
             <v-btn
@@ -98,6 +122,21 @@
           </div>
         </div>
         <v-divider />
+
+        <!-- Pinned messages bar -->
+        <div
+          v-if="pinnedMessages.length > 0"
+          class="pinned-bar d-flex align-center px-4 py-2 ga-2 cursor-pointer"
+          @click="pinnedMessagesDialog = true"
+        >
+          <v-icon size="14" color="warning">mdi-pin</v-icon>
+          <span class="text-caption font-weight-medium text-truncate flex-1">
+            {{ pinnedMessages[0]?.content }}
+          </span>
+          <span class="text-caption text-medium-emphasis flex-shrink-0">
+            {{ $t('chat.pinnedCount', { count: pinnedMessages.length }) }}
+          </span>
+        </div>
 
         <!-- Messages container -->
         <div ref="messagesContainerReference" class="chat-messages">
@@ -147,9 +186,12 @@
               :auto-translate="autoTranslate"
               :last-read-at="lastReadAt"
               :members="members"
+              :is-admin="isAdmin"
               @edit="handleEditMessage"
               @reply="handleReply"
               @react="handleReact"
+              @pin="handlePin"
+              @unpin="handleUnpin"
             />
           </template>
 
@@ -230,7 +272,7 @@
             class="text-caption text-white-emphasis"
             style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap"
           >
-            {{ mentionNotification.contentPreview }}
+            {{ stripMarkdown(mentionNotification.contentPreview) }}
           </div>
         </div>
       </div>
@@ -240,6 +282,87 @@
         </v-btn>
       </template>
     </v-snackbar>
+
+    <!-- Room description dialog -->
+    <v-dialog v-model="descriptionDialog" max-width="480">
+      <v-card rounded="xl">
+        <v-card-title class="pa-4 pb-2 d-flex align-center ga-2">
+          <v-icon size="18" color="medium-emphasis">mdi-pound</v-icon>
+          <span class="text-h6">{{ room?.name }}</span>
+        </v-card-title>
+        <v-divider />
+        <div class="pa-4">
+          <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-2">
+            {{ $t('chat.roomDescriptionTitle') }}
+          </div>
+          <div class="text-body-2" style="white-space: pre-wrap; line-height: 1.7">
+            {{ room?.description }}
+          </div>
+        </div>
+        <v-divider />
+        <v-card-actions class="pa-3">
+          <v-spacer />
+          <v-btn variant="text" @click="descriptionDialog = false">
+            {{ $t('common.close') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Pinned messages dialog -->
+    <v-dialog v-model="pinnedMessagesDialog" max-width="520" scrollable>
+      <v-card rounded="xl">
+        <v-card-title class="pa-4 pb-2 d-flex align-center ga-2">
+          <v-icon size="18" color="warning">mdi-pin</v-icon>
+          <span class="text-h6">{{ $t('chat.pinnedMessages') }}</span>
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-0">
+          <div
+            v-for="pinned in pinnedMessages"
+            :key="pinned.id"
+            class="px-4 py-3 pinned-message-item"
+          >
+            <div class="d-flex align-start justify-space-between ga-2">
+              <div class="flex-1 min-w-0">
+                <div class="text-caption text-medium-emphasis mb-1">
+                  {{ pinned.username }}
+                </div>
+                <div class="text-body-2" style="white-space: pre-wrap">{{ pinned.content }}</div>
+                <div class="text-caption text-disabled mt-1">
+                  {{ $t('chat.pinnedBy', { name: pinned.pinnedByName }) }}
+                </div>
+              </div>
+              <v-btn
+                v-if="isAdmin"
+                icon
+                size="x-small"
+                variant="text"
+                color="medium-emphasis"
+                :title="$t('chat.unpinMessage')"
+                @click="handleUnpin(pinned.messageId)"
+              >
+                <v-icon size="16">mdi-pin-off-outline</v-icon>
+              </v-btn>
+            </div>
+            <v-divider class="mt-3" />
+          </div>
+          <div
+            v-if="pinnedMessages.length === 0"
+            class="text-center text-body-2 text-medium-emphasis py-6"
+          >
+            {{ $t('chat.noPinnedMessages') }}
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions class="pa-3">
+          <v-spacer />
+          <v-btn variant="text" @click="pinnedMessagesDialog = false">
+            {{ $t('common.close') }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- Leave room confirmation dialog -->
     <v-dialog v-model="leaveConfirmDialog" max-width="400">
@@ -274,6 +397,7 @@ import TypingIndicator from '@/components/chat/TypingIndicator.vue'
 import DialogInviteUser from '@/components/chat/DialogInviteUser.vue'
 import ThreadPanel from '@/components/chat/ThreadPanel.vue'
 import ChatRoomService from '@/services/ChatRoomService'
+import PinnedMessageService from '@/services/PinnedMessageService'
 import { useChat } from '@/composables/useChat'
 import { useChatUnread } from '@/composables/useChatUnread'
 import type { ChatRoomModel, ChatRoomMemberModel } from '@/interfaces/models/ChatRoomModel'
@@ -297,6 +421,8 @@ const messagesContainerReference = ref<HTMLElement | null>(null)
 const sentinelReference = ref<HTMLElement | null>(null)
 const inviteDialog = ref(false)
 const leaveConfirmDialog = ref(false)
+const descriptionDialog = ref(false)
+const pinnedMessagesDialog = ref(false)
 const showMobileSidebar = ref(false)
 const isLeaving = ref(false)
 const room = ref<ChatRoomModel | null>(null)
@@ -312,6 +438,7 @@ const {
   activeThreadParent,
   threadReplies,
   mentionNotification,
+  pinnedMessages,
   connect,
   disconnect,
   sendMessage,
@@ -323,6 +450,8 @@ const {
   closeThread,
   sendThreadReply,
   toggleReaction,
+  pinMessage,
+  unpinMessage,
 } = useChat()
 
 const { markAsRead } = useChatUnread()
@@ -375,6 +504,7 @@ const initChat = async () => {
   })
 
   markAsRead(roomUuid.value)
+  loadPinnedMessages()
 
   // Check for scrollTo query param
   const scrollToParameter = route.query.scrollTo as string | undefined
@@ -439,6 +569,50 @@ function handleReact(messageId: number, emoji: string) {
   toggleReaction(messageId, emoji)
 }
 
+function handlePin(messageId: number) {
+  pinMessage(messageId)
+
+  // Optimistically add to pinned list
+  const message = messages.value.find((item) => item.id === messageId)
+
+  if (message) {
+    const user = userStore.user
+    pinnedMessages.value.unshift({
+      id: Date.now(),
+      messageId,
+      roomId: 0,
+      pinnedByUserId: user?.id ?? 0,
+      pinnedByName: user?.full_name ?? '',
+      content: message.content,
+      userId: message.userId,
+      username: message.username,
+      avatar: message.avatar,
+      createdAt: message.createdAt,
+      pinnedAt: new Date().toISOString(),
+    })
+  }
+}
+
+function handleUnpin(messageId: number) {
+  unpinMessage(messageId)
+  pinnedMessages.value = pinnedMessages.value.filter((pinned) => pinned.messageId !== messageId)
+}
+
+async function loadPinnedMessages() {
+  try {
+    const result = await PinnedMessageService.getByRoom(roomUuid.value)
+    pinnedMessages.value = result
+
+    // Mark pinned messages in message list
+    const pinnedIds = new Set(result.map((pinned) => pinned.messageId))
+    for (const message of messages.value) {
+      message.isPinned = pinnedIds.has(message.id)
+    }
+  } catch (error) {
+    console.error('Failed to load pinned messages:', error)
+  }
+}
+
 function handleLanguageChange(language: string) {
   updateLanguage(language)
   userStore.updateLanguage(language)
@@ -471,6 +645,20 @@ function shouldShowDateSeparator(index: number): boolean {
     .format('YYYY-MM-DD')
 
   return currentDate !== previousDate
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\\\n/g, ' ') // markdown hard line break \<newline> → space
+    .replace(/\\(.)/g, '$1') // unescape \[ \] \\ etc.
+    .replace(/:[a-z0-9-]+:/g, '') // strip custom emoji codes :blob-thumbs-up:
+    .replace(/\*\*(.+?)\*\*/g, '$1') // bold
+    .replace(/_(.+?)_/g, '$1') // italic
+    .replace(/~~(.+?)~~/g, '$1') // strikethrough
+    .replace(/`(.+?)`/g, '$1') // inline code
+    .replace(/^(?:\d+\.\s+|[>#\-*]\s+)/gm, '') // block prefixes (numbered + bullet lists)
+    .replace(/\n+/g, ' ') // newlines → space
+    .trim()
 }
 
 function formatDateLabel(createdAt: string): string {
@@ -650,6 +838,24 @@ onMounted(async () => {
 .chat-header {
   flex-shrink: 0;
   min-height: 48px;
+}
+
+.pinned-bar {
+  flex-shrink: 0;
+  background-color: rgb(var(--v-theme-warning), 0.08);
+  border-bottom: 1px solid rgb(var(--v-theme-warning), 0.2);
+  min-height: 36px;
+}
+
+.pinned-message-item:last-child .v-divider {
+  display: none;
+}
+
+.room-header-description {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 400px;
 }
 
 .chat-messages {

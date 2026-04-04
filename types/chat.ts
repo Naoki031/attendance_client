@@ -19,6 +19,7 @@ export type ChatMessage = {
   replyCount: number
   reactions: ReactionGroup[]
   createdAt: string
+  isPinned?: boolean
 }
 
 export type ChatOnlineUser = {

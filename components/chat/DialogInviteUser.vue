@@ -12,6 +12,7 @@
           :items="filteredUsers"
           item-title="full_name"
           item-value="id"
+          :filter-keys="['full_name', 'email']"
           :label="$t('chat.searchUsers')"
           :loading="isLoadingUsers"
           density="comfortable"

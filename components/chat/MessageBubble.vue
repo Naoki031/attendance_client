@@ -16,9 +16,18 @@
 
     <!-- Bubble content -->
     <div class="message-content">
-      <!-- Row 1: name + more menu -->
+      <!-- Row 1: name + pin badge + more menu -->
       <div class="message-header">
         <span class="text-body-2 font-weight-medium">{{ message.username }}</span>
+        <v-icon
+          v-if="message.isPinned"
+          size="12"
+          color="warning"
+          class="ml-1"
+          :title="$t('chat.pinnedMessage')"
+        >
+          mdi-pin
+        </v-icon>
         <div v-if="!isEditing" class="message-actions ml-1">
           <v-menu location="bottom end">
             <template #activator="{ props: menuProps }">
@@ -26,17 +35,40 @@
                 <v-icon size="16">mdi-dots-vertical</v-icon>
               </v-btn>
             </template>
-            <v-list density="compact" min-width="120">
+            <v-list density="compact" min-width="140">
               <v-list-item
                 :title="$t('chat.reply')"
                 prepend-icon="mdi-reply"
                 @click="emit('reply', props.message)"
               />
+              <v-tooltip
+                v-if="isOwnMessage"
+                :text="canEdit ? '' : $t('chat.editExpired')"
+                location="left"
+                :disabled="canEdit"
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <div v-bind="tooltipProps">
+                    <v-list-item
+                      :title="$t('chat.edit')"
+                      prepend-icon="mdi-pencil-outline"
+                      :disabled="!canEdit"
+                      @click="canEdit && startEdit()"
+                    />
+                  </div>
+                </template>
+              </v-tooltip>
               <v-list-item
-                v-if="canEdit"
-                :title="$t('chat.edit')"
-                prepend-icon="mdi-pencil-outline"
-                @click="startEdit"
+                v-if="!message.isPinned"
+                :title="$t('chat.pinMessage')"
+                prepend-icon="mdi-pin-outline"
+                @click="emit('pin', props.message.id)"
+              />
+              <v-list-item
+                v-if="message.isPinned && isAdmin"
+                :title="$t('chat.unpinMessage')"
+                prepend-icon="mdi-pin-off-outline"
+                @click="emit('unpin', props.message.id)"
               />
             </v-list>
           </v-menu>
@@ -98,31 +130,46 @@
         class="message-reactions d-flex flex-wrap ga-1 mt-1"
       >
         <TransitionGroup name="reaction" tag="div" class="d-flex flex-wrap ga-1">
-          <button
+          <v-tooltip
             v-for="group in message.reactions"
             :key="group.emoji"
-            class="reaction-chip"
-            :class="{ 'reaction-chip--active': group.userIds.includes(currentUserId) }"
-            :title="
-              (isCustomEmoji(group.emoji) ? getCustomEmojiLabel(group.emoji) : group.emoji) +
-              ' · ' +
-              group.userIds.length +
-              ' ' +
-              $t('chat.reactions')
-            "
-            @click="emit('react', message.id, group.emoji)"
+            location="top"
+            :open-delay="300"
           >
-            <img
-              v-if="isCustomEmoji(group.emoji)"
-              :src="getCustomEmojiUrl(group.emoji) ?? ''"
-              :alt="getCustomEmojiLabel(group.emoji)"
-              class="reaction-emoji reaction-emoji--img"
-            />
-            <span v-else class="reaction-emoji">{{ group.emoji }}</span>
-            <span :key="group.count" class="reaction-count reaction-count--bump">{{
-              group.count
-            }}</span>
-          </button>
+            <template #activator="{ props: tooltipProps }">
+              <button
+                class="reaction-chip"
+                :class="{ 'reaction-chip--active': group.userIds.includes(currentUserId) }"
+                v-bind="tooltipProps"
+                @click="emit('react', message.id, group.emoji)"
+              >
+                <img
+                  v-if="isCustomEmoji(group.emoji)"
+                  :src="getCustomEmojiUrl(group.emoji) ?? ''"
+                  :alt="getCustomEmojiLabel(group.emoji)"
+                  class="reaction-emoji reaction-emoji--img"
+                />
+                <span v-else class="reaction-emoji">{{ group.emoji }}</span>
+                <span :key="group.count" class="reaction-count reaction-count--bump">{{
+                  group.count
+                }}</span>
+              </button>
+            </template>
+            <div class="reaction-tooltip">
+              <div class="reaction-tooltip__emoji">
+                <img
+                  v-if="isCustomEmoji(group.emoji)"
+                  :src="getCustomEmojiUrl(group.emoji) ?? ''"
+                  :alt="getCustomEmojiLabel(group.emoji)"
+                  class="reaction-tooltip__emoji-img"
+                />
+                <span v-else>{{ group.emoji }}</span>
+              </div>
+              <div class="reaction-tooltip__users">
+                {{ getReactionUserNames(group.userIds) }}
+              </div>
+            </div>
+          </v-tooltip>
         </TransitionGroup>
 
         <!-- Add reaction button -->
@@ -216,6 +263,10 @@ const props = defineProps({
     type: Array as PropType<ChatRoomMemberModel[]>,
     default: () => [],
   },
+  isAdmin: {
+    type: Boolean,
+    default: false,
+  },
 })
 /* END DEFINE PROPS */
 
@@ -224,6 +275,8 @@ const emit = defineEmits<{
   edit: [messageId: number, newContent: string]
   reply: [message: ChatMessage]
   react: [messageId: number, emoji: string]
+  pin: [messageId: number]
+  unpin: [messageId: number]
 }>()
 /* END DEFINE EMITS */
 
@@ -271,7 +324,7 @@ const renderedContent = computed(() => {
 })
 
 const canEdit = computed(() => {
-  if (props.message.userId !== props.currentUserId) return false
+  if (!isOwnMessage.value) return false
   const fifteenMinutes = 15 * 60 * 1000
   const elapsed = Date.now() - new Date(props.message.createdAt).getTime()
 
@@ -305,6 +358,15 @@ function saveEdit() {
   emit('edit', props.message.id, editContent.value.trim())
   isEditing.value = false
   editContent.value = ''
+}
+
+function getReactionUserNames(userIds: number[]): string {
+  return userIds
+    .map((id) => {
+      const member = props.members.find((member) => member.user_id === id)
+      return member?.user?.full_name ?? `User ${id}`
+    })
+    .join(', ')
 }
 
 function onSelectReaction(emoji: string) {
@@ -455,8 +517,14 @@ watch(
 }
 .chat-rendered-markdown :deep(ul),
 .chat-rendered-markdown :deep(ol) {
-  margin: 4px 0 6px 16px;
-  padding: 0;
+  margin: 4px 0 6px 0;
+  padding-left: 20px;
+}
+.chat-rendered-markdown :deep(ul) {
+  list-style-type: disc;
+}
+.chat-rendered-markdown :deep(ol) {
+  list-style-type: decimal;
 }
 .chat-rendered-markdown :deep(li) {
   margin-bottom: 2px;
@@ -674,5 +742,32 @@ watch(
 .reaction-add-btn--footer {
   width: 22px;
   height: 22px;
+}
+
+.reaction-tooltip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 0;
+  max-width: 200px;
+}
+
+.reaction-tooltip__emoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.reaction-tooltip__emoji-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.reaction-tooltip__users {
+  font-size: 12px;
+  text-align: center;
+  word-break: break-word;
+  opacity: 0.9;
 }
 </style>

@@ -56,7 +56,7 @@
           height="100%"
           @click="openRequest('off')"
         >
-          <v-icon color="green" size="28" class="mb-2">mdi-umbrella-beach-outline</v-icon>
+          <v-icon color="amber-darken-2" size="28" class="mb-2">mdi-umbrella-beach-outline</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.off') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.offDesc') }}</div>
         </v-card>
@@ -70,7 +70,7 @@
           height="100%"
           @click="openRequest('equipment')"
         >
-          <v-icon color="orange" size="28" class="mb-2">mdi-laptop</v-icon>
+          <v-icon color="cyan-darken-1" size="28" class="mb-2">mdi-laptop</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.equipment') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.equipmentDesc') }}</div>
         </v-card>
@@ -84,7 +84,7 @@
           height="100%"
           @click="openRequest('clock_forget')"
         >
-          <v-icon color="purple" size="28" class="mb-2">mdi-clock-alert-outline</v-icon>
+          <v-icon color="deep-orange" size="28" class="mb-2">mdi-clock-alert-outline</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.clockForget') }}</div>
           <div class="text-caption text-medium-emphasis">
             {{ $t('requestType.clockForgetDesc') }}
@@ -103,6 +103,22 @@
           <v-icon color="red" size="28" class="mb-2">mdi-fire</v-icon>
           <div class="text-body-2 font-weight-semibold">{{ $t('requestType.overtime') }}</div>
           <div class="text-caption text-medium-emphasis">{{ $t('requestType.overtimeDesc') }}</div>
+        </v-card>
+      </v-col>
+      <v-col cols="6" sm="4" md="2">
+        <v-card
+          rounded="xl"
+          elevation="0"
+          border
+          class="pa-4 text-center quick-action-card"
+          height="100%"
+          @click="openRequest('business_trip')"
+        >
+          <v-icon color="teal-darken-1" size="28" class="mb-2">mdi-briefcase-outline</v-icon>
+          <div class="text-body-2 font-weight-semibold">{{ $t('requestType.businessTrip') }}</div>
+          <div class="text-caption text-medium-emphasis">
+            {{ $t('requestType.businessTripDesc') }}
+          </div>
         </v-card>
       </v-col>
     </v-row>
@@ -269,6 +285,21 @@
                 class="calendar-name-overflow"
                 >+{{ (overtimeByDate.get(cell.dateStr) ?? []).length - 1 }}</span
               >
+              <template
+                v-for="entry in (businessTripByDate.get(cell.dateStr) ?? []).slice(0, 1)"
+                :key="'bt-' + entry.name"
+              >
+                <span
+                  class="calendar-name calendar-name--business-trip"
+                  :class="{ 'calendar-name--pending': entry.pending }"
+                  >{{ entry.name }}</span
+                >
+              </template>
+              <span
+                v-if="(businessTripByDate.get(cell.dateStr) ?? []).length > 1"
+                class="calendar-name-overflow"
+                >+{{ (businessTripByDate.get(cell.dateStr) ?? []).length - 1 }}</span
+              >
             </div>
           </template>
 
@@ -316,6 +347,21 @@
                 {{ entry.detail }}
               </div>
             </div>
+            <!-- Business trip entries -->
+            <div
+              v-for="entry in businessTripFullByDate.get(cell.dateStr) ?? []"
+              :key="'bt-' + entry.name"
+              class="calendar-week-entry calendar-week-entry--business-trip"
+              :class="{ 'calendar-week-entry--pending': entry.pending }"
+            >
+              <div class="calendar-week-entry-row">
+                <v-icon size="10">mdi-briefcase-outline</v-icon>
+                <span>{{ entry.name }}</span>
+              </div>
+              <div v-if="entry.detail" class="calendar-week-entry-detail">
+                {{ entry.detail }}
+              </div>
+            </div>
           </template>
 
           <!-- Legend -->
@@ -328,6 +374,11 @@
             </div>
             <div class="d-flex align-center ga-1">
               <span class="calendar-name calendar-name--overtime">{{ $t('home.otLabel') }}</span>
+            </div>
+            <div class="d-flex align-center ga-1">
+              <span class="calendar-name calendar-name--business-trip">{{
+                $t('requestType.businessTrip')
+              }}</span>
             </div>
             <div class="d-flex align-center ga-1">
               <span class="calendar-name calendar-name--wfh calendar-name--pending">{{
@@ -408,8 +459,10 @@
 
             <!-- Leave section -->
             <div class="day-summary-section">
-              <div class="day-summary-header text-caption font-weight-bold text-green">
-                <v-icon size="12" color="green" class="mr-1">mdi-umbrella-beach-outline</v-icon>
+              <div class="day-summary-header text-caption font-weight-bold text-amber-darken-2">
+                <v-icon size="12" color="amber-darken-2" class="mr-1"
+                  >mdi-umbrella-beach-outline</v-icon
+                >
                 {{ $t('requestType.off') }}
                 <span class="text-medium-emphasis font-weight-regular ms-1"
                   >({{ selectedDayOffUsers.length }})</span
@@ -427,7 +480,7 @@
                   :key="entry.name"
                   class="day-summary-row text-caption"
                 >
-                  <span class="day-summary-dot bg-green"></span>
+                  <span class="day-summary-dot bg-amber-darken-2"></span>
                   <span>{{ entry.name }}</span>
                   <span class="text-medium-emphasis ms-1">· {{ entry.timeLabel }}</span>
                 </div>
@@ -456,6 +509,36 @@
                   class="day-summary-row text-caption"
                 >
                   <span class="day-summary-dot bg-red"></span>{{ name }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Business trip section -->
+            <div class="day-summary-section">
+              <div class="day-summary-header text-caption font-weight-bold text-teal-darken-1">
+                <v-icon size="12" color="teal-darken-1" class="mr-1">mdi-briefcase-outline</v-icon>
+                {{ $t('requestType.businessTrip') }}
+                <span class="text-medium-emphasis font-weight-regular ms-1"
+                  >({{ selectedDayBusinessTripUsers.length }})</span
+                >
+              </div>
+              <div
+                v-if="selectedDayBusinessTripUsers.length === 0"
+                class="text-caption text-medium-emphasis pl-1"
+              >
+                —
+              </div>
+              <div v-else class="day-summary-list">
+                <div
+                  v-for="entry in selectedDayBusinessTripUsers"
+                  :key="entry.name"
+                  class="day-summary-row text-caption"
+                >
+                  <span class="day-summary-dot bg-teal-darken-1"></span>
+                  <span>{{ entry.name }}</span>
+                  <span v-if="entry.destination" class="text-medium-emphasis ms-1"
+                    >· {{ entry.destination }}</span
+                  >
                 </div>
               </div>
             </div>
@@ -689,6 +772,31 @@ const overtimeFullByDate = computed(() =>
   }),
 )
 
+const businessTripByDate = computed(() =>
+  mapRequestsByDate(allRequests.value, {
+    type: 'business_trip',
+    getName: (request) => request.user?.full_name?.trim().split(' ').at(-1) ?? '?',
+  }),
+)
+
+const businessTripFullByDate = computed(() =>
+  mapRequestsByDate(allRequests.value, {
+    type: 'business_trip',
+    getName: (request) => request.user?.full_name ?? '?',
+    getDetail: (request) => request.trip_destination ?? undefined,
+  }),
+)
+
+/** Approved Business Trip users on the selected date */
+const selectedDayBusinessTripUsers = computed(() =>
+  selectedDateRequests.value
+    .filter((request) => request.type === 'business_trip' && request.status === 'approved')
+    .map((request) => ({
+      name: request.user?.full_name ?? 'Unknown',
+      destination: request.trip_destination ?? '',
+    })),
+)
+
 const pendingApprovalsCount = computed(() => approvalsStore.pendingCount)
 
 const kycBanner = computed(() => {
@@ -909,13 +1017,18 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
 }
 
 .calendar-name--off {
-  background-color: rgba(76, 175, 80, 0.15);
-  color: #2e7d32;
+  background-color: rgba(255, 179, 0, 0.18);
+  color: #e65100;
 }
 
 .calendar-name--overtime {
   background-color: rgba(244, 67, 54, 0.12);
   color: #c62828;
+}
+
+.calendar-name--business-trip {
+  background-color: rgba(0, 150, 136, 0.15);
+  color: #00695c;
 }
 
 .calendar-name--pending {
@@ -958,13 +1071,18 @@ useSocketEvent<EmployeeRequestModel>('request:created', () => {
 }
 
 .calendar-week-entry--off {
-  background-color: rgba(76, 175, 80, 0.12);
-  color: #2e7d32;
+  background-color: rgba(255, 179, 0, 0.15);
+  color: #e65100;
 }
 
 .calendar-week-entry--overtime {
   background-color: rgba(244, 67, 54, 0.1);
   color: #c62828;
+}
+
+.calendar-week-entry--business-trip {
+  background-color: rgba(0, 150, 136, 0.12);
+  color: #00695c;
 }
 
 .calendar-week-entry-detail {

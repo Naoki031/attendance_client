@@ -73,6 +73,7 @@ definePageMeta({
 /* END DEFINE */
 
 /** START DEFINE STATE */
+const { t } = useI18n()
 const { moment } = useMoment()
 const route = useRoute()
 const isProcessing = ref<boolean>(false)
@@ -102,10 +103,29 @@ const processQr = async () => {
   try {
     result.value = await AttendanceLogsService.clockByQr(token, Number(company), date)
   } catch (error: unknown) {
-    errorMessage.value =
-      (error as { data?: { message?: string }; message?: string })?.data?.message ??
-      (error as { message?: string })?.message ??
-      'Unknown error'
+    const fetchError = error as {
+      data?: { message?: string }
+      status?: number
+      statusCode?: number
+    }
+    const apiMessage = fetchError.data?.message ?? ''
+    const status = fetchError.status ?? fetchError.statusCode ?? 0
+
+    if (apiMessage.includes('expired')) {
+      errorMessage.value = t('qrClock.error.expired')
+    } else if (status === 400) {
+      errorMessage.value = t('qrClock.error.invalidToken')
+    } else if (status === 404) {
+      errorMessage.value = t('qrClock.error.companyNotFound')
+    } else if (status === 403) {
+      if (apiMessage.includes('No IP whitelist')) {
+        errorMessage.value = t('qrClock.error.noIpConfig')
+      } else {
+        errorMessage.value = t('qrClock.error.ipRestricted')
+      }
+    } else {
+      errorMessage.value = t('qrClock.error.connectionError')
+    }
   } finally {
     isProcessing.value = false
   }
