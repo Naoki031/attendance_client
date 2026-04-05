@@ -103,19 +103,24 @@
               </div>
             </template>
 
-            <div class="d-flex align-center" style="min-width: 0">
-              <span class="text-body-2 text-truncate text-medium-emphasis">
-                {{ getDisplayName(member) }}
+            <div class="d-flex flex-column" style="min-width: 0">
+              <div class="d-flex align-center">
+                <span class="text-body-2 text-truncate text-medium-emphasis">
+                  {{ getDisplayName(member) }}
+                </span>
+                <v-chip
+                  v-if="member.user_id === myUserId"
+                  size="x-small"
+                  variant="tonal"
+                  color="primary"
+                  class="ml-1 flex-shrink-0"
+                >
+                  {{ $t('chat.you') }}
+                </v-chip>
+              </div>
+              <span v-if="member.user?.last_seen_at" class="text-caption text-disabled">
+                {{ formatLastSeen(member.user.last_seen_at) }}
               </span>
-              <v-chip
-                v-if="member.user_id === myUserId"
-                size="x-small"
-                variant="tonal"
-                color="primary"
-                class="ml-1 flex-shrink-0"
-              >
-                {{ $t('chat.you') }}
-              </v-chip>
             </div>
 
             <template v-if="isAdmin && member.user_id !== myUserId" #append>
@@ -263,6 +268,8 @@ const memberToKick = ref<ChatRoomMemberModel | null>(null)
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+const { t } = useI18n()
+
 function getDisplayName(member: ChatRoomMemberModel): string {
   return member.user?.full_name ?? member.user?.email ?? 'User'
 }
@@ -300,6 +307,22 @@ function getLanguageColor(language: string): string {
   }
 
   return colors[language] ?? 'grey'
+}
+
+function formatLastSeen(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMinutes = Math.floor(diffMs / 60000)
+
+  if (diffMinutes < 1) return String(t('chat.lastSeenNow'))
+  if (diffMinutes < 60) return String(t('chat.lastSeenMinutes', { minutes: diffMinutes }))
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return String(t('chat.lastSeenHours', { hours: diffHours }))
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return String(t('chat.lastSeenDays', { days: diffDays }))
+
+  return date.toLocaleDateString()
 }
 
 function handleLanguageChange(language: string) {

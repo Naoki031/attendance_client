@@ -43,6 +43,7 @@ export interface ChatRoomMemberModel {
     full_name: string
     email: string
     avatar?: string
+    last_seen_at?: string | null
   }
   joined_at: string
 }

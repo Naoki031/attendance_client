@@ -165,6 +165,13 @@
           </div>
         </template>
 
+        <!-- Last seen -->
+        <template #item.last_seen_at="{ item }">
+          <span class="text-body-2 text-medium-emphasis">
+            {{ item.last_seen_at ? formatLastSeenUser(item.last_seen_at) : '—' }}
+          </span>
+        </template>
+
         <!-- Actions: icon buttons with tooltip -->
         <template #item.actions="{ item }">
           <div class="d-flex align-center ga-1">
@@ -382,6 +389,7 @@ const headers = computed(() => [
   { title: t('users.permanentRemote'), key: 'permanent_remote', sortable: false },
   { title: t('common.schedule'), key: 'schedule', sortable: false },
   { title: t('common.status'), key: 'is_activated' },
+  { title: t('users.lastSeen'), key: 'last_seen_at', sortable: true },
   { title: t('common.actions'), key: 'actions', sortable: false },
 ])
 
@@ -410,6 +418,22 @@ const isFilterActive = computed(() => activeFilterCount.value > 0)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+function formatLastSeenUser(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMinutes = Math.floor(diffMs / 60000)
+
+  if (diffMinutes < 1) return String(t('chat.lastSeenNow'))
+  if (diffMinutes < 60) return String(t('chat.lastSeenMinutes', { minutes: diffMinutes }))
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return String(t('chat.lastSeenHours', { hours: diffHours }))
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays < 7) return String(t('chat.lastSeenDays', { days: diffDays }))
+
+  return date.toLocaleDateString()
+}
+
 const getUsers = async () => {
   if (isLoading.value) return
 

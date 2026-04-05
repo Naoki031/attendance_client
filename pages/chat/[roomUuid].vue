@@ -555,8 +555,10 @@ const loadRoomInfo = async () => {
   }
 }
 
-const onUserInvited = (member: ChatRoomMemberModel) => {
-  members.value = [...members.value, member]
+const onUserInvited = (newMembers: ChatRoomMemberModel[]) => {
+  if (newMembers.length > 0) {
+    members.value = [...members.value, ...newMembers]
+  }
 }
 
 const onMemberRemoved = (userId: number) => {

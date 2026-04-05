@@ -1,170 +1,214 @@
 <template>
-  <v-dialog
-    :model-value="modelValue"
-    max-width="480"
-    @update:model-value="$emit('update:modelValue', $event)"
-  >
-    <v-card rounded="xl">
-      <v-card-title class="pa-5 pb-3">{{ $t('meetings.create') }}</v-card-title>
-
-      <v-card-text class="pt-0">
-        <v-text-field
-          v-model="form.title"
-          :label="$t('meetings.meetingTitle')"
-          variant="outlined"
-          density="comfortable"
-          rounded="lg"
-          class="mb-3"
-        />
-        <v-textarea
-          v-model="form.description"
-          :label="$t('common.description')"
-          variant="outlined"
-          density="comfortable"
-          rounded="lg"
-          rows="2"
-          class="mb-3"
-        />
-
-        <!-- Schedule type selector -->
-        <div class="text-caption text-medium-emphasis mb-2">
-          {{ $t('meetings.schedule.title') }}
+  <v-dialog :model-value="modelValue" max-width="600" persistent scrollable>
+    <v-card rounded="xl" elevation="2">
+      <!-- Header -->
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">{{ $t('meetings.create') }}</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            {{ $t('meetings.createSubtitle') }}
+          </div>
         </div>
-        <div class="d-flex ga-2 mb-3">
-          <v-btn
-            v-for="typeOption in scheduleTypeOptions"
-            :key="typeOption.value"
-            :color="form.meeting_type === typeOption.value ? typeOption.color : undefined"
-            :variant="form.meeting_type === typeOption.value ? 'flat' : 'outlined'"
-            rounded="lg"
-            size="small"
-            :prepend-icon="typeOption.icon"
-            @click="form.meeting_type = typeOption.value"
-          >
-            {{ typeOption.label }}
-          </v-btn>
-        </div>
+        <v-btn icon variant="text" size="small" @click="close">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </div>
 
-        <!-- One-time: specific date + time -->
-        <v-text-field
-          v-if="form.meeting_type === 'one_time'"
-          v-model="form.scheduled_at"
-          :label="$t('meetings.scheduledAt')"
-          type="datetime-local"
-          variant="outlined"
-          density="comfortable"
-          rounded="lg"
-          class="mb-3"
-        />
+      <v-card-text class="px-6 py-0" style="max-height: 70vh; overflow-y: auto">
+        <v-container class="pa-0">
+          <v-row>
+            <!-- ── MEETING INFO ── -->
+            <v-col cols="12">
+              <div class="section-label">{{ $t('meetings.sectionMeetingInfo').toUpperCase() }}</div>
+            </v-col>
 
-        <!-- Daily: time only -->
-        <v-text-field
-          v-else-if="form.meeting_type === 'daily'"
-          v-model="form.schedule_time"
-          :label="$t('meetings.schedule.time')"
-          type="time"
-          variant="outlined"
-          density="comfortable"
-          rounded="lg"
-          class="mb-3"
-        />
-
-        <!-- Weekly: interval + day of week + time -->
-        <template v-else-if="form.meeting_type === 'weekly'">
-          <!-- Interval selector -->
-          <div class="d-flex align-center ga-2 flex-wrap mb-3">
-            <span class="text-body-2 text-medium-emphasis">{{
-              $t('meetings.schedule.everyWeek')
-            }}</span>
-            <div class="d-flex ga-1">
-              <v-btn
-                v-for="n in [1, 2, 3, 4]"
-                :key="n"
-                :color="form.schedule_interval_weeks === n ? 'purple' : undefined"
-                :variant="form.schedule_interval_weeks === n ? 'flat' : 'outlined'"
-                size="small"
+            <!-- Title -->
+            <v-col cols="12">
+              <div class="field-label">
+                {{ $t('meetings.meetingTitle').toUpperCase() }} <span class="text-error">*</span>
+              </div>
+              <v-text-field
+                v-model="form.title"
+                variant="filled"
                 rounded="lg"
-                min-width="36"
-                @click="form.schedule_interval_weeks = n"
-              >
-                {{ n }}
-              </v-btn>
-            </div>
-            <span class="text-body-2 text-medium-emphasis">{{
-              $t('meetings.schedule.weekOn')
-            }}</span>
-          </div>
-
-          <!-- Day of week selector -->
-          <v-select
-            v-model="form.schedule_day_of_week"
-            :items="dayOptions"
-            item-title="label"
-            item-value="value"
-            :label="$t('meetings.schedule.dayOfWeek')"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-          />
-
-          <!-- Time -->
-          <v-text-field
-            v-model="form.schedule_time"
-            :label="$t('meetings.schedule.time')"
-            type="time"
-            variant="outlined"
-            density="comfortable"
-            rounded="lg"
-            class="mb-3"
-          />
-        </template>
-
-        <v-switch
-          v-model="form.is_private"
-          :label="form.is_private ? $t('meetings.private') : $t('meetings.public')"
-          color="warning"
-          density="comfortable"
-          :hide-details="!form.is_private"
-          class="mb-1"
-          @update:model-value="onPrivateToggle"
-        />
-
-        <!-- Password field -->
-        <div v-if="form.is_private" class="mt-3">
-          <div class="text-caption text-medium-emphasis mb-2">
-            {{ $t('meetings.passwordGenerated') }}
-          </div>
-          <div class="password-box d-flex align-center justify-space-between pa-3 rounded-lg">
-            <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.2em">
-              {{ form.password }}
-            </span>
-            <div class="d-flex ga-1">
-              <v-btn
-                icon="mdi-refresh"
-                variant="text"
-                size="small"
-                :title="$t('meetings.regeneratePassword')"
-                @click="form.password = generateRandomPassword()"
+                flat
+                density="comfortable"
+                :error-messages="formErrors.title"
+                required
+                autocomplete="off"
               />
-              <v-btn
-                :icon="passwordCopied ? 'mdi-check' : 'mdi-content-copy'"
-                :color="passwordCopied ? 'success' : 'default'"
-                variant="text"
-                size="small"
-                @click="copyPassword"
+            </v-col>
+
+            <!-- Description -->
+            <v-col cols="12">
+              <div class="field-label">{{ $t('common.description').toUpperCase() }}</div>
+              <v-textarea
+                v-model="form.description"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                rows="2"
+                autocomplete="off"
               />
-            </div>
-          </div>
-          <p class="text-caption text-medium-emphasis mt-2">
-            {{ $t('meetings.passwordGeneratedDesc') }}
-          </p>
-        </div>
+            </v-col>
+
+            <!-- ── SCHEDULE ── -->
+            <v-col cols="12">
+              <div class="section-label">{{ $t('meetings.schedule.title').toUpperCase() }}</div>
+            </v-col>
+
+            <!-- Schedule type selector -->
+            <v-col cols="12">
+              <div class="field-label">{{ $t('meetings.schedule.title').toUpperCase() }}</div>
+              <div class="d-flex ga-2 flex-wrap">
+                <v-btn
+                  v-for="typeOption in scheduleTypeOptions"
+                  :key="typeOption.value"
+                  :color="form.meeting_type === typeOption.value ? typeOption.color : undefined"
+                  :variant="form.meeting_type === typeOption.value ? 'flat' : 'outlined'"
+                  rounded="lg"
+                  size="small"
+                  :prepend-icon="typeOption.icon"
+                  @click="form.meeting_type = typeOption.value"
+                >
+                  {{ typeOption.label }}
+                </v-btn>
+              </div>
+            </v-col>
+
+            <!-- One-time: specific date + time -->
+            <v-col v-if="form.meeting_type === 'one_time'" cols="12">
+              <div class="field-label">{{ $t('meetings.scheduledAt').toUpperCase() }}</div>
+              <v-text-field
+                v-model="form.scheduled_at"
+                type="datetime-local"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                autocomplete="off"
+              />
+            </v-col>
+
+            <!-- Daily: time only -->
+            <v-col v-if="form.meeting_type === 'daily'" cols="12" md="6">
+              <div class="field-label">{{ $t('meetings.schedule.time').toUpperCase() }}</div>
+              <v-text-field
+                v-model="form.schedule_time"
+                type="time"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                autocomplete="off"
+              />
+            </v-col>
+
+            <!-- Weekly: interval + day of week + time -->
+            <template v-if="form.meeting_type === 'weekly'">
+              <v-col cols="12">
+                <div class="field-label">{{ $t('meetings.schedule.everyWeek').toUpperCase() }}</div>
+                <div class="d-flex align-center ga-2 flex-wrap">
+                  <div class="d-flex ga-1">
+                    <v-btn
+                      v-for="interval in [1, 2, 3, 4]"
+                      :key="interval"
+                      :color="form.schedule_interval_weeks === interval ? 'purple' : undefined"
+                      :variant="form.schedule_interval_weeks === interval ? 'flat' : 'outlined'"
+                      size="small"
+                      rounded="lg"
+                      min-width="36"
+                      @click="form.schedule_interval_weeks = interval"
+                    >
+                      {{ interval }}
+                    </v-btn>
+                  </div>
+                  <span class="text-body-2 text-medium-emphasis">{{
+                    $t('meetings.schedule.weekOn')
+                  }}</span>
+                </div>
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <div class="field-label">{{ $t('meetings.schedule.dayOfWeek').toUpperCase() }}</div>
+                <v-select
+                  v-model="form.schedule_day_of_week"
+                  :items="dayOptions"
+                  item-title="label"
+                  item-value="value"
+                  variant="filled"
+                  rounded="lg"
+                  flat
+                  density="comfortable"
+                  autocomplete="off"
+                />
+              </v-col>
+
+              <v-col cols="12" md="6">
+                <div class="field-label">{{ $t('meetings.schedule.time').toUpperCase() }}</div>
+                <v-text-field
+                  v-model="form.schedule_time"
+                  type="time"
+                  variant="filled"
+                  rounded="lg"
+                  flat
+                  density="comfortable"
+                  autocomplete="off"
+                />
+              </v-col>
+            </template>
+
+            <!-- ── PRIVACY ── -->
+            <v-col cols="12">
+              <div class="section-label">{{ $t('meetings.privacySection').toUpperCase() }}</div>
+            </v-col>
+
+            <v-col cols="12">
+              <v-switch
+                v-model="form.is_private"
+                :label="form.is_private ? $t('meetings.private') : $t('meetings.public')"
+                color="warning"
+                density="comfortable"
+                hide-details
+                @update:model-value="onPrivateToggle"
+              />
+
+              <!-- Password field -->
+              <div v-if="form.is_private" class="mt-3">
+                <div class="field-label">{{ $t('meetings.meetingPassword').toUpperCase() }}</div>
+                <div
+                  class="password-box d-flex align-center justify-space-between pa-3 rounded-lg mt-2"
+                >
+                  <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.2em">
+                    {{ form.password }}
+                  </span>
+                  <div class="d-flex ga-1">
+                    <v-btn
+                      icon="mdi-refresh"
+                      variant="text"
+                      size="small"
+                      :title="$t('meetings.regeneratePassword')"
+                      @click="form.password = generateRandomPassword()"
+                    />
+                    <v-btn
+                      :icon="passwordCopied ? 'mdi-check' : 'mdi-content-copy'"
+                      :color="passwordCopied ? 'success' : 'default'"
+                      variant="text"
+                      size="small"
+                      @click="copyPassword"
+                    />
+                  </div>
+                </div>
+              </div>
+            </v-col>
+          </v-row>
+        </v-container>
       </v-card-text>
 
-      <v-card-actions class="pa-4 pt-0">
-        <v-spacer />
-        <v-btn variant="text" rounded="lg" @click="$emit('update:modelValue', false)">
+      <!-- Footer -->
+      <div class="d-flex justify-end ga-3 px-6 py-4">
+        <v-btn variant="text" color="default" rounded="lg" @click="close">
           {{ $t('common.cancel') }}
         </v-btn>
         <v-btn
@@ -176,7 +220,7 @@
         >
           {{ $t('common.create') }}
         </v-btn>
-      </v-card-actions>
+      </div>
     </v-card>
   </v-dialog>
 </template>
@@ -188,7 +232,7 @@ import type { Meeting } from '@/interfaces/models/MeetingModel'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
-defineProps({
+const props = defineProps({
   modelValue: {
     type: Boolean,
     required: true,
@@ -207,6 +251,7 @@ const { t } = useI18n()
 
 const isCreating = ref(false)
 const passwordCopied = ref(false)
+const formErrors = ref<Record<string, string>>({})
 
 const form = ref({
   title: '',
@@ -289,13 +334,24 @@ function resetForm() {
     schedule_day_of_week: 1,
     schedule_interval_weeks: 1,
   }
-
+  formErrors.value = {}
   passwordCopied.value = false
 }
 
+function close() {
+  emit('update:modelValue', false)
+}
+
 async function submit() {
-  if (!form.value.title.trim()) return
+  if (!form.value.title.trim()) {
+    formErrors.value = {
+      title: String(t('validation.required', { field: t('meetings.meetingTitle') })),
+    }
+    return
+  }
+
   isCreating.value = true
+  formErrors.value = {}
 
   try {
     const payload: Record<string, unknown> = {
@@ -321,16 +377,54 @@ async function submit() {
       { method: 'POST', body: payload },
     )
     emit('created', created)
-    emit('update:modelValue', false)
+    close()
     resetForm()
+  } catch (error) {
+    if (error instanceof Error) {
+      formErrors.value = { title: error.message }
+    }
   } finally {
     isCreating.value = false
   }
 }
 /** END DEFINE METHOD */
+
+/** START DEFINE WATCHER */
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      resetForm()
+    }
+  },
+)
+/** END DEFINE WATCHER */
 </script>
 
 <style scoped>
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--v-theme-primary));
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.12);
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  margin-bottom: 4px;
+}
+
 .password-box {
   background: rgba(var(--v-theme-surface-variant), 0.4);
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);

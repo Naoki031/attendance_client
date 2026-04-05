@@ -62,6 +62,16 @@ export default class ChatRoomService {
     })
   }
 
+  public static async inviteUsers(
+    uuid: string,
+    data: { user_ids?: number[]; groupIds?: number[] },
+  ): Promise<ChatRoomMemberModel[]> {
+    return await apiClient.post<ChatRoomMemberModel[]>(
+      `chat-rooms/${uuid}/invite-batch`,
+      data as unknown as Record<string, unknown>,
+    )
+  }
+
   public static async removeMember(
     uuid: string,
     userId: number,

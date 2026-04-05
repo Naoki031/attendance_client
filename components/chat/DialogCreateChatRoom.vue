@@ -1,180 +1,240 @@
 <template>
-  <v-dialog :model-value="dialog" max-width="500" @update:model-value="handleClose">
-    <v-card rounded="xl">
-      <v-card-title class="text-h6 pa-4 pb-2">
-        {{ $t('chat.createRoom') }}
-      </v-card-title>
-      <v-divider />
-
-      <div class="pa-4">
-        <v-select
-          v-model="formType"
-          :items="roomTypeOptions"
-          item-title="label"
-          item-value="value"
-          :label="$t('chat.roomType')"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          class="mb-3"
-        />
-
-        <v-text-field
-          v-if="!isDirect"
-          v-model="formName"
-          :label="$t('chat.roomName')"
-          :error-messages="nameError"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          class="mb-3"
-          autofocus
-          @input="nameError = ''"
-        />
-
-        <v-textarea
-          v-if="!isDirect"
-          v-model="formDescription"
-          :label="$t('chat.roomDescription')"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          rows="2"
-          auto-grow
-          class="mb-3"
-        />
-
-        <!-- Target user selector for direct rooms -->
-        <v-autocomplete
-          v-if="isDirect"
-          v-model="selectedTargetUser"
-          v-model:search="userSearch"
-          :items="filteredDirectUsers"
-          :loading="isSearchingUsers"
-          item-title="full_name"
-          item-value="id"
-          :label="$t('chat.selectUser')"
-          :placeholder="$t('chat.searchUsers')"
-          :error-messages="targetUserError"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          clearable
-          return-object
-          no-filter
-          class="mb-3"
-          @update:model-value="targetUserError = ''"
-        >
-          <template #item="{ props: itemProps, item: autocompleteItem }">
-            <v-list-item v-bind="itemProps">
-              <template #prepend>
-                <v-avatar size="32" color="primary" variant="tonal">
-                  <v-img
-                    v-if="autocompleteItem.avatar"
-                    :src="autocompleteItem.avatar"
-                    :alt="autocompleteItem.full_name"
-                  />
-                  <span v-else class="text-caption">
-                    {{ autocompleteItem.full_name?.charAt(0)?.toUpperCase() }}
-                  </span>
-                </v-avatar>
-              </template>
-              <template #subtitle>
-                {{ autocompleteItem.email }}
-              </template>
-            </v-list-item>
-          </template>
-        </v-autocomplete>
-
-        <!-- Invite members selector for channel rooms -->
-        <v-autocomplete
-          v-if="!isDirect"
-          v-model="selectedMembers"
-          v-model:search="userSearch"
-          :items="filteredSearchUsers"
-          :loading="isSearchingUsers"
-          item-title="full_name"
-          item-value="id"
-          :label="$t('chat.inviteMembers')"
-          :placeholder="$t('chat.searchUsers')"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          clearable
-          multiple
-          chips
-          closable-chips
-          return-object
-          class="mb-3"
-          no-filter
-        >
-          <template #item="{ props: itemProps, item: autocompleteItem }">
-            <v-list-item v-bind="itemProps">
-              <template #prepend>
-                <v-avatar size="32" color="primary" variant="tonal">
-                  <v-img
-                    v-if="autocompleteItem.avatar"
-                    :src="autocompleteItem.avatar"
-                    :alt="autocompleteItem.full_name"
-                  />
-                  <span v-else class="text-caption">
-                    {{ autocompleteItem.full_name?.charAt(0)?.toUpperCase() }}
-                  </span>
-                </v-avatar>
-              </template>
-              <template #subtitle>
-                {{ autocompleteItem.email }}
-              </template>
-            </v-list-item>
-          </template>
-        </v-autocomplete>
-
-        <!-- Invite teams/groups selector for channel rooms -->
-        <v-autocomplete
-          v-if="!isDirect"
-          v-model="selectedGroupIds"
-          :items="allGroups"
-          item-title="name"
-          item-value="id"
-          :label="$t('chat.inviteTeams')"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          clearable
-          multiple
-          chips
-          closable-chips
-          class="mb-3"
-        />
-
-        <!-- Visibility selector (hidden for direct rooms) -->
-        <v-select
-          v-if="!isDirect"
-          v-model="formVisibility"
-          :items="visibilityOptions"
-          item-title="label"
-          item-value="value"
-          :label="$t('chat.visibility')"
-          density="comfortable"
-          variant="outlined"
-          rounded="lg"
-          :hint="
-            formVisibility === 'private'
-              ? $t('chat.visibilityPrivateHint')
-              : $t('chat.visibilityPublicHint')
-          "
-          persistent-hint
-        />
+  <v-dialog :model-value="dialog" max-width="600" persistent scrollable>
+    <v-card rounded="xl" elevation="2">
+      <!-- Header -->
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">{{ $t('chat.createRoom') }}</div>
+          <div class="text-body-2 text-medium-emphasis mt-1">
+            {{ $t('chat.createRoomSubtitle') }}
+          </div>
+        </div>
+        <v-btn icon variant="text" size="small" @click="handleClose">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </div>
 
-      <v-divider />
-      <v-card-actions class="pa-4">
-        <v-spacer />
-        <v-btn variant="text" @click="handleClose">{{ $t('common.cancel') }}</v-btn>
-        <v-btn variant="elevated" color="primary" :loading="isSubmitting" @click="handleCreate">
+      <v-card-text class="px-6 py-0" style="max-height: 70vh; overflow-y: auto">
+        <v-container class="pa-0">
+          <v-row>
+            <!-- ── ROOM INFO ── -->
+            <v-col cols="12">
+              <div class="section-label">{{ $t('chat.roomInfo').toUpperCase() }}</div>
+            </v-col>
+
+            <!-- Room type -->
+            <v-col cols="12">
+              <div class="field-label">{{ $t('chat.roomType').toUpperCase() }}</div>
+              <v-select
+                v-model="formType"
+                :items="roomTypeOptions"
+                item-title="label"
+                item-value="value"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                autocomplete="off"
+              />
+            </v-col>
+
+            <!-- Room name (channel only) -->
+            <v-col v-if="!isDirect" cols="12">
+              <div class="field-label">
+                {{ $t('chat.roomName').toUpperCase() }} <span class="text-error">*</span>
+              </div>
+              <v-text-field
+                v-model="formName"
+                :error-messages="nameError"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                autocomplete="off"
+                @input="nameError = ''"
+              />
+            </v-col>
+
+            <!-- Description (channel only) -->
+            <v-col v-if="!isDirect" cols="12">
+              <div class="field-label">{{ $t('chat.roomDescription').toUpperCase() }}</div>
+              <v-textarea
+                v-model="formDescription"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                rows="2"
+                auto-grow
+                autocomplete="off"
+              />
+            </v-col>
+
+            <!-- ── MEMBERS ── -->
+            <v-col cols="12">
+              <div class="section-label">{{ $t('chat.members').toUpperCase() }}</div>
+            </v-col>
+
+            <!-- Target user selector for direct rooms -->
+            <v-col v-if="isDirect" cols="12">
+              <div class="field-label">
+                {{ $t('chat.selectUser').toUpperCase() }} <span class="text-error">*</span>
+              </div>
+              <v-autocomplete
+                v-model="selectedTargetUser"
+                v-model:search="userSearch"
+                :items="filteredDirectUsers"
+                :loading="isSearchingUsers"
+                item-title="full_name"
+                item-value="id"
+                :placeholder="$t('chat.searchUsers')"
+                :error-messages="targetUserError"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                clearable
+                return-object
+                no-filter
+                autocomplete="off"
+                @update:model-value="targetUserError = ''"
+              >
+                <template #item="{ props: itemProps, item: autocompleteItem }">
+                  <v-list-item v-bind="itemProps">
+                    <template #prepend>
+                      <v-avatar size="32" color="primary" variant="tonal">
+                        <v-img
+                          v-if="autocompleteItem.avatar"
+                          :src="autocompleteItem.avatar"
+                          :alt="autocompleteItem.full_name"
+                        />
+                        <span v-else class="text-caption">
+                          {{ autocompleteItem.full_name?.charAt(0)?.toUpperCase() }}
+                        </span>
+                      </v-avatar>
+                    </template>
+                    <template #subtitle>
+                      {{ autocompleteItem.email }}
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-autocomplete>
+            </v-col>
+
+            <!-- Invite members selector for channel rooms -->
+            <v-col v-if="!isDirect" cols="12">
+              <div class="field-label">{{ $t('chat.inviteMembers').toUpperCase() }}</div>
+              <v-autocomplete
+                v-model="selectedMembers"
+                v-model:search="userSearch"
+                :items="filteredSearchUsers"
+                :loading="isSearchingUsers"
+                item-title="full_name"
+                item-value="id"
+                :placeholder="$t('chat.searchUsers')"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                clearable
+                multiple
+                chips
+                closable-chips
+                return-object
+                no-filter
+                autocomplete="off"
+              >
+                <template #item="{ props: itemProps, item: autocompleteItem }">
+                  <v-list-item v-bind="itemProps">
+                    <template #prepend>
+                      <v-avatar size="32" color="primary" variant="tonal">
+                        <v-img
+                          v-if="autocompleteItem.avatar"
+                          :src="autocompleteItem.avatar"
+                          :alt="autocompleteItem.full_name"
+                        />
+                        <span v-else class="text-caption">
+                          {{ autocompleteItem.full_name?.charAt(0)?.toUpperCase() }}
+                        </span>
+                      </v-avatar>
+                    </template>
+                    <template #subtitle>
+                      {{ autocompleteItem.email }}
+                    </template>
+                  </v-list-item>
+                </template>
+              </v-autocomplete>
+            </v-col>
+
+            <!-- Invite teams/groups selector for channel rooms -->
+            <v-col v-if="!isDirect" cols="12">
+              <div class="field-label">{{ $t('chat.inviteTeams').toUpperCase() }}</div>
+              <v-autocomplete
+                v-model="selectedGroupIds"
+                :items="allGroups"
+                item-title="name"
+                item-value="id"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                clearable
+                multiple
+                chips
+                closable-chips
+                autocomplete="off"
+              />
+            </v-col>
+
+            <!-- ── VISIBILITY ── -->
+            <v-col v-if="!isDirect" cols="12">
+              <div class="section-label">{{ $t('chat.visibility').toUpperCase() }}</div>
+            </v-col>
+
+            <v-col v-if="!isDirect" cols="12">
+              <div class="field-label">{{ $t('chat.visibility').toUpperCase() }}</div>
+              <v-select
+                v-model="formVisibility"
+                :items="visibilityOptions"
+                item-title="label"
+                item-value="value"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                autocomplete="off"
+                :hint="
+                  formVisibility === 'private'
+                    ? $t('chat.visibilityPrivateHint')
+                    : $t('chat.visibilityPublicHint')
+                "
+                persistent-hint
+              />
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card-text>
+
+      <!-- Error banner -->
+      <v-alert v-if="formError" type="error" variant="tonal" class="mx-6 mb-2" density="compact">
+        {{ formError }}
+      </v-alert>
+
+      <!-- Footer -->
+      <div class="d-flex justify-end ga-3 px-6 py-4">
+        <v-btn variant="text" color="default" rounded="lg" @click="handleClose">
+          {{ $t('common.cancel') }}
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          rounded="lg"
+          :loading="isSubmitting"
+          @click="handleCreate"
+        >
           {{ $t('chat.create') }}
         </v-btn>
-      </v-card-actions>
+      </div>
     </v-card>
   </v-dialog>
 </template>
@@ -213,6 +273,7 @@ const formVisibility = ref('public')
 const isSubmitting = ref(false)
 const nameError = ref('')
 const targetUserError = ref('')
+const formError = ref('')
 const selectedTargetUser = ref<UserModel | null>(null)
 const selectedMembers = ref<Array<UserModel>>([])
 const selectedGroupIds = ref<number[]>([])
@@ -349,7 +410,7 @@ async function handleCreate() {
     emit('confirm', room)
     resetForm()
   } catch (error) {
-    console.error('Failed to create room:', error)
+    formError.value = error instanceof Error ? error.message : 'Failed to create room'
   } finally {
     isSubmitting.value = false
   }
@@ -366,6 +427,7 @@ function resetForm() {
   formVisibility.value = 'public'
   nameError.value = ''
   targetUserError.value = ''
+  formError.value = ''
   selectedTargetUser.value = null
   selectedMembers.value = []
   selectedGroupIds.value = []
@@ -413,3 +475,28 @@ watch(selectedGroupIds, () => {
 })
 /* END DEFINE WATCHER */
 </script>
+
+<style scoped>
+.dialog-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--v-theme-primary));
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(var(--v-theme-primary), 0.12);
+}
+
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  margin-bottom: 4px;
+}
+</style>
