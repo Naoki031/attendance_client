@@ -10,7 +10,7 @@
       class="mb-6"
       density="comfortable"
     >
-      <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+      <div class="d-flex align-center justify-space-between flex-wrap ga-2 w-100">
         <div>
           <div class="text-body-2 font-weight-bold">{{ kycBanner.title }}</div>
           <div class="text-caption text-medium-emphasis">{{ kycBanner.text }}</div>

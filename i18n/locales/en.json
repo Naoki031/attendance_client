@@ -8,6 +8,7 @@
     "close": "Close",
     "changed": "Changed",
     "confirm": "Confirm",
+    "done": "Done",
     "loading": "Loading...",
     "search": "Search",
     "actions": "Actions",
@@ -74,7 +75,9 @@
     "members": "Members",
     "retry": "Retry",
     "lightMode": "Light mode",
-    "darkMode": "Dark mode"
+    "darkMode": "Dark mode",
+    "unknown": "Unknown",
+    "showLess": "Show less"
   },
   "weekDays": {
     "mon": "Mon",
@@ -134,7 +137,8 @@
     "slackChannels": "Slack Channels",
     "googleSheets": "Google Sheets",
     "settings": "Settings",
-    "systemSettings": "System Settings"
+    "systemSettings": "System Settings",
+    "meetings": "Meetings"
   },
   "auth": {
     "attendanceSystem": "Attendance System",
@@ -1050,6 +1054,98 @@
       "ipRestricted": "Clock-in not allowed from this network. You must be on the company network or have an approved WFH request for today.",
       "noIpConfig": "Your company has not configured an IP whitelist yet. Please contact an admin.",
       "connectionError": "Cannot connect to the server. Please check your network and try again."
+    }
+  },
+  "meetings": {
+    "meetingType": "Meeting Type",
+    "type": {
+      "one_time": "One-time",
+      "recurring": "Recurring",
+      "daily": "Daily",
+      "weekly": "Weekly"
+    },
+    "schedule": {
+      "title": "Schedule",
+      "time": "Time",
+      "everyDay": "Every day at",
+      "everyWeek": "Every",
+      "weekOn": "week(s) on",
+      "at": "at",
+      "instant": "Instant meeting",
+      "dayOfWeek": "Day of week",
+      "intervalLabel": "Repeat interval"
+    },
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "title": "Meetings",
+    "description": "Create and join internal meeting rooms",
+    "create": "New Meeting",
+    "join": "Join",
+    "leave": "Leave",
+    "end": "End Meeting",
+    "joining": "Joining meeting...",
+    "readyToJoin": "Check your camera and mic before joining",
+    "micLevel": "Mic is active — speak to test",
+    "micOff": "Mic is off",
+    "meetingTitle": "Meeting Title",
+    "scheduledAt": "Scheduled At",
+    "participants": "participants",
+    "host": "Host",
+    "you": "You",
+    "subtitles": "Live Subtitles",
+    "subtitlesEmpty": "Speak to see subtitles here",
+    "translating": "Translating...",
+    "langAuto": "Auto-detect",
+    "headphonesHint": "Use headphones for the best audio quality without echo",
+    "speakingLangHint": "Language being spoken",
+    "viewLangHint": "Language to display subtitles in",
+    "selectMic": "Microphone",
+    "selectSpeaker": "Speaker",
+    "microphone": "Microphone",
+    "speaker": "Speaker",
+    "noMeetings": "No Meetings",
+    "noMeetingsDesc": "Create a new meeting to get started",
+    "public": "Public",
+    "private": "Private",
+    "passwordGenerated": "Meeting Password",
+    "passwordGeneratedDesc": "Share this password with people you want to invite. This is the only time it will be shown.",
+    "passwordRequired": "This meeting is private. Enter the password to join.",
+    "enterPassword": "Meeting Password",
+    "wrongPassword": "Incorrect password. Please try again.",
+    "regeneratePassword": "Generate New Password",
+    "regeneratePasswordConfirm": "This will invalidate the current password and generate a new one. Participants will need the new password to join.",
+    "editMeeting": "Edit Meeting",
+    "sectionMeetingInfo": "Meeting Info",
+    "privacySection": "Privacy",
+    "meetingPassword": "Password",
+    "screenRecordingPermission": "Others may see a black screen. On macOS, go to System Preferences → Privacy & Security → Screen Recording and enable Chrome.",
+    "status": {
+      "scheduled": "Scheduled",
+      "active": "Live",
+      "ended": "Ended"
+    },
+    "controls": {
+      "micOn": "Mic On",
+      "micOff": "Mic Off",
+      "camOn": "Camera On",
+      "camOff": "Camera Off",
+      "shareOn": "Sharing",
+      "shareOff": "Share Screen",
+      "ttsOn": "Reading",
+      "ttsOff": "Read Aloud",
+      "speakerOn": "Speaker On",
+      "speakerOff": "Speaker Off",
+      "leave": "Leave",
+      "fullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
+      "settings": "Settings"
     }
   }
 }

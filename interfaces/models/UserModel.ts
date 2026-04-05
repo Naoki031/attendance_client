@@ -32,6 +32,7 @@ export interface UserModel {
   permanent_remote?: boolean
   permanent_remote_reason?: string | null
   preferred_language?: string
+  last_seen_at?: string | null
   permission_group_ids?: number[]
   user_group_permissions?: { permission_group_id: number; permission_group?: { name: string } }[]
   user_departments?: UserDepartmentModel[]

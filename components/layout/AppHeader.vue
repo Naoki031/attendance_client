@@ -6,12 +6,14 @@
     <v-app-bar-title>
       <div class="d-flex align-center ga-2">
         <v-icon icon="mdi-briefcase-clock-outline" color="white" size="22"></v-icon>
-        <span class="font-weight-bold text-white text-body-1 ml-1">Attendance</span>
+        <span class="font-weight-bold text-white text-body-1 ml-1 d-none d-sm-inline"
+          >Attendance</span
+        >
       </div>
     </v-app-bar-title>
 
     <template #append>
-      <!-- Admin shortcuts -->
+      <!-- Admin notification shortcuts — always visible -->
       <template v-if="userStore.isAdmin">
         <v-tooltip :text="$t('nav.approvals')" location="bottom">
           <template #activator="{ props }">
@@ -56,7 +58,7 @@
         </v-tooltip>
       </template>
 
-      <!-- Chat -->
+      <!-- Chat — always visible -->
       <v-menu v-model="chatMenuOpen" :close-on-content-click="false" location="bottom end">
         <template #activator="{ props: menuProps }">
           <v-tooltip :text="$t('nav.chat')" location="bottom">
@@ -219,19 +221,50 @@
         </v-card>
       </v-menu>
 
-      <!-- Theme toggle -->
-      <v-tooltip :text="isDark ? $t('common.lightMode') : $t('common.darkMode')" location="bottom">
+      <!-- Desktop: theme + language shown directly -->
+      <div class="d-none d-md-flex align-center">
+        <v-tooltip
+          :text="isDark ? $t('common.lightMode') : $t('common.darkMode')"
+          location="bottom"
+        >
+          <template #activator="{ props }">
+            <v-btn v-bind="props" icon variant="text" class="text-white" @click="toggleTheme">
+              <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+            </v-btn>
+          </template>
+        </v-tooltip>
+        <HeaderLanguageSwitcher />
+      </div>
+
+      <!-- Mobile: overflow menu with all secondary actions -->
+      <v-menu class="d-flex d-md-none" location="bottom end" :close-on-content-click="true">
         <template #activator="{ props }">
-          <v-btn v-bind="props" icon variant="text" class="text-white" @click="toggleTheme">
-            <v-icon>{{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}</v-icon>
+          <v-btn v-bind="props" icon variant="text" class="text-white d-flex d-md-none">
+            <v-icon>mdi-dots-vertical</v-icon>
           </v-btn>
         </template>
-      </v-tooltip>
+        <v-list density="compact" min-width="200">
+          <!-- Theme toggle -->
+          <v-list-item
+            :prepend-icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
+            :title="isDark ? $t('common.lightMode') : $t('common.darkMode')"
+            @click="toggleTheme"
+          />
+          <v-divider />
+          <!-- Language options -->
+          <v-list-item
+            v-for="locale in availableLocales"
+            :key="locale.code"
+            prepend-icon="mdi-translate"
+            :title="locale.name"
+            :active="locale.code === currentLocale"
+            active-color="primary"
+            @click="changeLanguage(locale.code)"
+          />
+        </v-list>
+      </v-menu>
 
-      <!-- Language switcher -->
-      <HeaderLanguageSwitcher />
-
-      <!-- User menu -->
+      <!-- User menu — always visible -->
       <HeaderUserMenu />
     </template>
   </v-app-bar>
@@ -255,6 +288,14 @@ const approvalsStore = useApprovalsStore()
 const theme = useTheme()
 const THEME_STORAGE_KEY = 'attendance-theme'
 const isDark = computed(() => theme.global.name.value === 'sandstone-dark')
+
+const { locale: currentLocale, setLocale, locales } = useI18n()
+const availableLocales = computed(() =>
+  (locales.value as Array<{ code: string; name: string }>).map((locale) => ({
+    code: locale.code,
+    name: locale.name,
+  })),
+)
 
 const toggleTheme = () => {
   const next = isDark.value ? 'light' : 'sandstone-dark'
@@ -285,6 +326,11 @@ const sortedReadMessages = computed(() =>
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+async function changeLanguage(code: string) {
+  await setLocale(code as 'en' | 'vi' | 'ja')
+  await userStore.updateLanguage(code)
+}
+
 function stripMarkdown(text: string): string {
   return text
     .replace(/\\\n/g, ' ') // markdown hard line break \<newline> → space

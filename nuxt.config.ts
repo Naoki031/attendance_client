@@ -44,6 +44,7 @@ export default defineNuxtConfig({
       apiBaseUrl: '/api/v1',
       chatbotName: '',
       wsUrl: '',
+      livekitUrl: '',
       NUXT_HOST: 'localhost',
       NUXT_PORT: '3000',
       firebaseApiKey: '',

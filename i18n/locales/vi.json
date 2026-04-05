@@ -8,6 +8,7 @@
     "close": "Đóng",
     "changed": "Đã thay đổi",
     "confirm": "Xác nhận",
+    "done": "Xong",
     "loading": "Đang tải...",
     "search": "Tìm kiếm",
     "actions": "Thao tác",
@@ -74,7 +75,9 @@
     "members": "Thành viên",
     "retry": "Thử lại",
     "lightMode": "Giao diện sáng",
-    "darkMode": "Giao diện tối"
+    "darkMode": "Giao diện tối",
+    "unknown": "Không rõ",
+    "showLess": "Rút gọn"
   },
   "weekDays": {
     "mon": "T2",
@@ -134,7 +137,8 @@
     "googleSheets": "Google Sheets",
     "groups": "Teams",
     "settings": "Cài đặt",
-    "systemSettings": "Cài đặt hệ thống"
+    "systemSettings": "Cài đặt hệ thống",
+    "meetings": "Cuộc họp"
   },
   "auth": {
     "attendanceSystem": "Hệ thống Chấm công",
@@ -1050,6 +1054,98 @@
       "ipRestricted": "Không được phép chấm công từ mạng này. Bạn cần nằm trong mạng nội bộ công ty hoặc có đơn WFH được duyệt cho hôm nay.",
       "noIpConfig": "Công ty chưa cấu hình danh sách IP cho phép. Vui lòng liên hệ admin.",
       "connectionError": "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại."
+    }
+  },
+  "meetings": {
+    "meetingType": "Loại cuộc họp",
+    "type": {
+      "one_time": "Một lần",
+      "recurring": "Định kỳ",
+      "daily": "Hàng ngày",
+      "weekly": "Hàng tuần"
+    },
+    "schedule": {
+      "title": "Lịch họp",
+      "time": "Giờ",
+      "everyDay": "Mỗi ngày lúc",
+      "everyWeek": "Mỗi",
+      "weekOn": "tuần vào",
+      "at": "lúc",
+      "instant": "Họp ngay",
+      "dayOfWeek": "Ngày trong tuần",
+      "intervalLabel": "Chu kỳ lặp lại"
+    },
+    "days": {
+      "0": "Chủ nhật",
+      "1": "Thứ 2",
+      "2": "Thứ 3",
+      "3": "Thứ 4",
+      "4": "Thứ 5",
+      "5": "Thứ 6",
+      "6": "Thứ 7"
+    },
+    "title": "Cuộc họp",
+    "description": "Tạo và tham gia phòng họp nội bộ",
+    "create": "Tạo cuộc họp",
+    "join": "Tham gia",
+    "leave": "Rời phòng",
+    "end": "Kết thúc họp",
+    "joining": "Đang vào phòng họp...",
+    "readyToJoin": "Kiểm tra camera và mic trước khi tham gia",
+    "micLevel": "Mic đang bật — nói để kiểm tra",
+    "micOff": "Mic đang tắt",
+    "meetingTitle": "Tên cuộc họp",
+    "scheduledAt": "Thời gian dự kiến",
+    "participants": "người tham gia",
+    "host": "Chủ phòng",
+    "you": "Bạn",
+    "subtitles": "Phụ đề trực tiếp",
+    "subtitlesEmpty": "Hãy nói để xem phụ đề ở đây",
+    "translating": "Đang dịch...",
+    "langAuto": "Tự nhận diện",
+    "headphonesHint": "Dùng tai nghe để tránh tiếng vang khi dùng loa ngoài",
+    "speakingLangHint": "Ngôn ngữ đang nói",
+    "viewLangHint": "Ngôn ngữ hiển thị phụ đề",
+    "selectMic": "Microphone",
+    "selectSpeaker": "Loa",
+    "microphone": "Microphone",
+    "speaker": "Loa",
+    "noMeetings": "Chưa có cuộc họp",
+    "noMeetingsDesc": "Tạo cuộc họp mới để bắt đầu",
+    "public": "Công khai",
+    "private": "Riêng tư",
+    "passwordGenerated": "Mật khẩu phòng họp",
+    "passwordGeneratedDesc": "Chia sẻ mật khẩu này với người bạn muốn mời. Đây là lần duy nhất mật khẩu được hiển thị.",
+    "passwordRequired": "Phòng họp này ở chế độ riêng tư. Nhập mật khẩu để tham gia.",
+    "enterPassword": "Mật khẩu phòng họp",
+    "wrongPassword": "Mật khẩu không đúng. Vui lòng thử lại.",
+    "regeneratePassword": "Tạo mật khẩu mới",
+    "regeneratePasswordConfirm": "Mật khẩu hiện tại sẽ bị vô hiệu hóa và tạo mật khẩu mới. Người tham gia sẽ cần mật khẩu mới để vào phòng.",
+    "editMeeting": "Chỉnh sửa cuộc họp",
+    "sectionMeetingInfo": "Thông tin cuộc họp",
+    "privacySection": "Quyền riêng tư",
+    "meetingPassword": "Mật khẩu",
+    "screenRecordingPermission": "Người khác có thể thấy màn hình đen. Trên macOS, vào System Preferences → Privacy & Security → Screen Recording và bật quyền cho Chrome.",
+    "status": {
+      "scheduled": "Đã lên lịch",
+      "active": "Đang diễn ra",
+      "ended": "Đã kết thúc"
+    },
+    "controls": {
+      "micOn": "Mic Bật",
+      "micOff": "Mic Tắt",
+      "camOn": "Camera Bật",
+      "camOff": "Camera Tắt",
+      "shareOn": "Đang Chia Sẻ",
+      "shareOff": "Chia Sẻ Màn Hình",
+      "ttsOn": "Đang Đọc",
+      "ttsOff": "Đọc Phụ Đề",
+      "speakerOn": "Loa Bật",
+      "speakerOff": "Loa Tắt",
+      "leave": "Rời Phòng",
+      "fullscreen": "Toàn Màn Hình",
+      "exitFullscreen": "Thoát Toàn Màn Hình",
+      "settings": "Cài Đặt"
     }
   }
 }

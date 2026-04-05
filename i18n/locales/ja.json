@@ -8,6 +8,7 @@
     "close": "閉じる",
     "changed": "変更済み",
     "confirm": "確認",
+    "done": "完了",
     "loading": "読み込み中...",
     "search": "検索",
     "actions": "操作",
@@ -74,7 +75,9 @@
     "members": "メンバー",
     "retry": "やり直す",
     "lightMode": "ライトモード",
-    "darkMode": "ダークモード"
+    "darkMode": "ダークモード",
+    "unknown": "不明",
+    "showLess": "折りたたむ"
   },
   "weekDays": {
     "mon": "月",
@@ -134,7 +137,8 @@
     "googleSheets": "Googleスプレッドシート",
     "groups": "チーム",
     "settings": "設定",
-    "systemSettings": "システム設定"
+    "systemSettings": "システム設定",
+    "meetings": "ミーティング"
   },
   "auth": {
     "attendanceSystem": "勤怠管理システム",
@@ -1050,6 +1054,98 @@
       "ipRestricted": "このネットワークからの打刻は許可されていません。社内ネットワークに接続するか、本日のWFH申請が承認されている必要があります。",
       "noIpConfig": "会社の許可IPリストが設定されていません。管理者にお問い合わせください。",
       "connectionError": "サーバーに接続できません。ネットワークを確認して再試行してください。"
+    }
+  },
+  "meetings": {
+    "meetingType": "会議タイプ",
+    "type": {
+      "one_time": "通常",
+      "recurring": "定期",
+      "daily": "毎日",
+      "weekly": "毎週"
+    },
+    "schedule": {
+      "title": "スケジュール",
+      "time": "時刻",
+      "everyDay": "毎日",
+      "everyWeek": "毎",
+      "weekOn": "週、",
+      "at": "に",
+      "instant": "今すぐ会議",
+      "dayOfWeek": "曜日",
+      "intervalLabel": "繰り返し間隔"
+    },
+    "days": {
+      "0": "日曜日",
+      "1": "月曜日",
+      "2": "火曜日",
+      "3": "水曜日",
+      "4": "木曜日",
+      "5": "金曜日",
+      "6": "土曜日"
+    },
+    "title": "ミーティング",
+    "description": "内部ミーティングルームを作成・参加する",
+    "create": "新規ミーティング",
+    "join": "参加",
+    "leave": "退出",
+    "end": "ミーティングを終了",
+    "joining": "ミーティングに参加中...",
+    "readyToJoin": "参加前にカメラとマイクを確認してください",
+    "micLevel": "マイクはオン — 話してテストしてください",
+    "micOff": "マイクはオフ",
+    "meetingTitle": "ミーティング名",
+    "scheduledAt": "予定日時",
+    "participants": "参加者",
+    "host": "ホスト",
+    "you": "あなた",
+    "subtitles": "リアルタイム字幕",
+    "subtitlesEmpty": "話すと字幕がここに表示されます",
+    "translating": "翻訳中...",
+    "langAuto": "自動検出",
+    "headphonesHint": "外部スピーカー使用時のエコーを防ぐためにヘッドフォンをお使いください",
+    "speakingLangHint": "話している言語",
+    "viewLangHint": "字幕を表示する言語",
+    "selectMic": "マイク",
+    "selectSpeaker": "スピーカー",
+    "microphone": "マイク",
+    "speaker": "スピーカー",
+    "noMeetings": "ミーティングなし",
+    "noMeetingsDesc": "新しいミーティングを作成して始めましょう",
+    "public": "公開",
+    "private": "プライベート",
+    "passwordGenerated": "ミーティングパスワード",
+    "passwordGeneratedDesc": "招待したい方にこのパスワードを共有してください。表示されるのはこの一度のみです。",
+    "passwordRequired": "このミーティングはプライベートです。参加するにはパスワードを入力してください。",
+    "enterPassword": "ミーティングパスワード",
+    "wrongPassword": "パスワードが正しくありません。もう一度お試しください。",
+    "regeneratePassword": "新しいパスワードを生成",
+    "regeneratePasswordConfirm": "現在のパスワードが無効になり、新しいパスワードが生成されます。参加者は新しいパスワードが必要です。",
+    "editMeeting": "会議を編集",
+    "sectionMeetingInfo": "会議情報",
+    "privacySection": "プライバシー",
+    "meetingPassword": "パスワード",
+    "screenRecordingPermission": "相手に黒い画面が表示される場合があります。macOSでは、システム環境設定 → プライバシーとセキュリティ → 画面収録 でChromeの権限を有効にしてください。",
+    "status": {
+      "scheduled": "予定済み",
+      "active": "開催中",
+      "ended": "終了"
+    },
+    "controls": {
+      "micOn": "マイクオン",
+      "micOff": "マイクオフ",
+      "camOn": "カメラオン",
+      "camOff": "カメラオフ",
+      "shareOn": "共有中",
+      "shareOff": "画面共有",
+      "ttsOn": "読み上げ中",
+      "ttsOff": "字幕読み上げ",
+      "speakerOn": "スピーカーオン",
+      "speakerOff": "スピーカーオフ",
+      "leave": "退出",
+      "fullscreen": "全画面",
+      "exitFullscreen": "全画面終了",
+      "settings": "設定"
     }
   }
 }
