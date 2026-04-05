@@ -343,6 +343,7 @@
 import { useNuxtApp, useRoute } from '#app'
 import { useMeeting } from '@/composables/useMeeting'
 import type MeetingVideoGrid from '@/components/meeting/VideoGrid.vue'
+import type { MediaDeviceItem } from '@/types/meeting/MediaDeviceItem'
 // END IMPORT
 
 definePageMeta({ layout: false })
@@ -388,10 +389,6 @@ const previewSpeakerOn = ref(true)
 let previewStream: MediaStream | null = null
 
 // Device selection
-interface MediaDeviceItem {
-  deviceId: string
-  label: string
-}
 const micDevices = ref<MediaDeviceItem[]>([])
 const speakerDevices = ref<MediaDeviceItem[]>([])
 const selectedMicId = ref<string>('')

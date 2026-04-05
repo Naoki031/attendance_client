@@ -103,23 +103,8 @@ import {
 } from '@/utils/customEmoji'
 import { useUserStore } from '@/stores/user'
 import { useRecentEmojis } from '@/composables/useRecentEmojis'
+import type { PackItem, EmojiCategory } from '@/types/chat/EmojiTypes'
 /* END IMPORT */
-
-interface PackItem {
-  key: string
-  url: string
-  label: string
-}
-
-interface EmojiCategory {
-  name: string
-  icon: string
-  tabImage?: string
-  isCustomPack?: boolean
-  isMixed?: boolean
-  blobs?: PackItem[]
-  emojis?: string[]
-}
 
 /** START DEFINE EMITS */
 const emit = defineEmits<{

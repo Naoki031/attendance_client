@@ -257,6 +257,7 @@ const dayOptions = computed(() =>
 /** START DEFINE METHOD */
 function generateRandomPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+
   return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
@@ -288,12 +289,14 @@ function resetForm() {
     schedule_day_of_week: 1,
     schedule_interval_weeks: 1,
   }
+
   passwordCopied.value = false
 }
 
 async function submit() {
   if (!form.value.title.trim()) return
   isCreating.value = true
+
   try {
     const payload: Record<string, unknown> = {
       title: form.value.title,

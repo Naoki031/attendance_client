@@ -143,20 +143,10 @@ import type { PropType } from 'vue'
 import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import type { DepartmentModel } from '@/interfaces/models/DepartmentModel'
 import type { PermissionGroupModel } from '@/interfaces/models/PermissionGroupModel'
+import type { UserFilters } from '@/types/user/UserFilters'
 /* END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
-export interface UserFilters {
-  id: string
-  name: string
-  position: string
-  email: string
-  companyId: number | null
-  departmentId: number | null
-  role: string
-  status: '' | 'active' | 'inactive'
-  contractType: string
-}
 
 const props = defineProps({
   modelValue: {

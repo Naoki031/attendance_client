@@ -105,7 +105,7 @@ const emit = defineEmits<{
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
-type ScanState = 'loading' | 'active' | 'denied' | 'error'
+import type { ScanState } from '@/types/qr/ScanState'
 
 const scanState = ref<ScanState>('loading')
 const errorMessage = ref<string>('')

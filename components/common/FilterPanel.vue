@@ -63,22 +63,10 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import type { PropType } from 'vue'
+import type { FilterFieldConfig, DefaultFilters } from '@/types/common/FilterPanel'
 /* END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
-export interface FilterFieldConfig {
-  key: string
-  label: string
-  type: 'autocomplete' | 'select'
-  items: Array<Record<string, unknown>>
-  itemTitle?: string
-  itemValue?: string
-}
-
-export interface DefaultFilters {
-  search: string
-  [key: string]: unknown
-}
 
 const props = defineProps({
   modelValue: {
