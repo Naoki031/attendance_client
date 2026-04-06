@@ -108,23 +108,35 @@ export const useCamera = () => {
   }
 
   /**
-   * Captures the current video frame and returns it as a JPEG Blob.
+   * Captures the current video frame as a Canvas element.
    * Returns null if the video element is not ready.
+   * Useful when further processing (e.g. compression) is needed before blob conversion.
    */
-  const captureFrame = (): Promise<Blob | null> => {
-    if (!videoReference.value || !isReady.value) return Promise.resolve(null)
+  const captureCanvas = (): HTMLCanvasElement | null => {
+    if (!videoReference.value || !isReady.value) return null
 
     const canvas = document.createElement('canvas')
     canvas.width = videoReference.value.videoWidth
     canvas.height = videoReference.value.videoHeight
 
     const context = canvas.getContext('2d')
-    if (!context) return Promise.resolve(null)
+    if (!context) return null
 
     context.drawImage(videoReference.value, 0, 0)
 
+    return canvas
+  }
+
+  /**
+   * Captures the current video frame and returns it as a JPEG Blob.
+   * Returns null if the video element is not ready.
+   */
+  const captureFrame = (): Promise<Blob | null> => {
+    const canvas = captureCanvas()
+    if (!canvas) return Promise.resolve(null)
+
     return new Promise<Blob | null>((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 0.85)
+      canvas.toBlob((blob) => resolve(blob), 'image/jpeg', 1.0)
     })
   }
 
@@ -193,6 +205,7 @@ export const useCamera = () => {
     startCamera,
     stopCamera,
     switchCamera,
+    captureCanvas,
     captureFrame,
     checkSharpness,
   }

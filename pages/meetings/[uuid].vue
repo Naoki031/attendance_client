@@ -247,7 +247,6 @@
               :subtitles="subtitles"
               :user-language="userLanguage"
               :speaking-language="speakingLanguage"
-              :screen-audio-active="screenAudioActive"
               @update:speaking-language="speakingLanguage = $event"
             />
           </div>
@@ -412,7 +411,6 @@ const {
   remoteParticipants,
   hasRemoteScreenShare,
   remoteScreenShareTracks,
-  screenAudioActive,
   speakingLanguage,
   ttsEnabled,
   activeSpeakerIdentities,

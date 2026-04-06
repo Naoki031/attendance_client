@@ -89,6 +89,10 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import jsQR from 'jsqr'
+/* END DEFINE PROPERTY AND EMITS */
+
+/** START DEFINE STATE */
+import type { ScanState } from '@/types/qr/ScanState'
 /* END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -102,10 +106,6 @@ const emit = defineEmits<{
   (event: 'scanned', url: string): void
   (event: 'close'): void
 }>()
-/* END DEFINE PROPERTY AND EMITS */
-
-/** START DEFINE STATE */
-import type { ScanState } from '@/types/qr/ScanState'
 
 const scanState = ref<ScanState>('loading')
 const errorMessage = ref<string>('')

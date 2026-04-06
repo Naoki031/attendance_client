@@ -46,6 +46,7 @@ export function useChat() {
   const isConnected = ref(false)
   const hasMore = ref(true)
   const isLoadingMore = ref(false)
+  const messageLoadError = ref('')
   const cursor = ref<number | null>(null)
 
   // Thread state
@@ -217,7 +218,7 @@ export function useChat() {
   }
 
   function handleError(data: { message: string }) {
-    console.error('Chat error:', data.message)
+    messageLoadError.value = data.message
   }
 
   function handleThreadReplyNew(data: ChatMessage) {
@@ -321,7 +322,7 @@ export function useChat() {
       cursor.value = result.nextCursor
       hasMore.value = result.nextCursor !== null
     } catch (error) {
-      console.error('Failed to load messages:', error)
+      messageLoadError.value = error instanceof Error ? error.message : 'Failed to load messages'
     }
   }
 
@@ -386,7 +387,7 @@ export function useChat() {
       cursor.value = result.nextCursor
       hasMore.value = result.nextCursor !== null
     } catch (error) {
-      console.error('Failed to load more messages:', error)
+      messageLoadError.value = error instanceof Error ? error.message : 'Failed to load messages'
     } finally {
       isLoadingMore.value = false
     }
@@ -423,7 +424,7 @@ export function useChat() {
         transformMessage(raw as Record<string, unknown>),
       )
     } catch (error) {
-      console.error('Failed to load thread replies:', error)
+      messageLoadError.value = error instanceof Error ? error.message : 'Failed to load thread replies'
     }
   }
 
@@ -470,6 +471,7 @@ export function useChat() {
     isConnected,
     hasMore,
     isLoadingMore,
+    messageLoadError,
     activeThreadParent,
     threadReplies,
     mentionNotification,

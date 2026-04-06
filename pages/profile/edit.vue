@@ -368,8 +368,7 @@ const showConfirm = ref(false)
 
 /** START DEFINE METHOD */
 const onAvatarSaved = (_updatedUser: unknown) => {
-  // User store already updated inside AvatarUpload, this is for any additional handling
-  console.log('Avatar updated successfully')
+  // User store already updated inside AvatarUpload — no additional handling needed
 }
 /* END DEFINE METHOD */
 

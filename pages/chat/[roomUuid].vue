@@ -289,6 +289,11 @@
       </template>
     </v-snackbar>
 
+    <!-- Error snackbar -->
+    <v-snackbar v-model="chatErrorSnackbar" color="error" :timeout="4000" location="bottom right">
+      {{ chatErrorMessage }}
+    </v-snackbar>
+
     <!-- Room description dialog -->
     <v-dialog v-model="descriptionDialog" max-width="480">
       <v-card rounded="xl">
@@ -458,6 +463,7 @@ const {
   toggleReaction,
   pinMessage,
   unpinMessage,
+  messageLoadError,
 } = useChat()
 
 const { markAsRead } = useChatUnread()
@@ -466,6 +472,9 @@ const { t } = useI18n()
 const { moment: momentInstance, TIMEZONE } = useMoment()
 
 const scrollToMessageId = ref<number | null>(null)
+const roomLoadError = ref('')
+const chatErrorSnackbar = ref(false)
+const chatErrorMessage = ref('')
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -551,7 +560,7 @@ const loadRoomInfo = async () => {
     members.value = membersResult
     lastReadAt.value = lastReadAtResult
   } catch (error) {
-    console.error('Failed to load room info:', error)
+    roomLoadError.value = error instanceof Error ? error.message : t('common.error')
   }
 }
 
@@ -617,7 +626,8 @@ async function loadPinnedMessages() {
       message.isPinned = pinnedIds.has(message.id)
     }
   } catch (error) {
-    console.error('Failed to load pinned messages:', error)
+    chatErrorMessage.value = error instanceof Error ? error.message : t('common.error')
+    chatErrorSnackbar.value = true
   }
 }
 
@@ -634,7 +644,8 @@ async function handleLeaveRoom() {
     await ChatRoomService.leave(roomUuid.value)
     navigateTo('/chat')
   } catch (error) {
-    console.error('Failed to leave room:', error)
+    chatErrorMessage.value = error instanceof Error ? error.message : t('common.error')
+    chatErrorSnackbar.value = true
   } finally {
     isLeaving.value = false
   }
@@ -782,6 +793,13 @@ watch(
     nextTick(() => scrollToMessage(messageId))
   },
 )
+watch([roomLoadError, messageLoadError], ([roomError, msgError]) => {
+  const error = roomError || msgError
+  if (error) {
+    chatErrorMessage.value = error
+    chatErrorSnackbar.value = true
+  }
+})
 /* END DEFINE WATCHER */
 
 /** START DEFINE LIFE CYCLE HOOK */

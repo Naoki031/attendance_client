@@ -96,6 +96,10 @@
       @confirm-delete="onConfirmDelete"
       @close-delete="onCloseDelete"
     />
+
+    <v-snackbar v-model="errorSnackbar" color="error" :timeout="4000" location="bottom right">
+      {{ errorMessage }}
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -137,6 +141,8 @@ const {
   filterExpanded,
   activeFilterCount,
   isFilterActive,
+  errorSnackbar,
+  errorMessage,
   addItem,
   editItem,
   onConfirm,

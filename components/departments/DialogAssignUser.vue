@@ -179,35 +179,20 @@ const handleCreate = handleSubmit(async (formValues) => {
         }
       }
 
-      console.log('Processed errorData:', errorData)
-
-      // Extract message from processed data
       const message = errorData?.message ?? errorData?.error ?? error?.message ?? ''
-
-      console.log('Extracted message:', message)
-      console.log('Message type:', typeof message)
-
       const lowerMessage = message.toLowerCase()
-      console.log('Lowercase message:', lowerMessage)
-      console.log('Includes "already assigned":', lowerMessage.includes('already assigned'))
 
-      // Map backend error message to i18n key
       if (
         lowerMessage.includes('already assigned') ||
         lowerMessage.includes('already assigned to this department') ||
         lowerMessage.includes('this user is already assigned')
       ) {
-        console.log('✓ Matched! Setting i18n error')
         apiError.value = t('departments.userAlreadyAssignedToDepartment')
       } else if (message) {
-        console.log('✗ Not matched, using fallback')
         apiError.value = t('common.error') + ': ' + message
       } else {
-        console.log('✗ Empty message, using common error')
         apiError.value = t('common.error')
       }
-      console.log('Final apiError:', apiError.value)
-      console.log('=== End Debug ===')
     })
 })
 

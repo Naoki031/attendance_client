@@ -309,8 +309,8 @@ function getLanguageColor(language: string): string {
   return colors[language] ?? 'grey'
 }
 
-function formatLastSeen(dateStr: string): string {
-  const date = new Date(dateStr)
+function formatLastSeen(dateString: string): string {
+  const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffMinutes = Math.floor(diffMs / 60000)

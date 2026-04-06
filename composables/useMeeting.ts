@@ -86,9 +86,15 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
   // Whether audio capture is using screen share audio (vs mic)
   const screenAudioActive = ref(false)
 
-  // Speaking language — null means Whisper auto-detects (recommended)
-  // Set this when the user knows what language they/the video will speak
-  const speakingLanguage = ref<string | null>(null)
+  // Speaking language — defaults to Vietnamese (primary input), en only when explicitly enabled.
+  // Uses a dedicated cookie so it is independent of the UI locale cookie ('language').
+  const speakingLanguageCookie = useCookie<string>('speaking_language', { default: () => 'vi' })
+  const speakingLanguage = ref<string>(speakingLanguageCookie.value)
+
+  // Persist speaking language preference so the selection survives page reloads
+  watch(speakingLanguage, (value) => {
+    speakingLanguageCookie.value = value
+  })
 
   // TTS — disabled by default to reduce latency; enable when audio playback is needed
   const ttsEnabled = ref(false)
@@ -177,7 +183,6 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
         original: string
         language: string
       }) => {
-        console.log('[subtitle_partial]', entry.id, entry.original)
         subtitles.value.push({
           id: entry.id,
           speakerId: entry.speakerId,
@@ -198,13 +203,6 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     )
 
     socket.on('subtitle_update', (entry: SubtitleEntry & { meetingId: number }) => {
-      console.log(
-        '[subtitle_update]',
-        entry.id,
-        entry.original,
-        'translations:',
-        Object.keys(entry.translations ?? {}),
-      )
 
       // Find existing partial entry and update it in-place
       const existing = subtitles.value.find((subtitle) => subtitle.id === entry.id)
@@ -357,33 +355,13 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
       },
     )
 
-    livekitRoom.on(RoomEvent.LocalTrackPublished, (publication) => {
+    livekitRoom.on(RoomEvent.LocalTrackPublished, (_publication) => {
       // triggerRef: notify Vue watchers that localParticipant's internal state changed
       // (a track was published/unpublished). Cannot use re-assign because markRaw(obj) === obj
       // → Vue sees same reference → skips watcher notification.
       triggerRef(localParticipant)
 
-      // When ScreenShareAudio is published, switch audio capture to screen audio
-      if (
-        publication.source === Track.Source.ScreenShareAudio &&
-        publication.track?.mediaStreamTrack
-      ) {
-        const mediaStreamTrack = publication.track.mediaStreamTrack
-        stopAudioCapture()
-        screenAudioActive.value = true
-        startAudioCapture(new MediaStream([mediaStreamTrack]))
-
-        // Restore mic when the screen audio track ends (user closes the tab/window being shared)
-        mediaStreamTrack.addEventListener(
-          'ended',
-          () => {
-            stopAudioCapture()
-            screenAudioActive.value = false
-            if (isMicEnabled.value) startAudioCapture()
-          },
-          { once: true },
-        )
-      }
+      // ScreenShareAudio is intentionally ignored for subtitles — only mic voice is transcribed
     })
 
     livekitRoom.on(RoomEvent.LocalTrackUnpublished, (publication) => {
@@ -393,15 +371,7 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
       triggerRef(localParticipant)
 
       if (publication.source === Track.Source.ScreenShare) {
-        // Handles the case where the user clicks Chrome's native "Stop sharing" floating button —
-        // that unpublishes the track directly without going through stopScreenShare().
         isScreenSharing.value = false
-      }
-
-      if (publication.source === Track.Source.ScreenShareAudio) {
-        stopAudioCapture()
-        screenAudioActive.value = false
-        if (isMicEnabled.value) startAudioCapture()
       }
     })
 
@@ -514,9 +484,7 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     } catch (error) {
       // NotAllowedError: user dismissed the picker or macOS Screen Recording permission is denied.
       // Any other error: constraint rejection or LiveKit negotiation failure.
-      if (error instanceof Error && error.name !== 'NotAllowedError') {
-        console.error('[screen-share] failed to start:', error)
-      }
+      // NotAllowedError: user dismissed the picker — not an error worth logging
 
       return
     }
@@ -649,22 +617,15 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     if (!socket?.connected) return
 
     blob.arrayBuffer().then((buffer) => {
-      const bytes = new Uint8Array(buffer)
-      let binary = ''
-
-      for (let index = 0; index < bytes.byteLength; index++) {
-        binary += String.fromCharCode(bytes[index]!)
-      }
-
       // volatile: drop this audio chunk if the socket buffer is backed up.
       // Prevents audio chunks from blocking subtitle/signaling events (head-of-line blocking).
       // A dropped chunk means one missed subtitle — far better than delayed subtitles for all.
       socket!.volatile.emit('audio_stream', {
         meetingId: meetingId.value,
-        audioBase64: btoa(binary),
-        speakerLanguage: speakingLanguage.value || null,
+        audioData: buffer,
+        speakerLanguage: speakingLanguage.value,
         ttsEnabled: ttsEnabled.value,
-        isScreenAudio: screenAudioActive.value,
+        isScreenAudio: false,
       })
     })
   }
@@ -672,15 +633,11 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
   function startVADRecording() {
     if (!isCapturing || !audioStream) return
 
-    // VAD parameters
-    // Screen share: lower threshold (video audio is already mixed, no AEC needed)
-    // but require higher sustained level to avoid sending silent/noise segments
-    const SILENCE_THRESHOLD = screenAudioActive.value ? 0.008 : 0.01
-    const SILENCE_DURATION_MS = screenAudioActive.value ? 600 : 700
-    const MIN_SPEECH_MS = screenAudioActive.value ? 1500 : 1000
-    // Keep chunks short — Whisper latency scales with chunk size (base model: ~1s per 4s audio).
-    // 4s chunks → ~1s transcription delay. 8s chunks → ~2s+ delay → subtitle lags visibly.
-    const MAX_SPEECH_MS = screenAudioActive.value ? 4000 : 3500
+    // VAD parameters — mic only
+    const SILENCE_THRESHOLD = 0.015
+    const SILENCE_DURATION_MS = 450
+    const MIN_SPEECH_MS = 800
+    const MAX_SPEECH_MS = 2000
 
     vadAudioContext = new AudioContext()
     const source = vadAudioContext.createMediaStreamSource(audioStream)

@@ -24,11 +24,14 @@ export function useCrudPage<
     hasActiveFilter?: (filters: DefaultFilters) => boolean
   },
 ) {
+  const { t } = useI18n()
   const defaultSortKey = options?.defaultSortKey ?? 'name'
 
   /** START DEFINE STATE */
   const items = ref<T[]>([]) as Ref<T[]>
   const isLoading = ref(false)
+  const errorSnackbar = ref(false)
+  const errorMessage = ref('')
   const dialog = ref(false)
   const dialogDelete = ref(false)
   const editedIndex = ref(-1)
@@ -78,7 +81,8 @@ export function useCrudPage<
         items.value = Array.isArray(raw) ? raw : Object.values(raw)
       }
     } catch (error) {
-      console.error('Failed to fetch data:', error)
+      errorMessage.value = error instanceof Error ? error.message : t('common.error')
+      errorSnackbar.value = true
     } finally {
       isLoading.value = false
     }
@@ -96,12 +100,8 @@ export function useCrudPage<
   }
 
   const onConfirm = async () => {
-    try {
-      onClose()
-      await fetchData()
-    } catch (error) {
-      console.error('Failed to save:', error)
-    }
+    onClose()
+    await fetchData()
   }
 
   const onClose = () => {
@@ -125,11 +125,10 @@ export function useCrudPage<
         await service.delete(item.id)
         await fetchData()
         entityToDelete.value = null
-      } else {
-        console.error('Invalid item id:', item.id)
       }
     } catch (error) {
-      console.error('Failed to delete:', error)
+      errorMessage.value = error instanceof Error ? error.message : t('common.error')
+      errorSnackbar.value = true
     }
   }
 
@@ -176,6 +175,8 @@ export function useCrudPage<
     // State
     items,
     isLoading,
+    errorSnackbar,
+    errorMessage,
     dialog,
     dialogDelete,
     editedIndex,

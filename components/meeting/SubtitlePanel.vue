@@ -3,19 +3,9 @@
     <div class="subtitle-panel__header">
       <div class="d-flex align-center gap-1 flex-shrink-0">
         <v-icon icon="mdi-subtitles-outline" size="16"></v-icon>
-        <v-chip
-          v-if="screenAudioActive"
-          size="x-small"
-          color="primary"
-          variant="tonal"
-          class="px-1"
-        >
-          <v-icon start size="10">mdi-monitor-share</v-icon>
-          Screen
-        </v-chip>
       </div>
       <div class="d-flex gap-2 align-center">
-        <!-- Speaking language: what language the speaker is using -->
+        <!-- Speaking language selector -->
         <v-tooltip :text="$t('meetings.speakingLangHint')" location="bottom">
           <template #activator="{ props }">
             <div v-bind="props" class="subtitle-select-wrap">
@@ -28,28 +18,8 @@
                 density="compact"
                 variant="outlined"
                 hide-details
-                :placeholder="$t('meetings.langAuto')"
-                clearable
                 class="subtitle-panel__lang-select"
-                @update:model-value="emit('update:speakingLanguage', $event ?? null)"
-              />
-            </div>
-          </template>
-        </v-tooltip>
-        <!-- Display language: what language subtitles are shown in -->
-        <v-tooltip :text="$t('meetings.viewLangHint')" location="bottom">
-          <template #activator="{ props }">
-            <div v-bind="props" class="subtitle-select-wrap">
-              <v-icon size="12" class="subtitle-select-icon">mdi-subtitles-outline</v-icon>
-              <v-select
-                v-model="selectedViewLanguage"
-                :items="languageOptions"
-                item-title="label"
-                item-value="value"
-                density="compact"
-                variant="outlined"
-                hide-details
-                class="subtitle-panel__lang-select"
+                @update:model-value="emit('update:speakingLanguage', $event)"
               />
             </div>
           </template>
@@ -61,7 +31,9 @@
       <div v-for="(entry, index) in subtitles" :key="index" class="subtitle-entry">
         <span class="subtitle-entry__speaker">{{ entry.speakerName }}</span>
         <p class="subtitle-entry__original">{{ entry.original }}</p>
-        <p
+
+        <!-- Pending state -->
+        <div
           v-if="entry.pending"
           class="subtitle-entry__translation subtitle-entry__translation--pending"
         >
@@ -73,10 +45,19 @@
             class="mr-1"
           ></v-progress-circular>
           {{ $t('meetings.translating') }}
-        </p>
-        <p v-else-if="translatedText(entry)" class="subtitle-entry__translation">
-          → {{ translatedText(entry) }}
-        </p>
+        </div>
+
+        <!-- All translations displayed -->
+        <template v-else>
+          <div
+            v-for="lang in displayTranslations(entry)"
+            :key="lang.code"
+            class="subtitle-entry__translation"
+          >
+            <span class="translation-lang-badge">{{ lang.label }}</span>
+            {{ lang.text }}
+          </div>
+        </template>
       </div>
 
       <div v-if="subtitles.length === 0" class="subtitle-panel__empty">
@@ -95,48 +76,47 @@ import type { SubtitleEntry } from '@/composables/useMeeting'
 const props = defineProps<{
   subtitles: SubtitleEntry[]
   userLanguage: string
-  speakingLanguage: string | null
-  screenAudioActive: boolean
+  speakingLanguage: string
 }>()
 
 const emit = defineEmits<{
-  'update:userLanguage': [lang: string]
-  'update:speakingLanguage': [lang: string | null]
+  'update:speakingLanguage': [lang: string]
 }>()
 // END DEFINE PROPERTY AND EMITS
 
 // START DEFINE STATE
 const scrollContainer = ref<HTMLElement | null>(null)
 
-const languageOptions = [
-  { value: 'vi', label: 'Tiếng Việt' },
-  { value: 'en', label: 'English' },
-  { value: 'ja', label: '日本語' },
-]
+const LANG_MAP: Record<string, string> = {
+  vi: 'VI',
+  en: 'EN',
+  ja: '日本語',
+}
 
 const speakingOptions = [
-  { value: 'vi', label: 'Nói: Việt' },
-  { value: 'en', label: 'Nói: EN' },
-  { value: 'ja', label: 'Nói: JA' },
+  { value: 'vi', label: 'VI' },
+  { value: 'ja', label: 'JA' },
+  { value: 'en', label: 'EN' },
 ]
-
-const selectedViewLanguage = ref(props.userLanguage)
 // END DEFINE STATE
 
 // START DEFINE METHOD
-function translatedText(entry: SubtitleEntry): string {
-  if (entry.language === selectedViewLanguage.value) return ''
+function displayTranslations(
+  entry: SubtitleEntry,
+): Array<{ code: string; label: string; text: string }> {
+  const result: Array<{ code: string; label: string; text: string }> = []
 
-  return entry.translations[selectedViewLanguage.value] ?? ''
+  for (const [code, text] of Object.entries(entry.translations)) {
+    if (text && code !== entry.language) {
+      result.push({ code, label: LANG_MAP[code] ?? code.toUpperCase(), text })
+    }
+  }
+
+  return result
 }
 // END DEFINE METHOD
 
 // START DEFINE WATCHER
-watch(selectedViewLanguage, (lang) => {
-  emit('update:userLanguage', lang)
-  useCookie('language').value = lang
-})
-
 watch(
   () => props.subtitles.length,
   async () => {
@@ -243,6 +223,9 @@ watch(
   color: var(--sp-fg-medium);
   margin: 2px 0 0;
   font-style: italic;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .subtitle-entry__translation--pending {
@@ -251,5 +234,17 @@ watch(
   font-style: normal;
   color: var(--sp-fg-disabled);
   font-size: 12px;
+}
+
+.translation-lang-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--sp-fg-muted);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-style: normal;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
 }
 </style>

@@ -314,6 +314,10 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-snackbar v-model="errorSnackbar" color="error" :timeout="4000" location="bottom right">
+      {{ errorMessage }}
+    </v-snackbar>
   </v-container>
 </template>
 
@@ -373,6 +377,8 @@ const editedItem = ref<UserModel | null>(null)
 const dialogCancelKyc = ref(false)
 const selectedUserForCancelKyc = ref<UserModel | null>(null)
 const cancelKycLoading = ref(false)
+const errorSnackbar = ref(false)
+const errorMessage = ref('')
 const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
   { key: 'first_name', order: 'asc' },
 ])
@@ -418,8 +424,8 @@ const isFilterActive = computed(() => activeFilterCount.value > 0)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
-function formatLastSeenUser(dateStr: string): string {
-  const date = new Date(dateStr)
+function formatLastSeenUser(dateString: string): string {
+  const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffMinutes = Math.floor(diffMs / 60000)
@@ -467,7 +473,8 @@ const getUsers = async () => {
       users.value = await UserService.getAll()
     }
   } catch (error) {
-    console.error('Failed to fetch users:', error)
+    errorMessage.value = error instanceof Error ? error.message : t('common.error')
+    errorSnackbar.value = true
   } finally {
     isLoading.value = false
   }
@@ -527,7 +534,8 @@ const onConfirm = async () => {
     onClose()
     await getUsers()
   } catch (error) {
-    console.error('Failed to save user:', error)
+    errorMessage.value = error instanceof Error ? error.message : t('common.error')
+    errorSnackbar.value = true
   }
 }
 
@@ -570,7 +578,8 @@ const confirmCancelKyc = async () => {
     dialogCancelKyc.value = false
     selectedUserForCancelKyc.value = null
   } catch (error) {
-    console.error('Failed to cancel KYC:', error)
+    errorMessage.value = error instanceof Error ? error.message : t('common.error')
+    errorSnackbar.value = true
   } finally {
     cancelKycLoading.value = false
   }
@@ -590,7 +599,8 @@ const onConfirmDelete = async (item: UserModel) => {
       await getUsers()
     }
   } catch (error) {
-    console.error('Failed to delete user:', error)
+    errorMessage.value = error instanceof Error ? error.message : t('common.error')
+    errorSnackbar.value = true
   } finally {
     selectedUser.value = null
   }
