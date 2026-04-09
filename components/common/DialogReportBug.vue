@@ -43,6 +43,14 @@
             </v-col>
 
             <v-col cols="12">
+              <div class="field-label">{{ $t('bugReports.reportedAt').toUpperCase() }}</div>
+              <div class="reported-at-display text-body-2">
+                <v-icon size="14" class="mr-1" color="medium-emphasis">mdi-clock-outline</v-icon>
+                {{ formattedReportedAt }}
+              </div>
+            </v-col>
+
+            <v-col cols="12">
               <div class="field-label">{{ $t('bugReports.screenshot').toUpperCase() }}</div>
               <div class="d-flex flex-column ga-2">
                 <div class="d-flex ga-2">
@@ -131,7 +139,14 @@ const screenshot = ref<string>('')
 const screenshotPreview = ref<string>('')
 const isSubmitting = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
+const reportedAt = ref<Date>(new Date())
 /* END DEFINE STATE */
+
+/** START DEFINE COMPUTED */
+const formattedReportedAt = computed(() => {
+  return reportedAt.value.toLocaleString()
+})
+/* END DEFINE COMPUTED */
 
 /** START DEFINE VALIDATE */
 const { t } = useI18n()
@@ -180,9 +195,12 @@ const confirm = handleSubmit(async () => {
   isSubmitting.value = true
 
   try {
+    const timestampSuffix = `\n\n---\n🕐 ${t('bugReports.reportedAt')}: ${formattedReportedAt.value}`
+    const fullDescription = (description.value || '') + timestampSuffix
+
     const result = await BugReportService.create({
       title: title.value,
-      description: description.value || undefined,
+      description: fullDescription.trim(),
       screenshot: screenshot.value || undefined,
     })
     emit('confirm', result)
@@ -206,9 +224,12 @@ const close = () => {
 watch(
   () => props.dialog,
   (value) => {
-    if (value && props.initialScreenshot) {
-      screenshot.value = props.initialScreenshot
-      screenshotPreview.value = props.initialScreenshot
+    if (value) {
+      reportedAt.value = new Date()
+      if (props.initialScreenshot) {
+        screenshot.value = props.initialScreenshot
+        screenshotPreview.value = props.initialScreenshot
+      }
     }
 
     if (!value) close()
@@ -228,5 +249,12 @@ watch(
 
 .border {
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+}
+
+.reported-at-display {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 </style>

@@ -14,12 +14,17 @@
       <!-- Original message -->
       <div v-if="parent" class="thread-original px-4 py-3">
         <div class="d-flex ga-3">
-          <v-avatar size="36" :color="parent.avatar ? undefined : 'primary'" class="flex-shrink-0">
-            <v-img v-if="parent.avatar" :src="parent.avatar" cover />
-            <span v-else class="text-caption text-white font-weight-bold">{{
-              parentInitials
-            }}</span>
-          </v-avatar>
+          <button
+            class="thread-avatar-btn flex-shrink-0"
+            @click="openAvatarPreview(parent.avatar ?? null, parent.username)"
+          >
+            <v-avatar size="36" :color="parent.avatar ? undefined : 'primary'">
+              <v-img v-if="parent.avatar" :src="parent.avatar" cover />
+              <span v-else class="text-caption text-white font-weight-bold">{{
+                parentInitials
+              }}</span>
+            </v-avatar>
+          </button>
           <div class="flex-grow-1" style="min-width: 0">
             <div class="d-flex align-baseline ga-2 mb-1">
               <span class="text-body-2 font-weight-bold">{{ parent.username }}</span>
@@ -62,12 +67,17 @@
           class="thread-reply d-flex ga-3 py-2"
           :class="{ 'thread-reply--unread': isReplyUnread(reply) }"
         >
-          <v-avatar size="32" :color="reply.avatar ? undefined : 'grey'" class="flex-shrink-0">
-            <v-img v-if="reply.avatar" :src="reply.avatar" cover />
-            <span v-else class="text-caption font-weight-bold">{{
-              getInitials(reply.username)
-            }}</span>
-          </v-avatar>
+          <button
+            class="thread-avatar-btn flex-shrink-0"
+            @click="openAvatarPreview(reply.avatar ?? null, reply.username)"
+          >
+            <v-avatar size="32" :color="reply.avatar ? undefined : 'grey'">
+              <v-img v-if="reply.avatar" :src="reply.avatar" cover />
+              <span v-else class="text-caption font-weight-bold">{{
+                getInitials(reply.username)
+              }}</span>
+            </v-avatar>
+          </button>
           <div class="flex-grow-1" style="min-width: 0">
             <div class="d-flex align-baseline ga-2 mb-1">
               <span class="text-body-2 font-weight-bold">{{ reply.username }}</span>
@@ -168,6 +178,29 @@
       />
     </div>
   </v-sheet>
+
+  <!-- Avatar preview overlay -->
+  <Teleport to="body">
+    <div
+      v-if="avatarPreviewOpen"
+      class="thread-avatar-overlay"
+      @click.self="avatarPreviewOpen = false"
+    >
+      <div class="thread-avatar-card">
+        <div class="thread-avatar-card-name">{{ avatarPreviewName }}</div>
+        <img
+          v-if="avatarPreviewSource"
+          :src="avatarPreviewSource"
+          class="thread-avatar-card-img"
+          alt="avatar"
+        />
+        <div v-else class="thread-avatar-card-initials">
+          {{ (avatarPreviewName ?? 'U').charAt(0).toUpperCase() }}
+        </div>
+        <button class="thread-avatar-close-btn" @click="avatarPreviewOpen = false">✕</button>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -232,6 +265,9 @@ const showTranslation = ref(props.autoTranslate)
 const quotedMessage = ref<ChatMessage | null>(null)
 const editingReplyId = ref<number | null>(null)
 const editContent = ref('')
+const avatarPreviewOpen = ref(false)
+const avatarPreviewSource = ref<string | null>(null)
+const avatarPreviewName = ref<string>('')
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -270,6 +306,12 @@ const parentRenderedContent = computed(() => {
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+function openAvatarPreview(source: string | null, name: string) {
+  avatarPreviewSource.value = source
+  avatarPreviewName.value = name
+  avatarPreviewOpen.value = true
+}
+
 function getInitials(username: string): string {
   const parts = username.trim().split(' ')
 
@@ -518,5 +560,89 @@ watch(
     z-index: 999;
     border-left: none;
   }
+}
+
+.thread-avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  border-radius: 50%;
+  transition: opacity 0.15s;
+}
+
+.thread-avatar-btn:hover {
+  opacity: 0.8;
+}
+
+.thread-avatar-btn :deep(.v-avatar) {
+  pointer-events: auto;
+}
+
+.thread-avatar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thread-avatar-card {
+  background: rgb(var(--v-theme-surface));
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  min-width: 240px;
+}
+
+.thread-avatar-card-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.thread-avatar-card-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+.thread-avatar-card-initials {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  background: rgb(var(--v-theme-primary));
+  color: white;
+  font-size: 64px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.thread-avatar-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: rgb(var(--v-theme-on-surface));
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.thread-avatar-close-btn:hover {
+  opacity: 1;
 }
 </style>

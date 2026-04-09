@@ -295,21 +295,22 @@
     </v-snackbar>
 
     <!-- Room description dialog -->
-    <v-dialog v-model="descriptionDialog" max-width="480">
+    <v-dialog v-model="descriptionDialog" max-width="480" scrollable>
       <v-card rounded="xl">
         <v-card-title class="pa-4 pb-2 d-flex align-center ga-2">
           <v-icon size="18" color="medium-emphasis">mdi-pound</v-icon>
           <span class="text-h6">{{ room?.name }}</span>
         </v-card-title>
         <v-divider />
-        <div class="pa-4">
+        <v-card-text class="pa-4">
           <div class="text-caption text-medium-emphasis text-uppercase font-weight-medium mb-2">
             {{ $t('chat.roomDescriptionTitle') }}
           </div>
-          <div class="text-body-2" style="white-space: pre-wrap; line-height: 1.7">
-            {{ room?.description }}
-          </div>
-        </div>
+          <div
+            class="text-body-2"
+            style="white-space: pre-wrap; word-break: break-word; line-height: 1.7"
+          >{{ room?.description }}</div>
+        </v-card-text>
         <v-divider />
         <v-card-actions class="pa-3">
           <v-spacer />
@@ -793,8 +794,8 @@ watch(
     nextTick(() => scrollToMessage(messageId))
   },
 )
-watch([roomLoadError, messageLoadError], ([roomError, msgError]) => {
-  const error = roomError || msgError
+watch([roomLoadError, messageLoadError], ([roomError, messageError]) => {
+  const error = roomError || messageError
   if (error) {
     chatErrorMessage.value = error
     chatErrorSnackbar.value = true

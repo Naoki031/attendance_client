@@ -203,7 +203,6 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     )
 
     socket.on('subtitle_update', (entry: SubtitleEntry & { meetingId: number }) => {
-
       // Find existing partial entry and update it in-place
       const existing = subtitles.value.find((subtitle) => subtitle.id === entry.id)
 
@@ -481,11 +480,9 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
         },
         screenSharePublishOptions,
       )
-    } catch (error) {
+    } catch {
       // NotAllowedError: user dismissed the picker or macOS Screen Recording permission is denied.
       // Any other error: constraint rejection or LiveKit negotiation failure.
-      // NotAllowedError: user dismissed the picker — not an error worth logging
-
       return
     }
 

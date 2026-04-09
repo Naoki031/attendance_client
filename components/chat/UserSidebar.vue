@@ -23,7 +23,10 @@
           class="mb-1"
         >
           <template #prepend>
-            <div class="position-relative mr-3">
+            <div
+              class="position-relative mr-3 member-avatar-btn"
+              @click.stop="openProfileDialog(member)"
+            >
               <v-avatar size="28" :color="member.user?.avatar ? undefined : 'primary'">
                 <v-img v-if="member.user?.avatar" :src="member.user.avatar" cover />
                 <span v-else class="text-caption text-white font-weight-bold">
@@ -92,7 +95,10 @@
             class="mb-1"
           >
             <template #prepend>
-              <div class="position-relative mr-3">
+              <div
+                class="position-relative mr-3 member-avatar-btn"
+                @click.stop="openProfileDialog(member)"
+              >
                 <v-avatar size="28" :color="member.user?.avatar ? undefined : 'grey'">
                   <v-img v-if="member.user?.avatar" :src="member.user.avatar" cover />
                   <span v-else class="text-caption font-weight-bold">
@@ -146,6 +152,9 @@
       </template>
     </div>
 
+    <!-- User profile dialog -->
+    <DialogUserProfile v-model="profileDialogOpen" :user="profileUser" />
+
     <!-- Kick member confirmation dialog -->
     <DialogKickMember
       :dialog="kickDialog"
@@ -194,9 +203,10 @@
 <script setup lang="ts">
 /** START IMPORT */
 import type { PropType } from 'vue'
-import type { ChatOnlineUser } from '@/types/chat'
+import type { ChatOnlineUser, UserProfileData } from '@/types/chat'
 import type { ChatRoomMemberModel } from '@/interfaces/models/ChatRoomModel'
 import DialogKickMember from '@/components/chat/DialogKickMember.vue'
+import DialogUserProfile from '@/components/chat/DialogUserProfile.vue'
 /* END IMPORT */
 
 /** START DEFINE PROPS */
@@ -265,6 +275,8 @@ const languageOptions = [
 
 const kickDialog = ref(false)
 const memberToKick = ref<ChatRoomMemberModel | null>(null)
+const profileDialogOpen = ref(false)
+const profileUser = ref<UserProfileData | null>(null)
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
@@ -272,6 +284,20 @@ const { t } = useI18n()
 
 function getDisplayName(member: ChatRoomMemberModel): string {
   return member.user?.full_name ?? member.user?.email ?? 'User'
+}
+
+function openProfileDialog(member: ChatRoomMemberModel) {
+  profileUser.value = {
+    id: member.user_id,
+    fullName: member.user?.full_name ?? member.user?.email ?? 'User',
+    email: member.user?.email,
+    avatar: member.user?.avatar ?? null,
+    role: member.role,
+    joinedAt: member.joined_at,
+    isOnline: onlineUserIds.value.has(member.user_id),
+    lastSeenAt: member.user?.last_seen_at ?? null,
+  }
+  profileDialogOpen.value = true
 }
 
 function openKickDialog(member: ChatRoomMemberModel) {
@@ -383,5 +409,13 @@ watch(
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.member-avatar-btn {
+  cursor: pointer;
+}
+
+.member-avatar-btn:hover {
+  opacity: 0.8;
 }
 </style>

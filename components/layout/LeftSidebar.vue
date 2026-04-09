@@ -103,6 +103,10 @@ const onChange = (value: boolean) => {
 }
 
 const handleReportBug = async () => {
+  if (!mdAndUp.value) {
+    drawerState.isOpen.value = false
+    await nextTick()
+  }
   await capture()
   bugDialogOpen.value = true
 }

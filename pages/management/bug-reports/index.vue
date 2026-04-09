@@ -90,9 +90,21 @@
     <v-dialog v-model="dialogUpdate" max-width="500px">
       <v-card rounded="xl" elevation="2" class="pa-6">
         <div class="text-h6 font-weight-bold mb-2">{{ $t('bugReports.updateStatus') }}</div>
-        <div class="text-body-2 text-medium-emphasis mb-4">
-          {{ selectedItem?.title }}
+        <div class="text-body-2 font-weight-medium mb-1">{{ selectedItem?.title }}</div>
+
+        <!-- Submission time -->
+        <div v-if="selectedItem?.created_at" class="d-flex align-center ga-1 mb-2">
+          <v-icon size="13" color="medium-emphasis">mdi-clock-outline</v-icon>
+          <span class="text-caption text-medium-emphasis">{{
+            formatDatetime(selectedItem.created_at)
+          }}</span>
         </div>
+
+        <!-- Description (includes reported-at timestamp) -->
+        <div v-if="selectedItem?.description" class="bug-description text-body-2 mb-4">
+          {{ selectedItem.description }}
+        </div>
+        <v-divider v-if="selectedItem?.description" class="mb-4" />
 
         <v-select
           v-model="updateStatus"
@@ -279,3 +291,16 @@ onMounted(() => {
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
+
+<style scoped>
+.bug-description {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: rgba(var(--v-theme-on-surface), 0.04);
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  max-height: 160px;
+  overflow-y: auto;
+}
+</style>

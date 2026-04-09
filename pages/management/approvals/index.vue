@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="py-6 px-6">
     <!-- Page header -->
-    <div class="d-flex align-center justify-space-between mb-5">
+    <div class="d-flex flex-column flex-sm-row align-sm-center justify-space-between mb-5 ga-3">
       <div>
         <div class="d-flex align-center">
           <div class="text-h5 font-weight-bold">{{ $t('approvals.title') }}</div>
@@ -18,8 +18,8 @@
           {{ $t('approvals.reviewSubtitle') }}
         </div>
       </div>
-      <!-- Status filter tabs -->
-      <div class="d-flex align-center ga-2">
+      <!-- Filters -->
+      <div class="d-flex flex-wrap align-center ga-2">
         <v-select
           v-model="selectedMonth"
           :items="monthOptions"
@@ -31,7 +31,7 @@
           flat
           density="compact"
           hide-details
-          style="min-width: 140px"
+          class="filter-select"
         />
         <v-select
           v-model="selectedYear"
@@ -42,13 +42,25 @@
           flat
           density="compact"
           hide-details
-          style="min-width: 100px"
+          class="filter-select"
         />
-        <v-btn-toggle v-model="statusFilter" rounded="lg" density="compact" mandatory>
-          <v-btn value="" size="small">{{ $t('requestStatus.all') }}</v-btn>
-          <v-btn value="pending" size="small">{{ $t('requestStatus.pending') }}</v-btn>
-          <v-btn value="approved" size="small">{{ $t('requestStatus.approved') }}</v-btn>
-          <v-btn value="rejected" size="small">{{ $t('requestStatus.rejected') }}</v-btn>
+        <v-btn-toggle
+          v-model="statusFilter"
+          rounded="lg"
+          density="compact"
+          mandatory
+          class="status-toggle"
+        >
+          <v-btn value="" size="small" class="flex-1-1">{{ $t('requestStatus.all') }}</v-btn>
+          <v-btn value="pending" size="small" class="flex-1-1">{{
+            $t('requestStatus.pending')
+          }}</v-btn>
+          <v-btn value="approved" size="small" class="flex-1-1">{{
+            $t('requestStatus.approved')
+          }}</v-btn>
+          <v-btn value="rejected" size="small" class="flex-1-1">{{
+            $t('requestStatus.rejected')
+          }}</v-btn>
         </v-btn-toggle>
       </div>
     </div>
@@ -536,5 +548,29 @@ useSocketEvent<EmployeeRequestModel>('request:updated', () => {
   overflow: hidden;
   max-width: 200px;
   cursor: default;
+}
+
+.filter-select {
+  min-width: 120px;
+  flex: 1 1 120px;
+}
+
+.status-toggle {
+  width: 100%;
+}
+
+.table-responsive-card {
+  overflow-x: auto;
+}
+
+@media (min-width: 600px) {
+  .filter-select {
+    flex: 0 0 auto;
+    min-width: 120px;
+  }
+
+  .status-toggle {
+    width: auto;
+  }
 }
 </style>

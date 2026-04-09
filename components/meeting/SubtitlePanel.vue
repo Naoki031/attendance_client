@@ -7,8 +7,8 @@
       <div class="d-flex gap-2 align-center">
         <!-- Speaking language selector -->
         <v-tooltip :text="$t('meetings.speakingLangHint')" location="bottom">
-          <template #activator="{ props }">
-            <div v-bind="props" class="subtitle-select-wrap">
+          <template #activator="{ props: activatorProps }">
+            <div v-bind="activatorProps" class="subtitle-select-wrap">
               <v-icon size="12" class="subtitle-select-icon">mdi-microphone</v-icon>
               <v-select
                 :model-value="speakingLanguage"

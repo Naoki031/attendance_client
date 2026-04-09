@@ -224,7 +224,7 @@
             <v-btn
               v-if="featureFaceCheckin && userStore.user?.kyc_status === 'approved'"
               variant="tonal"
-              color="deep-purple"
+              color="accent"
               rounded="lg"
               prepend-icon="mdi-face-recognition"
               @click="faceCheckinOpen = true"

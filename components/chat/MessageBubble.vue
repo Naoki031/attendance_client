@@ -9,10 +9,12 @@
     }"
   >
     <!-- Avatar -->
-    <v-avatar size="36" :color="message.avatar ? undefined : 'primary'" class="message-avatar">
-      <v-img v-if="message.avatar" :src="message.avatar" cover />
-      <span v-else class="text-caption text-white font-weight-bold">{{ initials }}</span>
-    </v-avatar>
+    <button class="message-avatar-btn" @click="openProfileDialog()">
+      <v-avatar size="36" :color="message.avatar ? undefined : 'primary'" class="message-avatar">
+        <v-img v-if="message.avatar" :src="message.avatar" cover />
+        <span v-else class="text-caption text-white font-weight-bold">{{ initials }}</span>
+      </v-avatar>
+    </button>
 
     <!-- Bubble content -->
     <div class="message-content">
@@ -234,17 +236,20 @@
       </div>
     </div>
   </div>
+
+  <DialogUserProfile v-model="profileDialogOpen" :user="profileUser" />
 </template>
 
 <script setup lang="ts">
 /** START IMPORT */
 import type { PropType } from 'vue'
-import type { ChatMessage } from '@/types/chat'
+import type { ChatMessage, UserProfileData } from '@/types/chat'
 import type { ChatRoomMemberModel } from '@/interfaces/models/ChatRoomModel'
 import { useMoment } from '@/composables/useMoment'
 import { renderChatMarkdown } from '@/utils/chatMarkdown'
 import EmojiPicker from '@/components/chat/EmojiPicker.vue'
 import { isCustomEmoji, getCustomEmojiUrl, getCustomEmojiLabel } from '@/utils/customEmoji'
+import DialogUserProfile from '@/components/chat/DialogUserProfile.vue'
 /* END IMPORT */
 
 /** START DEFINE PROPS */
@@ -301,6 +306,8 @@ const showTranslation = ref(props.autoTranslate)
 const isEditing = ref(false)
 const editContent = ref('')
 const reactionMenuOpen = ref(false)
+const profileDialogOpen = ref(false)
+const profileUser = ref<UserProfileData | null>(null)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -351,6 +358,21 @@ const formattedTime = computed(() => {
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+function openProfileDialog() {
+  const member = props.members.find((member) => member.user_id === props.message.userId)
+  profileUser.value = {
+    id: props.message.userId,
+    fullName: member?.user?.full_name ?? props.message.username,
+    email: member?.user?.email,
+    avatar: props.message.avatar || null,
+    role: member?.role,
+    joinedAt: member?.joined_at,
+    isOnline: false,
+    lastSeenAt: member?.user?.last_seen_at ?? null,
+  }
+  profileDialogOpen.value = true
+}
+
 function toggleTranslation() {
   if (hasTranslation.value) {
     showTranslation.value = !showTranslation.value
@@ -418,9 +440,28 @@ watch(
   flex-direction: row-reverse;
 }
 
-.message-avatar {
+.message-avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  border-radius: 50%;
   flex-shrink: 0;
   margin-top: 4px;
+  transition: opacity 0.15s;
+}
+
+.message-avatar-btn:hover {
+  opacity: 0.8;
+}
+
+.message-avatar-btn :deep(.v-avatar) {
+  pointer-events: auto;
+}
+
+.message-avatar {
+  flex-shrink: 0;
 }
 
 .message-content {

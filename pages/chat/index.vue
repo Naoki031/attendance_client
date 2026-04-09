@@ -137,14 +137,24 @@
                     </v-avatar>
 
                     <div class="flex-grow-1 min-width-0">
-                      <div class="d-flex align-center ga-1">
+                      <div class="d-flex align-center ga-1 min-width-0">
                         <span class="text-body-2 font-weight-semibold room-list-name">
                           {{ room.name }}
                         </span>
-                        <v-icon v-if="room.visibility === 'private'" size="11" color="warning">
+                        <v-icon
+                          v-if="room.visibility === 'private'"
+                          size="11"
+                          color="warning"
+                          class="flex-shrink-0"
+                        >
                           mdi-lock
                         </v-icon>
-                        <v-icon v-if="isMyRoom(room)" size="12" color="warning">
+                        <v-icon
+                          v-if="isMyRoom(room)"
+                          size="12"
+                          color="warning"
+                          class="flex-shrink-0"
+                        >
                           mdi-crown-outline
                           <v-tooltip activator="parent" location="top">Tôi tạo</v-tooltip>
                         </v-icon>
@@ -164,8 +174,14 @@
                         {{ getUnreadCount(room.uuid) }}
                       </v-chip>
 
-                      <!-- Avatar stack -->
-                      <div class="avatar-stack">
+                      <!-- Member count — always visible -->
+                      <span class="text-caption text-disabled flex-shrink-0">
+                        <v-icon size="12" color="medium-emphasis">mdi-account-group-outline</v-icon>
+                        {{ room.member_count ?? 0 }}
+                      </span>
+
+                      <!-- Avatar stack — hidden on mobile -->
+                      <div class="avatar-stack d-none d-sm-flex">
                         <v-avatar
                           v-for="member in (room.preview_members ?? []).slice(0, 4)"
                           :key="member.id"
@@ -313,17 +329,6 @@
                         {{ $t('chat.createdBy', { name: room.creator?.full_name }) }}
                       </div>
                     </div>
-                    <v-btn
-                      variant="tonal"
-                      color="primary"
-                      size="small"
-                      rounded="lg"
-                      class="btn-shine flex-shrink-0"
-                      :loading="joiningRoomId === room.id"
-                      @click.stop="handleJoin(room)"
-                    >
-                      {{ $t('chat.joinRoom') }}
-                    </v-btn>
                   </div>
 
                   <!-- Description -->
@@ -346,10 +351,15 @@
 
                   <!-- Footer -->
                   <div class="room-card-footer d-flex align-center justify-space-between pt-2">
-                    <v-chip size="x-small" variant="tonal" color="success" prepend-icon="mdi-earth">
-                      {{ $t('chat.visibilityPublic') }}
-                    </v-chip>
                     <div class="d-flex align-center ga-2">
+                      <v-chip
+                        size="x-small"
+                        variant="tonal"
+                        color="success"
+                        prepend-icon="mdi-earth"
+                      >
+                        {{ $t('chat.visibilityPublic') }}
+                      </v-chip>
                       <!-- Avatar stack -->
                       <div class="avatar-stack">
                         <v-avatar
@@ -373,6 +383,17 @@
                       </div>
                       <span class="text-caption text-disabled">{{ room.member_count ?? 0 }}</span>
                     </div>
+                    <v-btn
+                      variant="tonal"
+                      color="primary"
+                      size="small"
+                      rounded="lg"
+                      class="btn-shine flex-shrink-0"
+                      :loading="joiningRoomId === room.id"
+                      @click.stop="handleJoin(room)"
+                    >
+                      {{ $t('chat.joinRoom') }}
+                    </v-btn>
                   </div>
                 </div>
               </v-card>
@@ -578,6 +599,11 @@ onMounted(() => {
   align-items: center;
 }
 
+/* ── Utility ─────────────────────────────────────────────── */
+.min-width-0 {
+  min-width: 0 !important;
+}
+
 /* ── Compact list rows (My Rooms tab) ────────────────────── */
 .room-list-item {
   cursor: pointer;
@@ -611,6 +637,8 @@ onMounted(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1 1 0;
 }
 
 .room-list-sub {

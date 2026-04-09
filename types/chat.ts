@@ -41,3 +41,14 @@ export type ChatMessagesResponse = {
   messages: ChatMessage[]
   nextCursor: number | null
 }
+
+export type UserProfileData = {
+  id: number
+  fullName: string
+  email?: string
+  avatar?: string | null
+  role?: 'admin' | 'member'
+  joinedAt?: string
+  isOnline?: boolean
+  lastSeenAt?: string | null
+}

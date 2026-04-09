@@ -271,9 +271,9 @@
                 closable-chips
                 required
               >
-                <template #chip="{ item, props: chipProps }">
-                  <v-chip v-bind="chipProps" :closable="item.id !== defaultRoleId">
-                    {{ item.name }}
+                <template #chip="{ item: chipItem, props: chipProps }">
+                  <v-chip v-bind="chipProps" :closable="chipItem.id !== defaultRoleId">
+                    {{ chipItem.name }}
                   </v-chip>
                 </template>
               </v-select>

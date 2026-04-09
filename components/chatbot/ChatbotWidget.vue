@@ -5,7 +5,14 @@
     <v-card v-if="isOpen" class="chatbot-panel" elevation="8" rounded="lg" width="360">
       <!-- Header -->
       <v-toolbar color="primary" density="compact" rounded="t-lg">
-        <v-icon icon="mdi-robot-outline" class="ml-2 mr-2"></v-icon>
+        <button
+          class="chatbot-avatar-btn flex-shrink-0"
+          @click="openAvatarPreview('/chatbot-avatar.png', chatbotName)"
+        >
+          <v-avatar size="28" class="ml-2 mr-2">
+            <v-img src="/chatbot-avatar.png" alt="chatbot"></v-img>
+          </v-avatar>
+        </button>
         <v-toolbar-title class="text-body-2 font-weight-bold">{{ chatbotName }}</v-toolbar-title>
         <v-spacer></v-spacer>
         <v-btn
@@ -54,6 +61,10 @@
               <v-icon icon="mdi-lightning-bolt" size="14" class="mr-1"></v-icon>
               {{ $t('chatbot.settings.concise') }}
             </v-btn>
+            <v-btn value="rapper" size="small" class="flex-1-1">
+              <v-icon icon="mdi-microphone-variant" size="14" class="mr-1"></v-icon>
+              {{ $t('chatbot.settings.rapper') }}
+            </v-btn>
           </v-btn-toggle>
           <div class="text-caption text-medium-emphasis mb-3">{{ toneDescription }}</div>
 
@@ -93,9 +104,16 @@
       >
         <!-- Welcome + suggested questions -->
         <div v-if="messages.length === 0" class="text-center text-medium-emphasis py-4">
-          <v-icon icon="mdi-robot-outline" size="40" color="primary" class="mb-2"></v-icon>
-          <div class="text-body-2 mb-1">{{ $t('chatbot.welcome') }}</div>
-          <div class="text-caption mb-3">{{ $t('chatbot.welcomeSubtitle') }}</div>
+          <button
+            class="chatbot-avatar-btn flex-shrink-0"
+            @click="openAvatarPreview('/chatbot-avatar.png', chatbotName)"
+          >
+            <v-avatar size="64" class="mb-2">
+              <v-img src="/chatbot-avatar.png" alt="chatbot"></v-img>
+            </v-avatar>
+          </button>
+          <div class="text-body-1 mb-1">{{ $t('chatbot.welcome') }}</div>
+          <div class="text-body-2 mb-3">{{ $t('chatbot.welcomeSubtitle') }}</div>
           <!-- Suggested question chips -->
           <div class="d-flex flex-wrap justify-center ga-1">
             <v-chip
@@ -104,7 +122,7 @@
               size="small"
               variant="tonal"
               color="primary"
-              class="chatbot-chip text-caption"
+              class="chatbot-chip text-body-2"
               @click="sendSuggestedQuestion(question)"
             >
               {{ question }}
@@ -115,56 +133,82 @@
         <!-- Message list -->
         <div v-for="(message, index) in messages" :key="index" class="mb-3">
           <!-- User message -->
-          <div v-if="message.role === 'user'" class="d-flex justify-end">
+          <div v-if="message.role === 'user'" class="d-flex justify-end align-end ga-1">
             <v-sheet
               color="primary"
-              class="chatbot-bubble text-white text-body-2 pa-2 px-3"
+              class="chatbot-bubble text-body-1 pa-2 px-3"
               rounded="lg"
-              max-width="280"
+              max-width="260"
             >
               {{ message.content }}
             </v-sheet>
+            <button
+              class="chatbot-avatar-btn flex-shrink-0"
+              @click="
+                openAvatarPreview(
+                  userStore.user?.avatar ?? null,
+                  userStore.user?.full_name ?? 'User',
+                )
+              "
+            >
+              <v-avatar size="24" :color="userStore.user?.avatar ? undefined : 'primary'">
+                <v-img v-if="userStore.user?.avatar" :src="userStore.user.avatar" cover />
+                <span v-else class="text-caption font-weight-bold" style="font-size: 12px">
+                  {{ (userStore.user?.full_name ?? 'U').charAt(0).toUpperCase() }}
+                </span>
+              </v-avatar>
+            </button>
           </div>
 
           <!-- Assistant message -->
-          <div v-else class="d-flex flex-column align-start">
-            <v-sheet
-              color="surface-variant"
-              class="chatbot-bubble text-body-2 pa-2 px-3"
-              rounded="lg"
-              max-width="280"
+          <div v-else class="d-flex align-end ga-1">
+            <button
+              class="chatbot-avatar-btn flex-shrink-0"
+              @click="openAvatarPreview('/chatbot-avatar.png', chatbotName)"
             >
-              <!-- eslint-disable-next-line vue/no-v-html -->
-              <div
-                class="chatbot-markdown text-body-2"
-                v-html="renderMarkdown(message.content)"
-              ></div>
-            </v-sheet>
-            <!-- Follow-up suggestion chips -->
-            <div
-              v-if="message.suggestions && message.suggestions.length > 0"
-              class="d-flex flex-wrap ga-1 mt-1"
-              style="max-width: 300px"
-            >
-              <v-chip
-                v-for="suggestion in message.suggestions"
-                :key="suggestion"
-                size="x-small"
-                variant="outlined"
-                color="primary"
-                class="chatbot-chip text-caption"
-                :disabled="isLoading"
-                @click="sendSuggestedQuestion(suggestion)"
+              <v-avatar size="24">
+                <v-img src="/chatbot-avatar.png" alt="chatbot" cover />
+              </v-avatar>
+            </button>
+            <div class="d-flex flex-column align-start">
+              <v-sheet
+                class="chatbot-bubble chatbot-bubble--assistant text-body-1 pa-2 px-3"
+                rounded="lg"
+                max-width="260"
               >
-                {{ suggestion }}
-              </v-chip>
+                <!-- eslint-disable vue/no-v-html -->
+                <div
+                  class="chatbot-markdown text-body-1"
+                  v-html="renderMarkdown(message.content)"
+                ></div>
+                <!-- eslint-enable vue/no-v-html -->
+              </v-sheet>
+              <!-- Follow-up suggestion chips -->
+              <div
+                v-if="message.suggestions && message.suggestions.length > 0"
+                class="d-flex flex-wrap ga-1 mt-1"
+                style="max-width: 280px"
+              >
+                <v-chip
+                  v-for="suggestion in message.suggestions"
+                  :key="suggestion"
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  class="chatbot-chip text-body-2"
+                  :disabled="isLoading"
+                  @click="sendSuggestedQuestion(suggestion)"
+                >
+                  {{ suggestion }}
+                </v-chip>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Typing indicator -->
         <div v-if="isLoading" class="d-flex justify-start mb-2">
-          <v-sheet color="surface-variant" class="pa-2 px-3" rounded="lg">
+          <v-sheet class="chatbot-bubble--assistant pa-2 px-3" rounded="lg">
             <div class="chatbot-typing"><span></span><span></span><span></span></div>
           </v-sheet>
         </div>
@@ -205,8 +249,31 @@
       elevation="6"
       @click="isOpen = !isOpen"
     >
-      <v-icon :icon="isOpen ? 'mdi-close' : 'mdi-robot-outline'"></v-icon>
+      <v-icon v-if="isOpen" icon="mdi-close"></v-icon>
+      <v-avatar v-else size="36">
+        <v-img src="/chatbot-avatar.png" alt="chatbot"></v-img>
+      </v-avatar>
     </v-btn>
+    <!-- Avatar preview overlay -->
+    <div
+      v-if="avatarPreviewOpen"
+      class="chatbot-avatar-overlay"
+      @click.self="avatarPreviewOpen = false"
+    >
+      <div class="chatbot-avatar-card">
+        <div class="chatbot-avatar-card-name">{{ avatarPreviewName }}</div>
+        <img
+          v-if="avatarPreviewSource"
+          :src="avatarPreviewSource"
+          class="chatbot-avatar-card-img"
+          alt="avatar"
+        />
+        <div v-else class="chatbot-avatar-card-initials">
+          {{ (avatarPreviewName ?? 'U').charAt(0).toUpperCase() }}
+        </div>
+        <button class="chatbot-avatar-close-btn" @click="avatarPreviewOpen = false">✕</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -227,6 +294,8 @@ const chatbotName = computed<string>(
 // ── Storage keys ──────────────────────────────────────────────────────────────
 const STORAGE_TONE = 'chatbot_tone'
 const STORAGE_HISTORY_LIMIT = 'chatbot_history_limit'
+const STORAGE_MESSAGES = 'chatbot_messages'
+const MAX_ASSISTANT_REPLIES = 20
 
 // ── Suggested questions ───────────────────────────────────────────────────────
 const SUGGESTED_QUESTIONS = computed<string[]>(() => {
@@ -250,6 +319,7 @@ const TONE_DESCRIPTIONS = computed<Record<string, string>>(() => ({
   professional: t('chatbot.settings.professionalDesc'),
   friendly: t('chatbot.settings.friendlyDesc'),
   concise: t('chatbot.settings.conciseDesc'),
+  rapper: t('chatbot.settings.rapperDesc'),
 }))
 
 const HISTORY_LIMIT_DESCRIPTIONS = computed<Record<number, string>>(() => ({
@@ -271,6 +341,33 @@ const loadStorageInt = (key: string, defaultValue: number): number => {
   return stored !== null ? parseInt(stored, 10) : defaultValue
 }
 
+const loadStorageMessages = (): ChatbotMessage[] => {
+  if (typeof localStorage === 'undefined') return []
+  try {
+    const stored = localStorage.getItem(STORAGE_MESSAGES)
+    if (!stored) return []
+    const parsed = JSON.parse(stored)
+    if (!Array.isArray(parsed)) return []
+    return parsed as ChatbotMessage[]
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Removes oldest user+assistant pairs from the front until
+ * the number of assistant replies is within MAX_ASSISTANT_REPLIES.
+ */
+const trimMessages = (msgs: ChatbotMessage[]): ChatbotMessage[] => {
+  let result = [...msgs]
+  while (result.filter((message) => message.role === 'assistant').length > MAX_ASSISTANT_REPLIES) {
+    const firstAssistantIndex = result.findIndex((message) => message.role === 'assistant')
+    if (firstAssistantIndex === -1) break
+    result = result.slice(firstAssistantIndex + 1)
+  }
+  return result
+}
+
 /**
  * Detects the language of a given text using simple character-set heuristics.
  * Returns 'Vietnamese', 'Japanese', or 'English'.
@@ -288,11 +385,14 @@ const isOpen = ref(false)
 const isSettingsOpen = ref(false)
 const isHelpOpen = ref(false)
 const inputMessage = ref('')
-const messages = ref<ChatbotMessage[]>([])
+const messages = ref<ChatbotMessage[]>(loadStorageMessages())
 const isLoading = ref(false)
 const messagesContainer = ref<HTMLElement | null>(null)
 const selectedTone = ref<string>(loadStorage(STORAGE_TONE, 'professional'))
 const selectedHistoryLimit = ref<number>(loadStorageInt(STORAGE_HISTORY_LIMIT, 10))
+const avatarPreviewOpen = ref(false)
+const avatarPreviewSource = ref<string | null>(null)
+const avatarPreviewName = ref<string>('')
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -303,6 +403,12 @@ const historyLimitDescription = computed(
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+const openAvatarPreview = (source: string | null, name: string) => {
+  avatarPreviewSource.value = source
+  avatarPreviewName.value = name
+  avatarPreviewOpen.value = true
+}
+
 const toggleHelp = () => {
   isHelpOpen.value = !isHelpOpen.value
   if (isHelpOpen.value) isSettingsOpen.value = false
@@ -332,6 +438,7 @@ const scrollToBottom = async () => {
 
 const clearMessages = () => {
   messages.value = []
+  if (typeof localStorage !== 'undefined') localStorage.removeItem(STORAGE_MESSAGES)
   isSettingsOpen.value = false
 }
 
@@ -362,12 +469,14 @@ const doSend = async (text: string) => {
       content: response.reply,
       suggestions: response.suggestions ?? [],
     })
+    messages.value = trimMessages(messages.value)
   } catch (error) {
     console.error('Chatbot error:', error)
     messages.value.push({
       role: 'assistant',
       content: t('chatbot.error'),
     })
+    messages.value = trimMessages(messages.value)
   } finally {
     isLoading.value = false
     await scrollToBottom()
@@ -395,6 +504,15 @@ watch(isOpen, async (value) => {
     await scrollToBottom()
   }
 })
+
+watch(
+  messages,
+  (value) => {
+    if (typeof localStorage !== 'undefined')
+      localStorage.setItem(STORAGE_MESSAGES, JSON.stringify(value))
+  },
+  { deep: true },
+)
 
 watch(selectedTone, (value) => {
   if (typeof localStorage !== 'undefined') localStorage.setItem(STORAGE_TONE, value)
@@ -448,9 +566,16 @@ watch(selectedHistoryLimit, (value) => {
   overflow-y: auto;
   min-height: 280px;
   max-height: 360px;
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .chatbot-bubble {
+  word-break: break-word;
+}
+
+.chatbot-bubble--assistant {
+  background-color: rgba(var(--v-theme-on-surface), 0.08);
+  color: rgb(var(--v-theme-on-surface));
   word-break: break-word;
 }
 
@@ -470,6 +595,26 @@ watch(selectedHistoryLimit, (value) => {
 
 .chatbot-toggle-button {
   flex-shrink: 0;
+}
+
+.chatbot-avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  border-radius: 50%;
+  transition: opacity 0.15s;
+  position: relative;
+  z-index: 1;
+}
+
+.chatbot-avatar-btn:hover {
+  opacity: 0.8;
+}
+
+.chatbot-avatar-btn :deep(.v-avatar) {
+  pointer-events: auto;
 }
 
 /* Markdown rendered content */
@@ -516,10 +661,10 @@ watch(selectedHistoryLimit, (value) => {
   margin: 6px 0 4px;
 }
 .chatbot-markdown :deep(blockquote) {
-  border-left: 3px solid #ccc;
+  border-left: 3px solid rgba(var(--v-theme-on-surface), 0.3);
   margin: 4px 0;
   padding-left: 8px;
-  color: #666;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 
 /* Typing indicator animation */
@@ -534,7 +679,7 @@ watch(selectedHistoryLimit, (value) => {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background-color: #aaa;
+  background-color: rgba(var(--v-theme-on-surface), 0.4);
   animation: chatbot-bounce 1.2s infinite;
 }
 
@@ -555,5 +700,71 @@ watch(selectedHistoryLimit, (value) => {
   30% {
     transform: translateY(-6px);
   }
+}
+
+.chatbot-avatar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatbot-avatar-card {
+  background: rgb(var(--v-theme-surface));
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  min-width: 240px;
+}
+
+.chatbot-avatar-card-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+.chatbot-avatar-card-img {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto;
+}
+
+.chatbot-avatar-card-initials {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  background: rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-on-primary));
+  font-size: 64px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.chatbot-avatar-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: rgb(var(--v-theme-on-surface));
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.chatbot-avatar-close-btn:hover {
+  opacity: 1;
 }
 </style>

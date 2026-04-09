@@ -768,9 +768,11 @@
       "professional": "Formal",
       "friendly": "Friendly",
       "concise": "Concise",
+      "rapper": "Rapper",
       "professionalDesc": "Formal and respectful — suitable for professional environments",
       "friendlyDesc": "Warm and approachable — easy to interact with",
       "conciseDesc": "Brief and direct — only essential information",
+      "rapperDesc": "Rhymes and rhythm — answers drop like bars",
       "sonnetDesc": "Sonnet — smarter, better for complex questions",
       "haikuDesc": "Haiku — faster response, cost-efficient",
       "history5": "Remember last 5 messages (~2 turns)",
@@ -853,7 +855,8 @@
     "noScreenshot": "No screenshot provided",
     "submittedBy": "Submitted by",
     "submittedAt": "Submitted at",
-    "viewScreenshot": "View Screenshot"
+    "viewScreenshot": "View Screenshot",
+    "reportedAt": "Reported at"
   },
   "validation": {
     "leaveTypeRequired": "Leave type is required",
@@ -998,7 +1001,15 @@
     "pinnedMessages": "Pinned messages",
     "pinnedCount": "{count} pinned",
     "pinnedBy": "Pinned by {name}",
-    "noPinnedMessages": "No pinned messages"
+    "noPinnedMessages": "No pinned messages",
+    "role": "Role",
+    "roleAdmin": "Admin",
+    "roleMember": "Member",
+    "joinedRoom": "Joined room",
+    "lastSeenLabel": "Last seen",
+    "position": "Position",
+    "company": "Company",
+    "dateOfBirth": "Date of birth"
   },
   "face": {
     "registerTitle": "Register Face",
@@ -1062,8 +1073,15 @@
       "wrongUser": "You can only clock in/out yourself on this device. To use as a shared kiosk, the device must be logged in with an admin account.",
       "ipRestricted": "Clock-in not allowed from this network. You must be on the company network or have an approved WFH request for today.",
       "noIpConfig": "Your company has not configured an IP whitelist yet. Please contact an admin.",
-      "connectionError": "Cannot connect to the server. Please check your network and try again."
-    }
+      "connectionError": "Cannot connect to the server. Please check your network and try again.",
+      "blurry": "Image is too blurry. Ensure good lighting and stay still.",
+      "blurryRetry": "Blurry image, please retry ({retries}/{max})",
+      "faceNotDetectedRetry": "Face not detected. Please retry.",
+      "kycFailed": "Verification error. Please try again.",
+      "registerFailed": "Registration failed, please try again"
+    },
+    "kycComplete": "Verification complete. Press confirm to register.",
+    "registerSuccess": "Face registered successfully!"
   },
   "meetings": {
     "meetingType": "Meeting Type",

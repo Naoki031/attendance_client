@@ -26,14 +26,7 @@ export type LivenessChallenge =
   | 'move_closer'
   | 'move_further'
 
-const RANDOM_CHALLENGES: LivenessChallenge[] = [
-  'blink',
-  'smile',
-  'turn_left',
-  'turn_right',
-  'move_closer',
-  'move_further',
-]
+const RANDOM_CHALLENGES: LivenessChallenge[] = ['smile', 'turn_left', 'turn_right']
 
 const TIMEOUT_MS = 9000
 const POLL_INTERVAL_MS = 120
@@ -198,9 +191,11 @@ export const useLiveness = () => {
             } else if (selectedChallenge === 'smile') {
               actionDetected = isSmiling(positions)
             } else if (selectedChallenge === 'turn_left') {
-              actionDetected = isHeadTurnedLeft(positions)
-            } else if (selectedChallenge === 'turn_right') {
+              // Video is displayed mirrored — swap detection so the instruction matches
+              // what the user sees: "turn left" in mirror = nose moves right in raw frame
               actionDetected = isHeadTurnedRight(positions)
+            } else if (selectedChallenge === 'turn_right') {
+              actionDetected = isHeadTurnedLeft(positions)
             } else if (selectedChallenge === 'move_closer') {
               actionDetected = faceRatio > MOVE_CLOSER_RATIO
             } else if (selectedChallenge === 'move_further') {

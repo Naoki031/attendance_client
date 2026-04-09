@@ -418,13 +418,13 @@ export function useChat() {
     if (!currentRoomUuid) return
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = (await ($apiFetch as any)(`/messages/thread/${parentMessage.id}`)) as any[]
-      threadReplies.value = result.map((raw: any) =>
-        transformMessage(raw as Record<string, unknown>),
+      const result = await ($apiFetch as unknown as (url: string) => Promise<unknown[]>)(
+        `/messages/thread/${parentMessage.id}`,
       )
+      threadReplies.value = result.map((raw) => transformMessage(raw as Record<string, unknown>))
     } catch (error) {
-      messageLoadError.value = error instanceof Error ? error.message : 'Failed to load thread replies'
+      messageLoadError.value =
+        error instanceof Error ? error.message : 'Failed to load thread replies'
     }
   }
 

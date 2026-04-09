@@ -144,22 +144,11 @@
 
       <!-- Liveness prompt for current step -->
       <v-expand-transition>
-        <div
-          v-if="currentChallenge"
-          class="text-center py-3 px-2 mb-3"
-          style="background: rgba(var(--v-theme-primary), 0.08); border-radius: 8px"
-        >
-          <v-icon color="primary" class="mr-1" size="18">mdi-eye-outline</v-icon>
-          <span class="text-body-2 font-weight-medium text-primary">
+        <div class="text-center py-2 px-2 mb-3">
+          <v-chip color="primary" variant="tonal" prepend-icon="mdi-eye-outline" class="mb-2">
             {{ $t(`face.liveness.${currentChallenge}`) }}
-          </span>
-          <v-progress-linear
-            :model-value="livenessProgress"
-            color="primary"
-            height="3"
-            rounded
-            class="mt-2"
-          />
+          </v-chip>
+          <v-progress-linear :model-value="livenessProgress" color="primary" height="3" rounded />
         </div>
       </v-expand-transition>
 
@@ -391,15 +380,12 @@ const startKyc = async () => {
           retries++
 
           if (retries > KYC_MAX_RETRIES) {
-            showStatus(
-              'Ảnh quá mờ, không thể nhận diện. Hãy đảm bảo đủ ánh sáng và đứng yên.',
-              'error',
-            )
+            showStatus(t('face.error.blurry'), 'error')
 
             return
           }
 
-          showStatus(`Ảnh mờ, vui lòng thử lại (${retries}/${KYC_MAX_RETRIES})`, 'error')
+          showStatus(t('face.error.blurryRetry', { retries, max: KYC_MAX_RETRIES }), 'error')
           // Brief pause so user can read the message before re-running the challenge
           await new Promise((resolve) => setTimeout(resolve, 1500))
           statusMessage.value = null
@@ -411,7 +397,7 @@ const startKyc = async () => {
           retries++
 
           if (retries > KYC_MAX_RETRIES) {
-            showStatus('Không nhận diện được khuôn mặt. Vui lòng thử lại.', 'error')
+            showStatus(t('face.error.faceNotDetectedRetry'), 'error')
 
             return
           }
@@ -440,10 +426,10 @@ const startKyc = async () => {
     capturedDescriptor.value = averageDescriptors(collectedDescriptors)
     kycDone.value = true
     stopCamera()
-    showStatus('Xác minh hoàn tất. Nhấn xác nhận để đăng ký.', 'info')
+    showStatus(t('face.kycComplete'), 'info')
   } catch (error) {
     console.error('KYC error:', error)
-    showStatus('Lỗi trong quá trình xác minh. Vui lòng thử lại.', 'error')
+    showStatus(t('face.error.kycFailed'), 'error')
   } finally {
     isCapturing.value = false
     kycCurrentStep.value = 0
@@ -461,11 +447,11 @@ const confirmRegister = async () => {
       capturedDescriptor.value,
       capturedBlob.value,
     )
-    showStatus('Đăng ký khuôn mặt thành công!', 'success')
+    showStatus(t('face.registerSuccess'), 'success')
     emit('registered', result)
   } catch (error) {
     console.error('Face register error:', error)
-    showStatus('Đăng ký thất bại, vui lòng thử lại', 'error')
+    showStatus(t('face.error.registerFailed'), 'error')
   } finally {
     isRegistering.value = false
   }

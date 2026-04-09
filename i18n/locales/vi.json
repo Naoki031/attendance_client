@@ -768,9 +768,11 @@
       "professional": "Trang trọng",
       "friendly": "Thân thiện",
       "concise": "Ngắn gọn",
+      "rapper": "Rapper",
       "professionalDesc": "Lịch sự, trang trọng — phù hợp với môi trường công việc chuyên nghiệp",
       "friendlyDesc": "Thân thiện, gần gũi — dễ tiếp cận, phù hợp khi cần hỗ trợ nhanh",
       "conciseDesc": "Ngắn gọn, súc tích — chỉ thông tin cần thiết, không lan man",
+      "rapperDesc": "Vần điệu, nhịp điệu — câu trả lời như những thanh bars",
       "sonnetDesc": "Sonnet — thông minh hơn, phù hợp câu hỏi phức tạp",
       "haikuDesc": "Haiku — phản hồi nhanh hơn, tiết kiệm chi phí",
       "history5": "Ghi nhớ 5 tin nhắn gần nhất (~2 lượt hỏi)",
@@ -853,7 +855,8 @@
     "noScreenshot": "Không có ảnh chụp",
     "submittedBy": "Được gửi bởi",
     "submittedAt": "Gửi vào lúc",
-    "viewScreenshot": "Xem Ảnh Chụp"
+    "viewScreenshot": "Xem Ảnh Chụp",
+    "reportedAt": "Thời gian gửi"
   },
   "validation": {
     "leaveTypeRequired": "Loại nghỉ phép là bắt buộc",
@@ -998,7 +1001,15 @@
     "pinnedMessages": "Tin nhắn đã ghim",
     "pinnedCount": "{count} tin ghim",
     "pinnedBy": "Ghim bởi {name}",
-    "noPinnedMessages": "Chưa có tin nhắn nào được ghim"
+    "noPinnedMessages": "Chưa có tin nhắn nào được ghim",
+    "role": "Vai trò",
+    "roleAdmin": "Quản trị",
+    "roleMember": "Thành viên",
+    "joinedRoom": "Tham gia phòng",
+    "lastSeenLabel": "Lần cuối online",
+    "position": "Chức vụ",
+    "company": "Công ty",
+    "dateOfBirth": "Ngày sinh"
   },
   "face": {
     "registerTitle": "Đăng ký khuôn mặt",
@@ -1062,8 +1073,15 @@
       "wrongUser": "Bạn chỉ được chấm công cho chính mình trên thiết bị này. Để dùng làm kiosk chung, thiết bị phải đăng nhập bằng tài khoản admin.",
       "ipRestricted": "Không được phép chấm công từ mạng này. Bạn cần nằm trong mạng nội bộ công ty hoặc có đơn WFH được duyệt cho hôm nay.",
       "noIpConfig": "Công ty chưa cấu hình danh sách IP cho phép. Vui lòng liên hệ admin.",
-      "connectionError": "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại."
-    }
+      "connectionError": "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.",
+      "blurry": "Ảnh quá mờ, không thể nhận diện. Hãy đảm bảo đủ ánh sáng và đứng yên.",
+      "blurryRetry": "Ảnh mờ, vui lòng thử lại ({retries}/{max})",
+      "faceNotDetectedRetry": "Không nhận diện được khuôn mặt. Vui lòng thử lại.",
+      "kycFailed": "Lỗi trong quá trình xác minh. Vui lòng thử lại.",
+      "registerFailed": "Đăng ký thất bại, vui lòng thử lại"
+    },
+    "kycComplete": "Xác minh hoàn tất. Nhấn xác nhận để đăng ký.",
+    "registerSuccess": "Đăng ký khuôn mặt thành công!"
   },
   "meetings": {
     "meetingType": "Loại cuộc họp",

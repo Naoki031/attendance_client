@@ -12,7 +12,7 @@
               density="comfortable"
               :color="editor?.isActive('bold') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleBold().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleBold().run()"
             >
               <v-icon size="16">mdi-format-bold</v-icon>
             </v-btn>
@@ -27,7 +27,7 @@
               density="comfortable"
               :color="editor?.isActive('italic') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleItalic().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleItalic().run()"
             >
               <v-icon size="16">mdi-format-italic</v-icon>
             </v-btn>
@@ -42,7 +42,7 @@
               density="comfortable"
               :color="editor?.isActive('underline') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleUnderline().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleUnderline().run()"
             >
               <v-icon size="16">mdi-format-underline</v-icon>
             </v-btn>
@@ -57,7 +57,7 @@
               density="comfortable"
               :color="editor?.isActive('strike') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleStrike().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleStrike().run()"
             >
               <strong class="text-body-2" style="text-decoration: line-through">S</strong>
             </v-btn>
@@ -73,7 +73,7 @@
               density="comfortable"
               :color="editor?.isActive('code') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleCode().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleCode().run()"
             >
               <v-icon size="16">mdi-code-tags</v-icon>
             </v-btn>
@@ -88,7 +88,7 @@
               density="comfortable"
               :color="editor?.isActive('codeBlock') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleCodeBlock().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleCodeBlock().run()"
             >
               <v-icon size="16">mdi-code-braces</v-icon>
             </v-btn>
@@ -104,7 +104,7 @@
               density="comfortable"
               :color="editor?.isActive('blockquote') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleBlockquote().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleBlockquote().run()"
             >
               <v-icon size="16">mdi-format-quote-close</v-icon>
             </v-btn>
@@ -119,7 +119,7 @@
               density="comfortable"
               :color="editor?.isActive('bulletList') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleBulletList().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleBulletList().run()"
             >
               <v-icon size="16">mdi-format-list-bulleted</v-icon>
             </v-btn>
@@ -134,7 +134,7 @@
               density="comfortable"
               :color="editor?.isActive('orderedList') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @click="editor?.chain().focus().toggleOrderedList().run()"
+              @mousedown.prevent="editor?.chain().focus().toggleOrderedList().run()"
             >
               <v-icon size="16">mdi-format-list-numbered</v-icon>
             </v-btn>

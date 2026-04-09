@@ -768,9 +768,11 @@
       "professional": "フォーマル",
       "friendly": "フレンドリー",
       "concise": "簡潔",
+      "rapper": "ラッパー",
       "professionalDesc": "丁寧でフォーマル — プロフェッショナルな環境に最適",
       "friendlyDesc": "温かく親しみやすい — 気軽に利用できる",
       "conciseDesc": "簡潔で直接的 — 必要な情報のみ",
+      "rapperDesc": "韻とリズム — バースのように答える",
       "sonnetDesc": "Sonnet — より高性能、複雑な質問に最適",
       "haikuDesc": "Haiku — 高速応答、コスト効率が良い",
       "history5": "直近5件のメッセージを記憶（約2ターン）",
@@ -853,7 +855,8 @@
     "noScreenshot": "スクリーンショットなし",
     "submittedBy": "報告者",
     "submittedAt": "送信日時",
-    "viewScreenshot": "スクリーンショットを表示"
+    "viewScreenshot": "スクリーンショットを表示",
+    "reportedAt": "報告日時"
   },
   "validation": {
     "leaveTypeRequired": "休暇種別は必須です",
@@ -998,7 +1001,15 @@
     "pinnedMessages": "ピン留めされたメッセージ",
     "pinnedCount": "{count}件のピン",
     "pinnedBy": "{name}がピン留め",
-    "noPinnedMessages": "ピン留めされたメッセージはありません"
+    "noPinnedMessages": "ピン留めされたメッセージはありません",
+    "role": "役割",
+    "roleAdmin": "管理者",
+    "roleMember": "メンバー",
+    "joinedRoom": "参加日",
+    "lastSeenLabel": "最終オンライン",
+    "position": "役職",
+    "company": "会社",
+    "dateOfBirth": "生年月日"
   },
   "face": {
     "registerTitle": "顔を登録",
@@ -1062,8 +1073,15 @@
       "wrongUser": "この端末では自分自身しか打刻できません。共有キオスクとして使用するには、管理者アカウントでログインしてください。",
       "ipRestricted": "このネットワークからの打刻は許可されていません。社内ネットワークに接続するか、本日のWFH申請が承認されている必要があります。",
       "noIpConfig": "会社の許可IPリストが設定されていません。管理者にお問い合わせください。",
-      "connectionError": "サーバーに接続できません。ネットワークを確認して再試行してください。"
-    }
+      "connectionError": "サーバーに接続できません。ネットワークを確認して再試行してください。",
+      "blurry": "画像がぼやけすぎています。明るい場所で静止してください。",
+      "blurryRetry": "ぼやけた画像です。再試行してください ({retries}/{max})",
+      "faceNotDetectedRetry": "顔を検出できませんでした。再試行してください。",
+      "kycFailed": "確認中にエラーが発生しました。もう一度お試しください。",
+      "registerFailed": "登録に失敗しました。もう一度お試しください"
+    },
+    "kycComplete": "確認が完了しました。確認ボタンを押して登録してください。",
+    "registerSuccess": "顔の登録が完了しました！"
   },
   "meetings": {
     "meetingType": "会議タイプ",

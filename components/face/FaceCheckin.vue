@@ -108,22 +108,11 @@
 
     <!-- Liveness prompt -->
     <v-expand-transition>
-      <div
-        v-if="currentChallenge"
-        class="liveness-banner text-center px-5 py-3"
-        style="background: rgba(var(--v-theme-primary), 0.1)"
-      >
-        <v-icon color="primary" class="mr-1">mdi-eye-outline</v-icon>
-        <span class="text-body-2 font-weight-medium text-primary">
+      <div class="liveness-banner px-5 py-3 text-center">
+        <v-chip color="primary" variant="tonal" prepend-icon="mdi-eye-outline" class="mb-2">
           {{ $t(`face.liveness.${currentChallenge}`) }}
-        </span>
-        <v-progress-linear
-          :model-value="livenessProgress"
-          color="primary"
-          height="3"
-          rounded
-          class="mt-2"
-        />
+        </v-chip>
+        <v-progress-linear :model-value="livenessProgress" color="primary" height="3" rounded />
       </div>
     </v-expand-transition>
 
@@ -371,6 +360,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.liveness-banner {
+  border-top: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+}
+
 .face-frame {
   width: 180px;
   height: 220px;
