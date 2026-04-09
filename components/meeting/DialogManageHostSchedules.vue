@@ -171,6 +171,7 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import moment from 'moment'
 import MeetingHostScheduleService from '@/services/MeetingHostScheduleService'
 import type {
   MeetingHostSchedule,
@@ -300,7 +301,7 @@ async function load() {
   try {
     schedules.value = await MeetingHostScheduleService.findAll(props.meetingUuid)
 
-    const today = new Date().toISOString().slice(0, 10)
+    const today = moment().format('YYYY-MM-DD')
     const resolved = await MeetingHostScheduleService.resolve(props.meetingUuid, today)
 
     const userFromSchedule = schedules.value

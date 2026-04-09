@@ -38,10 +38,10 @@ export default class MeetingHostScheduleService {
   public static async resolve(
     meetingUuid: string,
     date?: string,
-  ): Promise<{ host_user_id: number; date: string }> {
+  ): Promise<{ host_user_id: number | null; date: string }> {
     const parameters: Record<string, string> = {}
     if (date) parameters.date = date
-    return apiClient.get<{ host_user_id: number; date: string }>(
+    return apiClient.get<{ host_user_id: number | null; date: string }>(
       `meetings/${meetingUuid}/host-schedules/resolve`,
       parameters,
     )

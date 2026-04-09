@@ -257,6 +257,18 @@
         </v-container>
       </v-card-text>
 
+      <!-- Server error -->
+      <v-alert
+        v-if="serverError"
+        type="error"
+        variant="tonal"
+        density="compact"
+        rounded="0"
+        class="mx-6 mb-2"
+      >
+        {{ serverError }}
+      </v-alert>
+
       <!-- Footer -->
       <div class="d-flex justify-end ga-3 px-6 py-4">
         <v-btn variant="text" color="default" rounded="lg" @click="close">
@@ -273,7 +285,7 @@
 <script lang="ts" setup>
 /** START IMPORT */
 import MeetingHostScheduleService from '@/services/MeetingHostScheduleService'
-import UserService from '@/services/UserService'
+import MeetingService from '@/services/MeetingService'
 import type {
   MeetingHostSchedule,
   HostScheduleType,
@@ -300,6 +312,7 @@ const { t } = useI18n()
 const isSaving = ref(false)
 const users = ref<UserModel[]>([])
 const errors = ref<Record<string, string>>({})
+const serverError = ref<string | null>(null)
 
 const defaultForm = () => ({
   user_id: null as number | null,
@@ -385,6 +398,7 @@ function resetForm() {
     form.value = defaultForm()
   }
   errors.value = {}
+  serverError.value = null
 }
 
 function validate(): boolean {
@@ -464,8 +478,15 @@ async function submit() {
 
     emit('saved', saved)
     close()
-  } catch {
-    // Error is surfaced by the API layer
+  } catch (error) {
+    const fetchError = error as { data?: { message?: string } }
+    const message = fetchError.data?.message ?? ''
+    const conflictMatch = /Date (\d{4}-\d{2}-\d{2})/.exec(message)
+    if (conflictMatch) {
+      serverError.value = t('meetings.hostSchedule.dateConflict', { date: conflictMatch[1] })
+    } else {
+      serverError.value = message || t('common.error')
+    }
   } finally {
     isSaving.value = false
   }
@@ -477,7 +498,7 @@ function close() {
 
 async function loadUsers() {
   try {
-    users.value = await UserService.getAll()
+    users.value = await MeetingService.getUsersForMeeting(props.meetingUuid)
   } catch {
     // non-critical
   }

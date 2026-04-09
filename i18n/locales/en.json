@@ -1271,6 +1271,7 @@
       "empty": "No host schedules yet",
       "emptyHint": "Add a schedule to set who hosts on specific dates",
       "todayHost": "Today's host",
+      "noHostToday": "No host assigned today",
       "nextHost": "Next host",
       "viewSchedule": "View schedule",
       "inactive": "Inactive",
@@ -1280,7 +1281,8 @@
       "transferHostTitle": "Transfer host rights to another participant",
       "selectParticipant": "Select participant",
       "youAreHost": "You are the host",
-      "hostChanged": "{name} is now the host"
+      "hostChanged": "{name} is now the host",
+      "dateConflict": "Date {date} is already taken by another host schedule"
     },
     "pin": {
       "pin": "Pin",

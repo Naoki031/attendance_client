@@ -1271,6 +1271,7 @@
       "empty": "ホストスケジュールはありません",
       "emptyHint": "スケジュールを追加して特定の日のホストを設定してください",
       "todayHost": "本日のホスト",
+      "noHostToday": "本日のホストは未設定です",
       "nextHost": "次のホスト",
       "viewSchedule": "スケジュールを見る",
       "inactive": "無効",
@@ -1280,7 +1281,8 @@
       "transferHostTitle": "ホスト権限を別の参加者に移譲します",
       "selectParticipant": "参加者を選択",
       "youAreHost": "あなたはホストです",
-      "hostChanged": "{name}がホストになりました"
+      "hostChanged": "{name}がホストになりました",
+      "dateConflict": "日付{date}はすでに別のホストスケジュールに使用されています"
     },
     "pin": {
       "pin": "ピン留め",

@@ -2,15 +2,28 @@
   <div class="host-info">
     <!-- Effective host today -->
     <div class="d-flex align-center ga-2">
-      <v-avatar size="30" color="primary" rounded="lg">
-        <span class="text-caption font-weight-bold text-white">{{
-          initials(effectiveHostName)
-        }}</span>
-      </v-avatar>
-      <div class="min-width-0">
-        <div class="text-body-2 font-weight-bold text-truncate">{{ effectiveHostName }}</div>
-        <div class="text-caption text-disabled">{{ $t('meetings.hostSchedule.todayHost') }}</div>
-      </div>
+      <template v-if="effectiveHostName">
+        <v-avatar size="30" color="primary" rounded="lg">
+          <span class="text-caption font-weight-bold text-white">{{
+            initials(effectiveHostName)
+          }}</span>
+        </v-avatar>
+        <div class="min-width-0">
+          <div class="text-body-2 font-weight-bold text-truncate">{{ effectiveHostName }}</div>
+          <div class="text-caption text-disabled">{{ $t('meetings.hostSchedule.todayHost') }}</div>
+        </div>
+      </template>
+      <template v-else>
+        <v-avatar size="30" color="surface-variant" rounded="lg">
+          <v-icon size="16" color="medium-emphasis">mdi-account-question-outline</v-icon>
+        </v-avatar>
+        <div class="min-width-0">
+          <div class="text-body-2 text-medium-emphasis text-truncate">
+            {{ $t('meetings.hostSchedule.noHostToday') }}
+          </div>
+          <div class="text-caption text-disabled">{{ $t('meetings.hostSchedule.todayHost') }}</div>
+        </div>
+      </template>
     </div>
 
     <!-- Next host hint -->
@@ -54,6 +67,7 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import moment from 'moment'
 import MeetingHostScheduleService from '@/services/MeetingHostScheduleService'
 import type {
   MeetingHostSchedule,
@@ -73,6 +87,7 @@ const props = defineProps<{
 const { locale } = useI18n()
 const schedules = ref<MeetingHostSchedule[]>([])
 const todayHostId = ref<number | null>(null)
+const hasScheduleToday = ref(false)
 
 const SCHEDULE_TYPE_PRIORITY: Record<HostScheduleType, number> = {
   one_time: 4,
@@ -84,11 +99,11 @@ const SCHEDULE_TYPE_PRIORITY: Record<HostScheduleType, number> = {
 
 /** START DEFINE COMPUTED */
 const effectiveHostName = computed(() => {
-  if (todayHostId.value === null) return props.permanentHostName ?? ''
+  if (!hasScheduleToday.value) return null
   const userFromSchedule = schedules.value
     .flatMap((item) => (item.user ? [item.user] : []))
     .find((user) => user.id === todayHostId.value)
-  return userFromSchedule?.full_name ?? props.permanentHostName ?? ''
+  return userFromSchedule?.full_name ?? null
 })
 
 const nextHostEntry = computed(() => {
@@ -97,7 +112,7 @@ const nextHostEntry = computed(() => {
   for (let offset = 1; offset <= 30; offset++) {
     const date = new Date()
     date.setDate(date.getDate() + offset)
-    const dateString = date.toISOString().slice(0, 10)
+    const dateString = moment(date).format('YYYY-MM-DD')
     const entry = resolveHostForDate(dateString)
     if (entry && entry.userId !== todayId) {
       return { ...entry, dateStr: dateString }
@@ -170,12 +185,14 @@ function formatNextDate(dateString: string): string {
 
 async function load() {
   try {
+    const today = moment().format('YYYY-MM-DD')
     const [schedulesResult, resolved] = await Promise.all([
       MeetingHostScheduleService.findAll(props.meetingUuid),
-      MeetingHostScheduleService.resolve(props.meetingUuid),
+      MeetingHostScheduleService.resolve(props.meetingUuid, today),
     ])
     schedules.value = schedulesResult.filter((item) => item.is_active)
     todayHostId.value = resolved.host_user_id
+    hasScheduleToday.value = resolved.host_user_id !== null
   } catch {
     // non-critical
   }

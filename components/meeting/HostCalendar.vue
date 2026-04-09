@@ -79,6 +79,7 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import moment from 'moment'
 import type {
   MeetingHostSchedule,
   HostScheduleType,
@@ -139,7 +140,7 @@ interface CalendarDay {
 }
 
 const calendarDays = computed((): CalendarDay[] => {
-  const today = new Date().toISOString().slice(0, 10)
+  const today = moment().format('YYYY-MM-DD')
   const firstDay = new Date(currentYear.value, currentMonth.value, 1)
   const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
   const leadingDays = firstDay.getDay()
@@ -148,7 +149,7 @@ const calendarDays = computed((): CalendarDay[] => {
   for (let offset = leadingDays - 1; offset >= 0; offset--) {
     const date = new Date(firstDay)
     date.setDate(date.getDate() - offset - 1)
-    const dateString = date.toISOString().slice(0, 10)
+    const dateString = moment(date).format('YYYY-MM-DD')
     days.push({
       dateStr: dateString,
       day: date.getDate(),
@@ -160,7 +161,7 @@ const calendarDays = computed((): CalendarDay[] => {
 
   for (let dayNumber = 1; dayNumber <= lastDay.getDate(); dayNumber++) {
     const date = new Date(currentYear.value, currentMonth.value, dayNumber)
-    const dateString = date.toISOString().slice(0, 10)
+    const dateString = moment(date).format('YYYY-MM-DD')
     days.push({
       dateStr: dateString,
       day: dayNumber,
@@ -175,7 +176,7 @@ const calendarDays = computed((): CalendarDay[] => {
   for (let offset = 1; offset <= trailingCount; offset++) {
     const date = new Date(lastDay)
     date.setDate(date.getDate() + offset)
-    const dateString = date.toISOString().slice(0, 10)
+    const dateString = moment(date).format('YYYY-MM-DD')
     days.push({
       dateStr: dateString,
       day: date.getDate(),

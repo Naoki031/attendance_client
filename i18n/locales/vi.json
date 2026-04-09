@@ -1271,6 +1271,7 @@
       "empty": "Chưa có lịch host nào",
       "emptyHint": "Thêm lịch để đặt ai host vào những ngày cụ thể",
       "todayHost": "Host hôm nay",
+      "noHostToday": "Chưa có host hôm nay",
       "nextHost": "Host tiếp theo",
       "viewSchedule": "Xem lịch host",
       "inactive": "Tắt",
@@ -1280,7 +1281,8 @@
       "transferHostTitle": "Chuyển quyền host cho người khác trong phòng",
       "selectParticipant": "Chọn người tham gia",
       "youAreHost": "Bạn đang là host",
-      "hostChanged": "{name} đã trở thành host"
+      "hostChanged": "{name} đã trở thành host",
+      "dateConflict": "Ngày {date} đã được đặt bởi một lịch host khác"
     },
     "pin": {
       "pin": "Ghim",
