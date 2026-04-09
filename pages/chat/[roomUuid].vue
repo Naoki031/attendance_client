@@ -309,7 +309,9 @@
           <div
             class="text-body-2"
             style="white-space: pre-wrap; word-break: break-word; line-height: 1.7"
-          >{{ room?.description }}</div>
+          >
+            {{ room?.description }}
+          </div>
         </v-card-text>
         <v-divider />
         <v-card-actions class="pa-3">

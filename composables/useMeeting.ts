@@ -6,10 +6,22 @@ import type {
   RemoteParticipant,
   LocalParticipant,
   TrackPublication,
+  RemoteTrackPublication,
   RemoteTrack,
   TrackPublishOptions,
 } from 'livekit-client'
 import type { Ref } from 'vue'
+import { SCREEN_SHARE_PRESETS } from '@/types/meeting/ScreenShareQuality'
+import type { ScreenShareQuality } from '@/types/meeting/ScreenShareQuality'
+import type { CursorPosition, ScreenMarker } from '@/types/meeting/ScreenCursor'
+import type { MeetingVote } from '@/types/meeting/MeetingVote'
+
+// Preset colors assigned round-robin per userId so each participant has a distinct color
+const ANNOTATION_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA94D', '#69DB7C', '#DA77F2']
+
+function getUserAnnotationColor(userId: number): string {
+  return ANNOTATION_COLORS[userId % ANNOTATION_COLORS.length]!
+}
 
 export interface MeetingParticipantInfo {
   userId: number
@@ -28,7 +40,11 @@ export interface SubtitleEntry {
   pending: boolean // true while translation is still in-flight
 }
 
-export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
+export function useMeeting(
+  meetingId: Ref<number>,
+  _meetingUuid: Ref<string>,
+  onMeetingEnded?: () => void,
+) {
   const config = useRuntimeConfig()
 
   // Fallback to current origin so cross-device access (ngrok/local IP) works automatically
@@ -81,10 +97,25 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
   // identity → subscribed ScreenShare track — updated in TrackSubscribed/TrackUnsubscribed
   // VideoGrid reads this directly instead of calling markRaw participant.getTrackPublication()
   // which can return stale results after re-render races.
-  const remoteScreenShareTracks = ref<Record<string, RemoteTrack>>({})
+  // shallowRef: prevents Vue from Proxy-wrapping RemoteTrack objects.
+  // ref() deep-converts the Record values, wrapping each RemoteTrack in a reactive Proxy.
+  // LiveKit's track.attach() internally accesses private properties (MediaStreamTrack, WeakMaps)
+  // that break when intercepted by a Vue Proxy → attach silently fails → no video rendered.
+  const remoteScreenShareTracks = shallowRef<Record<string, RemoteTrack>>({})
 
   // Whether audio capture is using screen share audio (vs mic)
   const screenAudioActive = ref(false)
+
+  // Screen overlay state — cursors + markers from all participants
+  const cursors = ref<Record<string, CursorPosition>>({})
+  const markers = ref<ScreenMarker[]>([])
+  let markerPurgeInterval: ReturnType<typeof setInterval> | null = null
+  // Throttle cursor broadcast — max ~10 updates/sec per user
+  let lastCursorSendTime = 0
+
+  // Vote state — all active and closed votes in the current meeting
+  const votes = ref<MeetingVote[]>([])
+  const showVotePanel = ref(false)
 
   // Speaking language — defaults to Vietnamese (primary input), en only when explicitly enabled.
   // Uses a dedicated cookie so it is independent of the UI locale cookie ('language').
@@ -108,6 +139,9 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
   let isCapturing = false
   let vadAnimFrame: number | null = null
   let vadAudioContext: AudioContext | null = null
+
+  // Noise suppression state — enabled by default
+  const isNoiseSuppressed = ref(true)
 
   let socket: Socket | null = null
   let localUserId: number | null = null
@@ -234,6 +268,149 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
         [String(data.userId)]: data.enabled,
       }
     })
+
+    socket.on('cursor_move', (payload: { userId: number; x: number; y: number }) => {
+      cursors.value = {
+        ...cursors.value,
+        [String(payload.userId)]: {
+          userId: payload.userId,
+          x: payload.x,
+          y: payload.y,
+        },
+      }
+    })
+
+    socket.on('cursor_hide', (payload: { userId: number }) => {
+      const { [String(payload.userId)]: _removed, ...remaining } = cursors.value
+      cursors.value = remaining
+    })
+
+    socket.on(
+      'screen_marker',
+      (payload: {
+        id: string
+        userId: number
+        x: number
+        y: number
+        color: string
+        timestamp: number
+      }) => {
+        // Deduplicate — sender adds locally, gateway broadcasts to others only
+        if (markers.value.some((marker) => marker.id === payload.id)) return
+        markers.value = [...markers.value, payload]
+      },
+    )
+
+    socket.on('screen_marker_clear', () => {
+      markers.value = []
+    })
+
+    // Vote events — real-time voting during meeting
+    socket.on('votes_state', (activeVotes: MeetingVote[]) => {
+      // Joining user receives all current votes
+      votes.value = activeVotes
+    })
+
+    socket.on('vote_started', (vote: MeetingVote) => {
+      votes.value = [...votes.value, vote]
+      showVotePanel.value = true
+    })
+
+    socket.on('vote_updated', (updatedVote: MeetingVote) => {
+      votes.value = votes.value.map((value) => (value.id === updatedVote.id ? updatedVote : value))
+    })
+
+    socket.on('vote_ended', (closedVote: MeetingVote) => {
+      votes.value = votes.value.map((value) => (value.id === closedVote.id ? closedVote : value))
+    })
+
+    // Host has ended the meeting for everyone
+    socket.on('meeting_ended', () => {
+      onMeetingEnded?.()
+    })
+
+    // Purge expired markers (older than 8s)
+    const MARKER_TTL_MS = 8000
+    markerPurgeInterval = setInterval(() => {
+      const cutoff = Date.now() - MARKER_TTL_MS
+      if (markers.value.some((marker) => marker.timestamp < cutoff)) {
+        markers.value = markers.value.filter((marker) => marker.timestamp >= cutoff)
+      }
+    }, 2000)
+  }
+
+  /**
+   * Broadcasts the local user's cursor position to all other participants.
+   * Throttled to ~10 updates/sec to avoid flooding the socket.
+   */
+  function sendCursorMove(posX: number, posY: number) {
+    if (!socket?.connected || localUserId === null) return
+    const now = Date.now()
+    if (now - lastCursorSendTime < 100) return // throttle 10fps
+    lastCursorSendTime = now
+    socket.emit('cursor_move', {
+      meetingId: meetingId.value,
+      userId: localUserId,
+      x: posX,
+      y: posY,
+    })
+  }
+
+  /**
+   * Hides the local user's cursor from all other participants (e.g. mouse leaves screen share area).
+   */
+  function sendCursorHide() {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('cursor_hide', { meetingId: meetingId.value, userId: localUserId })
+  }
+
+  /**
+   * Places a click-marker on the shared screen and broadcasts to all participants.
+   */
+  function sendScreenMarker(posX: number, posY: number) {
+    if (!socket?.connected || localUserId === null) return
+    const marker: ScreenMarker = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      userId: localUserId,
+      x: posX,
+      y: posY,
+      color: getUserAnnotationColor(localUserId),
+      timestamp: Date.now(),
+    }
+    // Add locally immediately — sender does not go through socket round-trip
+    markers.value = [...markers.value, marker]
+    socket.emit('screen_marker', { meetingId: meetingId.value, ...marker })
+  }
+
+  /**
+   * Clears all markers for all participants in the meeting.
+   */
+  function clearScreenMarkers() {
+    if (!socket?.connected) return
+    socket.emit('screen_marker_clear', { meetingId: meetingId.value })
+  }
+
+  /**
+   * Returns the annotation color for any user by userId.
+   */
+  function getParticipantColor(userId: number): string {
+    return getUserAnnotationColor(userId)
+  }
+
+  /**
+   * Ends the meeting for all participants (host only).
+   * Gateway verifies host before broadcasting meeting_ended to the room.
+   */
+  function endMeeting() {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('end_meeting', { meetingId: meetingId.value, userId: localUserId })
+  }
+
+  /**
+   * Returns the annotation color for the local user.
+   */
+  function getLocalAnnotationColor(): string {
+    return localUserId !== null ? getUserAnnotationColor(localUserId) : ANNOTATION_COLORS[0]!
   }
 
   async function joinLiveKit(token: string, audioCaptureDeviceId?: string) {
@@ -255,7 +432,15 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
         videoCaptureDefaults: {
           resolution: VideoPresets.h360.resolution,
         },
-        audioCaptureDefaults: audioCaptureDeviceId ? { deviceId: audioCaptureDeviceId } : undefined,
+        audioCaptureDefaults: {
+          deviceId: audioCaptureDeviceId ?? undefined,
+          // Always enable AEC/AGC — without these, LiveKit mic picks up speaker output and
+          // creates echo feedback loops audible to all other participants.
+          // noiseSuppression follows the user's toggle state at join time.
+          echoCancellation: true,
+          noiseSuppression: isNoiseSuppressed.value,
+          autoGainControl: true,
+        },
       }),
     )
     room.value = livekitRoom
@@ -280,7 +465,7 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
           hasRemoteScreenShare.value = true
           remoteScreenShareTracks.value = {
             ...remoteScreenShareTracks.value,
-            [participant.identity]: track,
+            [participant.identity]: markRaw(track),
           }
         }
 
@@ -299,12 +484,33 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
               .catch(() => {})
           }
 
-          remoteAudioElements.set(track.sid, audioElement)
+          remoteAudioElements.set(track.sid!, audioElement)
 
           // Initialise mic state from the publication's current muted flag
           remoteMicStates.value = {
             ...remoteMicStates.value,
             [participant.identity]: !publication.isMuted,
+          }
+        }
+      },
+    )
+
+    // TrackPublished fires for tracks from existing participants when we join, and for new
+    // publications. This is the earliest signal that a screen share is active. We use it
+    // to set hasRemoteScreenShare immediately (so the presentation layout appears) and to
+    // populate remoteScreenShareTracks when the track is already subscribed.
+    livekitRoom.on(
+      RoomEvent.TrackPublished,
+      (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        if (publication.source !== Track.Source.ScreenShare) return
+        remoteParticipants.value = [...livekitRoom.remoteParticipants.values()].map(markRaw)
+        hasRemoteScreenShare.value = true
+        // If the track is already subscribed (e.g. we joined after it was published),
+        // populate the track map immediately so VideoGrid can render and attach it.
+        if (publication.isSubscribed && publication.track) {
+          remoteScreenShareTracks.value = {
+            ...remoteScreenShareTracks.value,
+            [participant.identity]: markRaw(publication.track as RemoteTrack),
           }
         }
       },
@@ -324,7 +530,7 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
         // Clean up audio elements when track ends
         if (track.kind === Track.Kind.Audio && track.source === Track.Source.Microphone) {
           track.detach()
-          remoteAudioElements.delete(track.sid)
+          remoteAudioElements.delete(track.sid!)
         }
       },
     )
@@ -391,16 +597,62 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     remoteParticipants.value = [...livekitRoom.remoteParticipants.values()].map(markRaw)
   }
 
+  /**
+   * Routes raw mic audio through a Web Audio processing chain (high-pass filter + dynamics
+   * compressor) and publishes the processed track to LiveKit. The same processed stream is
+   * also fed into the VAD/subtitle pipeline so Whisper receives cleaner audio too.
+   */
   async function toggleMic() {
     if (!room.value) return
     const enabled = !isMicEnabled.value
-    await room.value.localParticipant.setMicrophoneEnabled(enabled)
     isMicEnabled.value = enabled
 
-    if (enabled) {
-      startAudioCapture()
-    } else {
+    if (!enabled) {
       stopAudioCapture()
+      await room.value.localParticipant.setMicrophoneEnabled(false)
+    } else {
+      await room.value.localParticipant.setMicrophoneEnabled(true)
+      startVADFromLiveKitTrack()
+    }
+  }
+
+  /**
+   * Starts VAD/subtitle audio capture by reusing the mic MediaStreamTrack that LiveKit
+   * already captured. Avoids opening a second getUserMedia on the same device — two
+   * simultaneous getUserMedia streams with independent AEC processors interfere with
+   * each other, producing the echo/feedback heard by other participants.
+   *
+   * Falls back to a new getUserMedia if the LiveKit track is not yet available.
+   */
+  function startVADFromLiveKitTrack() {
+    if (!room.value) {
+      startAudioCapture()
+      return
+    }
+
+    const micPublication = room.value.localParticipant.getTrackPublication(Track.Source.Microphone)
+
+    if (micPublication?.track?.mediaStreamTrack) {
+      startAudioCapture(new MediaStream([micPublication.track.mediaStreamTrack]))
+    } else {
+      startAudioCapture()
+    }
+  }
+
+  /**
+   * Toggles native browser noise suppression on/off via MediaStreamTrack.applyConstraints().
+   * Does NOT use a Web Audio pipeline — native NS is processed before AEC so timing alignment
+   * is preserved and there is no echo pumping artifact.
+   */
+  async function toggleNoiseSuppression() {
+    isNoiseSuppressed.value = !isNoiseSuppressed.value
+
+    if (!isMicEnabled.value || !room.value) return
+
+    const micPub = room.value.localParticipant.getTrackPublication(Track.Source.Microphone)
+    const mediaTrack = micPub?.track?.mediaStreamTrack
+    if (mediaTrack) {
+      await mediaTrack.applyConstraints({ noiseSuppression: isNoiseSuppressed.value })
     }
   }
 
@@ -429,9 +681,13 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
 
   async function switchMicDevice(deviceId: string) {
     if (!room.value) return
-
     // LiveKit switches the capture device without re-publishing — maintains the existing track
     await room.value.switchActiveDevice('audioinput', deviceId)
+    // Restart VAD with the new track (switchActiveDevice replaces the underlying MediaStreamTrack)
+    if (isMicEnabled.value) {
+      stopAudioCapture()
+      startVADFromLiveKitTrack()
+    }
   }
 
   function setRemoteSpeakerDevice(deviceId: string) {
@@ -443,20 +699,17 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     })
   }
 
-  async function startScreenShare() {
+  async function startScreenShare(quality: ScreenShareQuality = 'video') {
     if (!room.value) return
+
+    const preset = SCREEN_SHARE_PRESETS[quality]
 
     const screenSharePublishOptions: TrackPublishOptions = {
       videoCodec: 'h264',
       simulcast: false,
       videoEncoding: {
-        // 720p with OpenH264: ~50ms/frame vs ~115ms at 1080p → encoder can sustain 15fps.
-        // Progressive lag was caused by dynacast increasing targetBitrate 2Mbps→2.5Mbps,
-        // forcing encoder to produce higher-quality (slower) frames over time.
-        maxBitrate: 1_500_000,
-        // 12fps (83ms budget) instead of 15fps (67ms) — extra headroom for I-frame spikes.
-        // OpenH264 I-frames take ~150-200ms vs ~50ms for P-frames; at 15fps they cause brief stutters.
-        maxFramerate: 12,
+        maxBitrate: preset.maxBitrate,
+        maxFramerate: preset.maxFramerate,
       },
     }
 
@@ -494,15 +747,14 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
       const mediaStreamTrack = screenPub.track.mediaStreamTrack
       mediaStreamTrack.contentHint = 'detail'
 
-      // Cap capture resolution to 720p via applyConstraints() — done post-capture so it applies
-      // to all source types (Tab, Window, Entire Screen) without triggering OverconstrainedError.
-      // We pass frameRate as {max: 15} (not a bare number) so Chrome treats it as an upper bound,
-      // not an exact requirement — this is what was causing Window/Screen to fail before.
+      // Apply capture constraints post-capture so they work across all source types
+      // (Tab, Window, Entire Screen) without triggering OverconstrainedError.
+      // frameRate as {max: N} so Chrome treats it as an upper bound, not exact requirement.
       mediaStreamTrack
         .applyConstraints({
-          width: { max: 1280 },
-          height: { max: 720 },
-          frameRate: { max: 15 },
+          width: { max: preset.maxWidth },
+          height: { max: preset.maxHeight },
+          frameRate: { max: preset.maxFramerate },
         })
         .catch(() => {
           // applyConstraints can fail if the track is already stopped or constraints are unsupported.
@@ -742,6 +994,54 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     }
   }
 
+  /**
+   * Creates a new vote and broadcasts it to all participants.
+   */
+  function createVote(
+    question: string,
+    options: string[],
+    type: 'single' | 'multiple' | 'story_point',
+    participantIds: number[] = [],
+  ) {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('vote_create', {
+      meetingId: meetingId.value,
+      userId: localUserId,
+      creatorName:
+        socketParticipants.value.find((participant) => participant.userId === localUserId)
+          ?.username ?? '',
+      question,
+      options,
+      type,
+      participantIds,
+    })
+  }
+
+  /**
+   * Casts a vote by selecting option(s). Overwrites previous selection.
+   */
+  function castVote(voteId: string, optionIds: string[]) {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('vote_cast', {
+      meetingId: meetingId.value,
+      voteId,
+      userId: localUserId,
+      optionIds,
+    })
+  }
+
+  /**
+   * Closes an active vote. Only the creator can close it.
+   */
+  function closeVote(voteId: string) {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('vote_close', {
+      meetingId: meetingId.value,
+      voteId,
+      userId: localUserId,
+    })
+  }
+
   function disconnect() {
     stopAudioCapture()
 
@@ -764,6 +1064,14 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     isSpeakerEnabled.value = true
     hasRemoteScreenShare.value = false
     remoteScreenShareTracks.value = {}
+    cursors.value = {}
+    markers.value = []
+    votes.value = []
+
+    if (markerPurgeInterval !== null) {
+      clearInterval(markerPurgeInterval)
+      markerPurgeInterval = null
+    }
   }
 
   return {
@@ -781,6 +1089,7 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     speakerAudioLevels,
     remoteMicStates,
     remoteSpeakerStates,
+    isNoiseSuppressed,
     isMicEnabled,
     isCameraEnabled,
     isScreenSharing,
@@ -789,6 +1098,7 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     connect,
     joinLiveKit,
     toggleMic,
+    toggleNoiseSuppression,
     toggleCamera,
     toggleSpeaker,
     startScreenShare,
@@ -798,5 +1108,19 @@ export function useMeeting(meetingId: Ref<number>, _meetingUuid: Ref<string>) {
     onBlackScreenDetected,
     attachTrackToElement,
     disconnect,
+    cursors,
+    markers,
+    sendCursorMove,
+    sendCursorHide,
+    sendScreenMarker,
+    clearScreenMarkers,
+    getLocalAnnotationColor,
+    getParticipantColor,
+    endMeeting,
+    votes,
+    showVotePanel,
+    createVote,
+    castVote,
+    closeVote,
   }
 }

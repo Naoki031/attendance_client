@@ -191,11 +191,9 @@ export const useLiveness = () => {
             } else if (selectedChallenge === 'smile') {
               actionDetected = isSmiling(positions)
             } else if (selectedChallenge === 'turn_left') {
-              // Video is displayed mirrored — swap detection so the instruction matches
-              // what the user sees: "turn left" in mirror = nose moves right in raw frame
-              actionDetected = isHeadTurnedRight(positions)
-            } else if (selectedChallenge === 'turn_right') {
               actionDetected = isHeadTurnedLeft(positions)
+            } else if (selectedChallenge === 'turn_right') {
+              actionDetected = isHeadTurnedRight(positions)
             } else if (selectedChallenge === 'move_closer') {
               actionDetected = faceRatio > MOVE_CLOSER_RATIO
             } else if (selectedChallenge === 'move_further') {

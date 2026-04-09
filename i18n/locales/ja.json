@@ -1135,6 +1135,7 @@
     "viewLangHint": "字幕を表示する言語",
     "selectMic": "マイク",
     "selectSpeaker": "スピーカー",
+    "noiseSuppression": "ノイズ除去",
     "microphone": "マイク",
     "speaker": "スピーカー",
     "noMeetings": "ミーティングなし",
@@ -1172,7 +1173,59 @@
       "leave": "退出",
       "fullscreen": "全画面",
       "exitFullscreen": "全画面終了",
-      "settings": "設定"
-    }
+      "settings": "設定",
+      "shareQuality": {
+        "video": "動画",
+        "videoDesc": "720p · 12fps · 動画に最適",
+        "balanced": "バランス",
+        "balancedDesc": "720p · 15fps · 汎用",
+        "document": "ドキュメント",
+        "documentDesc": "1080p · 8fps · テキスト鮮明"
+      },
+      "annotateOn": "描画中",
+      "annotateOff": "描画",
+      "noiseOn": "ノイズ除去",
+      "noiseOff": "ノイズ除去",
+      "annotationOverlay": "注釈オーバーレイ",
+      "endMeeting": "ミーティングを終了",
+      "endMeetingConfirm": "全参加者のミーティングを終了します。よろしいですか？",
+      "selectScreen": "表示する画面を選択",
+      "createVote": "投票を作成"
+    },
+    "annotation": {
+      "clearAll": "注釈をすべて消去"
+    },
+    "vote": {
+      "title": "投票",
+      "noVotes": "アクティブな投票はありません",
+      "createVote": "新しい投票を作成",
+      "question": "質問",
+      "questionPlaceholder": "質問を入力...",
+      "options": "選択肢",
+      "addOption": "選択肢を追加",
+      "type": "投票タイプ",
+      "single": "単一選択",
+      "multiple": "複数選択",
+      "create": "作成",
+      "cast": "投票する",
+      "updateVote": "変更",
+      "results": "結果",
+      "closed": "締め切り",
+      "voters": "{count}人が投票済み",
+      "by": "{name}が作成",
+      "optionRequired": "選択肢は2つ以上必要です",
+      "questionRequired": "質問を入力してください",
+      "optionTextRequired": "選択肢のテキストを入力してください",
+      "storyPoint": "ストーリーポイント",
+      "fibonacciCards": "フィボナッチカード",
+      "average": "平均",
+      "participants": "参加者",
+      "selectAll": "全選択",
+      "deselectAll": "全解除",
+      "notInvited": "この投票には招待されていません",
+      "closeVote": "投票を締め切る"
+    },
+    "meetingEnding": "ミーティングが終了します...",
+    "presenting": "画面共有中"
   }
 }

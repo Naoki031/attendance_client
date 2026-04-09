@@ -218,6 +218,12 @@
 
       <!-- In meeting -->
       <template v-else-if="step === 'meeting'">
+        <!-- Meeting-ended countdown overlay -->
+        <div v-if="endCountdown !== null" class="meeting-end-overlay">
+          <p class="meeting-end-overlay__label">{{ $t('meetings.meetingEnding') }}</p>
+          <div class="meeting-end-overlay__count">{{ endCountdown }}</div>
+        </div>
+
         <div class="meeting-room__main">
           <div class="meeting-room__video">
             <MeetingVideoGrid
@@ -237,9 +243,16 @@
               :participant-avatar-map="participantAvatarMap"
               :participant-name-map="participantNameMap"
               :local-avatar="localAvatar"
+              :cursors="cursors"
+              :markers="markers"
+              :participant-color-map="participantColorMap"
+              @cursor-move="sendCursorMove($event.x, $event.y)"
+              @cursor-hide="sendCursorHide"
+              @marker-place="sendScreenMarker($event.x, $event.y)"
+              @markers-clear="clearScreenMarkers"
             />
           </div>
-          <div
+          <!-- <div
             class="meeting-room__subtitles"
             :class="{ 'meeting-room__subtitles--hidden': !showSubtitles }"
           >
@@ -248,6 +261,16 @@
               :user-language="userLanguage"
               :speaking-language="speakingLanguage"
               @update:speaking-language="speakingLanguage = $event"
+            />
+          </div> -->
+          <div class="meeting-room__vote" :class="{ 'meeting-room__vote--hidden': !showVotePanel }">
+            <MeetingVotePanel
+              :votes="votes"
+              :local-user-id="localUserId"
+              :meeting-participant-count="socketParticipants.length"
+              @create-vote="voteDialog = true"
+              @cast-vote="castVote"
+              @close-vote="closeVote"
             />
           </div>
         </div>
@@ -258,21 +281,48 @@
           :is-screen-sharing="isScreenSharing"
           :is-speaker-enabled="isSpeakerEnabled"
           :show-subtitles="showSubtitles"
+          :show-vote-panel="showVotePanel"
           :tts-enabled="ttsEnabled"
+          :is-noise-suppressed="isNoiseSuppressed"
           :has-any-screen-share="isScreenSharing || hasRemoteScreenShare"
           :is-fullscreen="isFullscreen"
+          :is-host="isHost"
           @toggle-mic="toggleMic"
           @toggle-camera="toggleCamera"
           @toggle-speaker="toggleSpeaker"
           @start-screen-share="startScreenShare"
           @stop-screen-share="stopScreenShare"
           @toggle-subtitles="showSubtitles = !showSubtitles"
+          @toggle-vote-panel="showVotePanel = !showVotePanel"
           @toggle-tts="ttsEnabled = !ttsEnabled"
+          @toggle-noise-suppression="toggleNoiseSuppression"
           @toggle-fullscreen="handleToggleFullscreen"
           @open-settings="settingsDialog = true"
+          @end-meeting="handleEndMeeting"
           @leave="leaveMeeting"
         />
       </template>
+
+      <!-- End Meeting confirm dialog (host only) -->
+      <v-dialog v-model="endMeetingDialog" max-width="360" persistent>
+        <v-card rounded="xl">
+          <v-card-title class="pa-5 pb-3 d-flex align-center ga-2">
+            <v-icon color="error">mdi-phone-remove</v-icon>
+            {{ $t('meetings.controls.endMeeting') }}
+          </v-card-title>
+          <v-card-text class="pt-0 text-body-2 text-medium-emphasis">
+            {{ $t('meetings.controls.endMeetingConfirm') }}
+          </v-card-text>
+          <v-card-actions class="pa-4 pt-0 ga-2 justify-end">
+            <v-btn variant="text" @click="endMeetingDialog = false">
+              {{ $t('common.cancel') }}
+            </v-btn>
+            <v-btn color="error" variant="flat" @click="confirmEndMeeting">
+              {{ $t('meetings.controls.endMeeting') }}
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
 
       <!-- Device settings dialog -->
       <v-dialog v-model="settingsDialog" max-width="400">
@@ -307,6 +357,15 @@
               hide-details
               prepend-inner-icon="mdi-volume-high"
             />
+            <v-switch
+              :model-value="isNoiseSuppressed"
+              :label="$t('meetings.noiseSuppression')"
+              color="success"
+              density="comfortable"
+              hide-details
+              inset
+              @update:model-value="toggleNoiseSuppression"
+            />
           </v-card-text>
           <v-card-actions class="pa-4 pt-0">
             <v-spacer />
@@ -316,6 +375,13 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <!-- Vote creation dialog -->
+      <MeetingVoteCreateDialog
+        v-model="voteDialog"
+        :participants="socketParticipants"
+        @create="handleCreateVote"
+      />
 
       <!-- macOS Screen Recording permission warning -->
       <v-snackbar
@@ -368,7 +434,7 @@ const showPassword = ref(false)
 const passwordError = ref('')
 const isVerifyingPassword = ref(false)
 
-const userLanguage = computed(() => useCookie('language').value ?? 'en')
+const _userLanguage = computed(() => useCookie('language').value ?? 'en')
 const showSubtitles = ref(true)
 const videoGridReference = ref<InstanceType<typeof MeetingVideoGrid> | null>(null)
 const isFullscreen = ref(false)
@@ -393,6 +459,8 @@ const speakerDevices = ref<MediaDeviceItem[]>([])
 const selectedMicId = ref<string>('')
 const selectedSpeakerId = ref<string>('')
 const settingsDialog = ref(false)
+const endMeetingDialog = ref(false)
+const voteDialog = ref(false)
 
 // Mic level detector
 const micLevel = ref(0)
@@ -407,24 +475,27 @@ const micLevelClass = computed(() => {
 })
 
 const {
+  socketParticipants,
   localParticipant,
   remoteParticipants,
   hasRemoteScreenShare,
   remoteScreenShareTracks,
-  speakingLanguage,
+  speakingLanguage: _speakingLanguage,
   ttsEnabled,
   activeSpeakerIdentities,
   speakerAudioLevels,
   remoteMicStates,
   remoteSpeakerStates,
+  isNoiseSuppressed,
   isMicEnabled,
   isCameraEnabled,
   isScreenSharing,
   isSpeakerEnabled,
-  subtitles,
+  subtitles: _subtitles,
   connect,
   joinLiveKit,
   toggleMic,
+  toggleNoiseSuppression,
   toggleCamera,
   toggleSpeaker,
   startScreenShare,
@@ -433,12 +504,64 @@ const {
   setRemoteSpeakerDevice,
   onBlackScreenDetected,
   disconnect,
-} = useMeeting(meetingId, meetingUuid)
+  cursors,
+  markers,
+  sendCursorMove,
+  sendCursorHide,
+  sendScreenMarker,
+  clearScreenMarkers,
+  getParticipantColor,
+  endMeeting,
+  votes,
+  showVotePanel,
+  createVote,
+  castVote,
+  closeVote,
+} = useMeeting(meetingId, meetingUuid, () => {
+  // Host ended the meeting — show countdown then disconnect and navigate away
+  startEndCountdown()
+})
+
+const isHost = computed(() => localUserId.value !== 0 && localUserId.value === meetingHostId.value)
+
+// Build participantColorMap — assigns each participant a distinct color
+const participantColorMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const participant of socketParticipants.value) {
+    map[String(participant.userId)] = getParticipantColor(participant.userId)
+  }
+  return map
+})
+
+// Countdown shown to all participants when the host ends the meeting (3 → 2 → 1 → leave)
+const endCountdown = ref<number | null>(null)
 // END DEFINE STATE
 
 // Apply speaker device change to all active remote audio elements
 watch(selectedSpeakerId, (deviceId) => {
   if (deviceId) setRemoteSpeakerDevice(deviceId)
+})
+
+// Re-enumerate devices when settings dialog opens so newly connected USB/Type-C
+// peripherals appear immediately without requiring a page reload
+watch(settingsDialog, (open) => {
+  if (open) enumerateDevices()
+})
+
+// When a new participant joins who wasn't in the initial meeting data,
+// add their name from the LiveKit token so the VideoGrid placeholder shows correctly.
+watch(remoteParticipants, (participants) => {
+  const updates: Record<string, string> = {}
+
+  for (const participant of participants) {
+    if (!participantNameMap.value[participant.identity] && participant.name) {
+      updates[participant.identity] = participant.name
+    }
+  }
+
+  if (Object.keys(updates).length > 0) {
+    participantNameMap.value = { ...participantNameMap.value, ...updates }
+  }
 })
 
 // Show a warning snackbar when black frames are detected (macOS Screen Recording permission blocked)
@@ -482,8 +605,12 @@ function stopMicLevelDetection() {
 
 async function enumerateDevices() {
   try {
-    // Must request permission first so labels are populated (not empty strings)
-    await navigator.mediaDevices.getUserMedia({ audio: true })
+    // Must request permission first so labels are populated (not empty strings).
+    // Skip when already in meeting — mic permission is already granted and opening a
+    // second getUserMedia stream on the same device would conflict with the active track.
+    if (step.value !== 'meeting') {
+      await navigator.mediaDevices.getUserMedia({ audio: true })
+    }
     const devices = await navigator.mediaDevices.enumerateDevices()
     micDevices.value = devices
       .filter((device) => device.kind === 'audioinput')
@@ -656,9 +783,43 @@ async function leaveMeeting() {
   navigateTo('/meetings')
 }
 
+function startEndCountdown() {
+  endCountdown.value = 3
+  const timer = setInterval(() => {
+    if (endCountdown.value === null) {
+      clearInterval(timer)
+      return
+    }
+    endCountdown.value -= 1
+    if (endCountdown.value <= 0) {
+      clearInterval(timer)
+      disconnect()
+      navigateTo('/meetings')
+    }
+  }, 1000)
+}
+
+function handleEndMeeting() {
+  endMeetingDialog.value = true
+}
+
+function confirmEndMeeting() {
+  endMeetingDialog.value = false
+  endMeeting()
+}
+
 function handleToggleFullscreen() {
   videoGridReference.value?.toggleFullscreen()
   // isFullscreen is kept in sync via document.fullscreenchange listener
+}
+
+function handleCreateVote(payload: {
+  question: string
+  options: string[]
+  type: 'single' | 'multiple' | 'story_point'
+  participantIds: number[]
+}) {
+  createVote(payload.question, payload.options, payload.type, payload.participantIds)
 }
 // END DEFINE METHOD
 
@@ -736,10 +897,18 @@ onMounted(async () => {
   }
 })
 
+// Refresh device list whenever a USB/Type-C peripheral is plugged or unplugged
+if (import.meta.client) {
+  navigator.mediaDevices.addEventListener('devicechange', enumerateDevices)
+}
+
 onUnmounted(() => {
   stopPreviewStream()
   disconnect()
   document.removeEventListener('fullscreenchange', onFullscreenChange)
+  if (import.meta.client) {
+    navigator.mediaDevices.removeEventListener('devicechange', enumerateDevices)
+  }
 })
 
 function onFullscreenChange() {
@@ -870,6 +1039,18 @@ function onFullscreenChange() {
   border: none;
 }
 
+.meeting-room__vote {
+  flex: 0 0 clamp(260px, 25%, 340px);
+  overflow: hidden;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  transition: flex-basis 0.2s ease;
+}
+
+.meeting-room__vote--hidden {
+  flex: 0 0 0 !important;
+  border: none;
+}
+
 .prejoin-control {
   display: flex;
   flex-direction: column;
@@ -892,6 +1073,47 @@ function onFullscreenChange() {
   color: #e57373;
 }
 
+/* ── Meeting-ended countdown overlay ── */
+.meeting-end-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.meeting-end-overlay__label {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.02em;
+}
+
+.meeting-end-overlay__count {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+@keyframes countdown-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 0.85;
+  }
+}
+
 /* ── Mobile portrait ── */
 @media (max-width: 640px) {
   .prejoin-card {
@@ -909,6 +1131,17 @@ function onFullscreenChange() {
   }
 
   .meeting-room__subtitles--hidden {
+    flex: 0 0 0 !important;
+    border: none;
+  }
+
+  .meeting-room__vote {
+    flex: 0 0 clamp(100px, 20vh, 140px);
+    border-left: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .meeting-room__vote--hidden {
     flex: 0 0 0 !important;
     border: none;
   }

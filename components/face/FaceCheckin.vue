@@ -108,7 +108,7 @@
 
     <!-- Liveness prompt -->
     <v-expand-transition>
-      <div class="liveness-banner px-5 py-3 text-center">
+      <div v-if="currentChallenge" class="liveness-banner px-5 py-3 text-center">
         <v-chip color="primary" variant="tonal" prepend-icon="mdi-eye-outline" class="mb-2">
           {{ $t(`face.liveness.${currentChallenge}`) }}
         </v-chip>

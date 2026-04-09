@@ -34,15 +34,54 @@
       </span>
     </div>
 
-    <div class="control-bar__item">
-      <v-btn
-        :icon="isScreenSharing ? 'mdi-monitor-share' : 'mdi-monitor'"
-        :color="isScreenSharing ? 'primary' : 'white'"
-        variant="flat"
-        rounded="xl"
-        size="48"
-        @click="isScreenSharing ? emit('stop-screen-share') : emit('start-screen-share')"
-      ></v-btn>
+    <div class="control-bar__item control-bar__item--share">
+      <div class="share-btn-group">
+        <v-btn
+          :icon="isScreenSharing ? 'mdi-monitor-share' : 'mdi-monitor'"
+          :color="isScreenSharing ? 'primary' : 'white'"
+          variant="flat"
+          rounded="xl"
+          size="48"
+          class="share-main-btn"
+          @click="
+            isScreenSharing
+              ? emit('stop-screen-share')
+              : emit('start-screen-share', selectedQuality)
+          "
+        ></v-btn>
+        <!-- Quality selector — only shown when not sharing -->
+        <v-menu v-if="!isScreenSharing" location="top" offset="4">
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              icon="mdi-chevron-up"
+              size="x-small"
+              variant="tonal"
+              color="white"
+              class="share-quality-btn"
+              v-bind="menuProps"
+            ></v-btn>
+          </template>
+          <v-list density="compact" rounded="lg" min-width="160" bg-color="#1e1e1e">
+            <v-list-item
+              v-for="option in qualityOptions"
+              :key="option.value"
+              :active="selectedQuality === option.value"
+              active-color="primary"
+              @click="selectedQuality = option.value"
+            >
+              <template #prepend>
+                <v-icon size="16" class="mr-2">{{ option.icon }}</v-icon>
+              </template>
+              <v-list-item-title class="text-body-2" style="color: rgba(255, 255, 255, 0.87)">
+                {{ option.label }}
+              </v-list-item-title>
+              <v-list-item-subtitle class="text-caption" style="color: rgba(255, 255, 255, 0.5)">
+                {{ option.description }}
+              </v-list-item-subtitle>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
       <span class="control-bar__label" :class="isScreenSharing ? 'control-bar__label--on' : ''">
         {{ isScreenSharing ? $t('meetings.controls.shareOn') : $t('meetings.controls.shareOff') }}
       </span>
@@ -84,7 +123,21 @@
       </span>
     </div>
 
-    <div class="control-bar__item">
+    <div v-if="isNoiseSuppressed" class="control-bar__item">
+      <v-btn
+        icon="mdi-waveform"
+        color="success"
+        variant="flat"
+        rounded="xl"
+        size="48"
+        @click="emit('toggle-noise-suppression')"
+      ></v-btn>
+      <span class="control-bar__label control-bar__label--on">
+        {{ $t('meetings.controls.noiseOn') }}
+      </span>
+    </div>
+
+    <!-- <div class="control-bar__item">
       <v-btn
         :icon="showSubtitles ? 'mdi-subtitles' : 'mdi-subtitles-outline'"
         :color="showSubtitles ? 'primary' : 'white'"
@@ -95,6 +148,20 @@
       ></v-btn>
       <span class="control-bar__label" :class="showSubtitles ? 'control-bar__label--on' : ''">
         {{ $t('meetings.subtitles') }}
+      </span>
+    </div> -->
+
+    <div class="control-bar__item">
+      <v-btn
+        :icon="showVotePanel ? 'mdi-poll' : 'mdi-poll'"
+        :color="showVotePanel ? 'primary' : 'white'"
+        variant="flat"
+        rounded="xl"
+        size="48"
+        @click="emit('toggle-vote-panel')"
+      ></v-btn>
+      <span class="control-bar__label" :class="showVotePanel ? 'control-bar__label--on' : ''">
+        {{ $t('meetings.vote.title') }}
       </span>
     </div>
 
@@ -127,11 +194,26 @@
       <span class="control-bar__label">{{ $t('meetings.controls.settings') }}</span>
     </div>
 
+    <!-- End Meeting button — only shown to the host -->
+    <div v-if="isHost" class="control-bar__item">
+      <v-btn
+        icon="mdi-phone-remove"
+        color="error"
+        variant="flat"
+        rounded="xl"
+        size="48"
+        @click="emit('end-meeting')"
+      ></v-btn>
+      <span class="control-bar__label control-bar__label--off">{{
+        $t('meetings.controls.endMeeting')
+      }}</span>
+    </div>
+
     <div class="control-bar__item">
       <v-btn
         icon="mdi-phone-hangup"
         color="error"
-        variant="flat"
+        variant="tonal"
         rounded="xl"
         size="48"
         @click="emit('leave')"
@@ -144,6 +226,10 @@
 </template>
 
 <script lang="ts" setup>
+// START IMPORT
+import type { ScreenShareQuality } from '@/types/meeting/ScreenShareQuality'
+// END IMPORT
+
 // START DEFINE PROPERTY AND EMITS
 defineProps<{
   isMicEnabled: boolean
@@ -151,24 +237,57 @@ defineProps<{
   isScreenSharing: boolean
   isSpeakerEnabled: boolean
   showSubtitles: boolean
+  showVotePanel: boolean
   ttsEnabled: boolean
+  isNoiseSuppressed: boolean
   hasAnyScreenShare: boolean
   isFullscreen: boolean
+  isHost: boolean
 }>()
 
 const emit = defineEmits<{
   'toggle-mic': []
   'toggle-camera': []
-  'start-screen-share': []
+  'start-screen-share': [quality: ScreenShareQuality]
   'stop-screen-share': []
   'toggle-speaker': []
   'toggle-subtitles': []
+  'toggle-vote-panel': []
   'toggle-tts': []
+  'toggle-noise-suppression': []
   'toggle-fullscreen': []
   'open-settings': []
+  'end-meeting': []
   leave: []
 }>()
 // END DEFINE PROPERTY AND EMITS
+
+// START DEFINE STATE
+const { t } = useI18n()
+
+const selectedQuality = ref<ScreenShareQuality>('video')
+
+const qualityOptions = computed(() => [
+  {
+    value: 'video' as ScreenShareQuality,
+    label: t('meetings.controls.shareQuality.video'),
+    description: t('meetings.controls.shareQuality.videoDesc'),
+    icon: 'mdi-play-circle-outline',
+  },
+  {
+    value: 'balanced' as ScreenShareQuality,
+    label: t('meetings.controls.shareQuality.balanced'),
+    description: t('meetings.controls.shareQuality.balancedDesc'),
+    icon: 'mdi-tune',
+  },
+  {
+    value: 'document' as ScreenShareQuality,
+    label: t('meetings.controls.shareQuality.document'),
+    description: t('meetings.controls.shareQuality.documentDesc'),
+    icon: 'mdi-file-document-outline',
+  },
+])
+// END DEFINE STATE
 </script>
 
 <style scoped>
@@ -241,5 +360,26 @@ const emit = defineEmits<{
 
 .control-bar__label--off {
   color: var(--cb-label-off);
+}
+
+.control-bar__item--share {
+  position: relative;
+}
+
+.share-btn-group {
+  position: relative;
+  display: inline-flex;
+}
+
+.share-quality-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: unset !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  z-index: 1;
 }
 </style>

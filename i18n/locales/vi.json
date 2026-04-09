@@ -1135,6 +1135,7 @@
     "viewLangHint": "Ngôn ngữ hiển thị phụ đề",
     "selectMic": "Microphone",
     "selectSpeaker": "Loa",
+    "noiseSuppression": "Lọc tiếng ồn",
     "microphone": "Microphone",
     "speaker": "Loa",
     "noMeetings": "Chưa có cuộc họp",
@@ -1172,7 +1173,59 @@
       "leave": "Rời Phòng",
       "fullscreen": "Toàn Màn Hình",
       "exitFullscreen": "Thoát Toàn Màn Hình",
-      "settings": "Cài Đặt"
-    }
+      "settings": "Cài Đặt",
+      "shareQuality": {
+        "video": "Video",
+        "videoDesc": "720p · 12fps · phù hợp video",
+        "balanced": "Cân bằng",
+        "balancedDesc": "720p · 15fps · dùng chung",
+        "document": "Tài liệu",
+        "documentDesc": "1080p · 8fps · sắc nét chữ"
+      },
+      "annotateOn": "Đang Vẽ",
+      "annotateOff": "Vẽ Chú Thích",
+      "noiseOn": "Lọc Tiếng Ồn",
+      "noiseOff": "Lọc Tiếng Ồn",
+      "annotationOverlay": "Overlay chú thích",
+      "endMeeting": "Kết thúc cuộc họp",
+      "endMeetingConfirm": "Thao tác này sẽ kết thúc cuộc họp cho tất cả mọi người. Bạn có chắc không?",
+      "selectScreen": "Chọn màn hình để xem",
+      "createVote": "Tạo Bình Chọn"
+    },
+    "annotation": {
+      "clearAll": "Xóa tất cả chú thích"
+    },
+    "vote": {
+      "title": "Bình Chọn",
+      "noVotes": "Chưa có bình chọn nào",
+      "createVote": "Tạo bình chọn mới",
+      "question": "Câu hỏi",
+      "questionPlaceholder": "Nhập câu hỏi...",
+      "options": "Lựa chọn",
+      "addOption": "Thêm lựa chọn",
+      "type": "Loại bình chọn",
+      "single": "Chọn 1",
+      "multiple": "Chọn nhiều",
+      "create": "Tạo",
+      "cast": "Bình chọn",
+      "updateVote": "Thay đổi",
+      "results": "Kết quả",
+      "closed": "Đã đóng",
+      "voters": "{count} người đã bình chọn",
+      "by": "bởi {name}",
+      "optionRequired": "Cần ít nhất 2 lựa chọn",
+      "questionRequired": "Vui lòng nhập câu hỏi",
+      "optionTextRequired": "Vui lòng nhập nội dung lựa chọn",
+      "storyPoint": "Story Point",
+      "fibonacciCards": "Thẻ Fibonacci",
+      "average": "TB",
+      "participants": "Người tham gia",
+      "selectAll": "Chọn tất cả",
+      "deselectAll": "Bỏ chọn tất cả",
+      "notInvited": "Bạn không được mời tham gia bình chọn này",
+      "closeVote": "Đóng Bình Chọn"
+    },
+    "meetingEnding": "Cuộc họp sắp kết thúc...",
+    "presenting": "Bạn đang chia sẻ màn hình"
   }
 }

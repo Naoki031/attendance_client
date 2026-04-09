@@ -1,66 +1,113 @@
 <template>
   <!-- Presentation mode: screen share fills main area, cameras in sidebar -->
   <div v-if="hasAnyScreenShare" class="presentation-layout">
-    <!-- Main screen share area -->
-    <div ref="screenShareContainerReference" class="presentation-main">
-      <!-- Local screen share -->
-      <div v-if="isScreenSharing" class="video-tile">
-        <video
-          ref="localScreenReference"
-          autoplay
-          muted
-          playsinline
-          class="video-tile__video"
-        ></video>
-        <div class="video-tile__label">
-          <v-icon icon="mdi-monitor-share" size="12" class="mr-1"></v-icon>
-          {{ $t('meetings.you') }} ({{ $t('meetings.controls.shareOn') }})
-        </div>
-      </div>
-
-      <!-- First remote screen share -->
-      <template
-        v-for="participant in remoteParticipants"
-        :key="`screen-main-${participant.identity}`"
-      >
-        <div
-          v-if="!isScreenSharing && remoteScreenShareTracks[participant.identity]"
-          class="video-tile"
-        >
+    <div class="presentation-area">
+      <!-- Main screen share display — shows only the focused screen share -->
+      <div ref="screenShareContainerReference" class="presentation-main">
+        <!-- Local screen share (shown when focused) -->
+        <!-- The <video> is kept off-screen for LiveKit track attachment only.
+             LiveKit publishes the MediaStreamTrack directly — the HTML element is not
+             used for broadcasting, so moving it off-screen has zero effect on what
+             others see. A <canvas> is used for local display instead of the <video>
+             because canvas elements are never promoted to OS-level hardware overlays
+             (IOSurface/CALayer on macOS), so the annotation canvas above it remains
+             visible to the sharer. -->
+        <div v-if="isScreenSharing && focusedScreenIdentity === 'local'" class="video-tile">
           <video
-            :ref="(element) => attachRemoteScreenShare(element as HTMLVideoElement, participant)"
+            ref="localScreenReference"
             autoplay
+            muted
             playsinline
-            class="video-tile__video"
+            class="local-screen-video--hidden"
           ></video>
-          <!-- Hidden audio element for screen share audio track -->
-          <audio
-            :ref="(element) => attachRemoteScreenAudio(element as HTMLAudioElement, participant)"
-            autoplay
-            style="display: none"
-          ></audio>
+          <canvas ref="localScreenCanvasReference" class="local-screen-canvas"></canvas>
           <div class="video-tile__label">
             <v-icon icon="mdi-monitor-share" size="12" class="mr-1"></v-icon>
-            {{
-              participantNameMap[participant.identity] || participant.name || participant.identity
-            }}
-            ({{ $t('meetings.controls.shareOn') }})
+            {{ $t('meetings.you') }} ({{ $t('meetings.controls.shareOn') }})
           </div>
         </div>
-      </template>
 
-      <!-- Fullscreen toggle button — shown on hover -->
-      <v-btn
-        :icon="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
-        :title="
-          isFullscreen ? $t('meetings.controls.exitFullscreen') : $t('meetings.controls.fullscreen')
-        "
-        size="small"
-        variant="tonal"
-        color="white"
-        class="screen-share-fullscreen-btn"
-        @click="toggleFullscreen"
-      ></v-btn>
+        <!-- Remote screen shares (only the focused one is rendered at full size) -->
+        <template
+          v-for="participant in remoteParticipants"
+          :key="`screen-main-${participant.identity}`"
+        >
+          <div
+            v-if="
+              remoteScreenShareTracks[participant.identity] &&
+              focusedScreenIdentity === participant.identity
+            "
+            class="video-tile"
+          >
+            <video
+              :ref="(element) => attachRemoteScreenShare(element as HTMLVideoElement, participant)"
+              autoplay
+              muted
+              playsinline
+              class="video-tile__video"
+            ></video>
+            <!-- Hidden audio element for screen share audio track -->
+            <audio
+              :ref="(element) => attachRemoteScreenAudio(element as HTMLAudioElement, participant)"
+              autoplay
+              style="display: none"
+            ></audio>
+            <div class="video-tile__label">
+              <v-icon icon="mdi-monitor-share" size="12" class="mr-1"></v-icon>
+              {{
+                participantNameMap[participant.identity] || participant.name || participant.identity
+              }}
+              ({{ $t('meetings.controls.shareOn') }})
+            </div>
+          </div>
+        </template>
+
+        <!-- Screen overlay — shows participant cursors + click-markers on the shared screen -->
+        <MeetingAnnotationCanvas
+          ref="annotationCanvasReference"
+          :cursors="cursors"
+          :markers="markers"
+          :participant-name-map="participantNameMap"
+          :participant-color-map="participantColorMap"
+          :is-local-screen-sharing="isScreenSharing"
+          @cursor-move="emit('cursor-move', $event)"
+          @cursor-hide="emit('cursor-hide')"
+          @marker-place="emit('marker-place', $event)"
+          @markers-clear="emit('markers-clear')"
+        />
+
+        <!-- Fullscreen toggle button — shown on hover -->
+        <v-btn
+          :icon="isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen'"
+          :title="
+            isFullscreen
+              ? $t('meetings.controls.exitFullscreen')
+              : $t('meetings.controls.fullscreen')
+          "
+          size="small"
+          variant="tonal"
+          color="white"
+          class="screen-share-fullscreen-btn"
+          @click="toggleFullscreen"
+        ></v-btn>
+      </div>
+
+      <!-- Screen share selector strip — click to switch which screen share is enlarged -->
+      <div v-if="screenSharesList.length > 1" class="screen-share-strip">
+        <button
+          v-for="share in screenSharesList"
+          :key="`ss-strip-${share.identity}`"
+          class="screen-share-chip"
+          :class="{ 'screen-share-chip--active': focusedScreenIdentity === share.identity }"
+          @click="focusedScreenIdentity = share.identity"
+        >
+          <v-icon icon="mdi-monitor-share" size="14" class="mr-1"></v-icon>
+          <span>{{ share.name }}</span>
+          <span v-if="share.isLocal" class="screen-share-chip__badge">
+            {{ $t('meetings.you') }}
+          </span>
+        </button>
+      </div>
     </div>
 
     <!-- Camera sidebar -->
@@ -151,7 +198,9 @@
         >
           <v-icon icon="mdi-volume-mute" size="14" color="white"></v-icon>
         </div>
-        <div class="video-tile__label">{{ participant.name ?? participant.identity }}</div>
+        <div class="video-tile__label">
+          {{ participantNameMap[participant.identity] || participant.name || participant.identity }}
+        </div>
         <div class="audio-bar">
           <div
             class="audio-bar__fill"
@@ -275,6 +324,8 @@
 // START IMPORT
 import type { RemoteParticipant, LocalParticipant, RemoteTrack } from 'livekit-client'
 import { Track } from 'livekit-client'
+import type { CursorPosition, ScreenMarker } from '@/types/meeting/ScreenCursor'
+import MeetingAnnotationCanvas from '@/components/meeting/AnnotationCanvas.vue'
 // END IMPORT
 
 // START DEFINE PROPERTY AND EMITS
@@ -299,6 +350,19 @@ const props = defineProps<{
   localAvatar: string
   /** Map of String(userId) → speaker enabled state for remote participants */
   remoteSpeakerStates: Record<string, boolean>
+  /** Map of String(userId) → cursor position for remote participants */
+  cursors: Record<string, CursorPosition>
+  /** Click-markers from all participants */
+  markers: ScreenMarker[]
+  /** Map of String(userId) → annotation color for cursor/marker rendering */
+  participantColorMap: Record<string, string>
+}>()
+
+const emit = defineEmits<{
+  'cursor-move': [position: { x: number; y: number }]
+  'cursor-hide': []
+  'marker-place': [position: { x: number; y: number }]
+  'markers-clear': []
 }>()
 // END DEFINE PROPERTY AND EMITS
 
@@ -307,12 +371,43 @@ const localVideoReference = ref<HTMLVideoElement | null>(null)
 // Track screen share audio elements so we can mute/unmute them when isSpeakerEnabled changes
 const screenAudioElements = new Map<string, HTMLAudioElement>()
 const localScreenReference = ref<HTMLVideoElement | null>(null)
+const localScreenCanvasReference = ref<HTMLCanvasElement | null>(null)
 const screenShareContainerReference = ref<HTMLDivElement | null>(null)
 const isFullscreen = ref(false)
+const annotationCanvasReference = ref<InstanceType<typeof MeetingAnnotationCanvas> | null>(null)
+
+/** Which screen share is displayed in the main area.
+ *  'local' = local user's screen share, any other string = remote participant identity.
+ *  Null when no screen share is active. */
+const focusedScreenIdentity = ref<string | null>(null)
+
+// rAF handle for canvas mirror loop
+let screenMirrorFrame: number | null = null
 // END DEFINE STATE
 
 // START DEFINE COMPUTED
 const hasAnyScreenShare = computed(() => props.isScreenSharing || props.hasRemoteScreenShare)
+
+/** All active screen shares (local + remote) with display metadata */
+const screenSharesList = computed(() => {
+  const shares: Array<{ identity: string; name: string; isLocal: boolean }> = []
+  if (props.isScreenSharing) {
+    shares.push({ identity: 'local', name: 'You', isLocal: true })
+  }
+  for (const participant of props.remoteParticipants) {
+    if (props.remoteScreenShareTracks[participant.identity]) {
+      shares.push({
+        identity: participant.identity,
+        name:
+          props.participantNameMap[participant.identity] ||
+          participant.name ||
+          participant.identity,
+        isLocal: false,
+      })
+    }
+  }
+  return shares
+})
 // END DEFINE COMPUTED
 
 // START DEFINE METHOD
@@ -322,6 +417,69 @@ function toggleFullscreen() {
     screenShareContainerReference.value.requestFullscreen()
   } else {
     document.exitFullscreen()
+  }
+}
+
+/**
+ * Continuously mirrors the hidden local screen-share <video> onto the visible <canvas>.
+ * Using a canvas instead of displaying the <video> directly prevents Chrome/macOS from
+ * promoting the getDisplayMedia video to an OS-level hardware overlay (IOSurface/CALayer)
+ * which bypasses CSS z-index and would hide the annotation canvas from the sharer.
+ */
+function runScreenMirror() {
+  const video = localScreenReference.value
+  const canvas = localScreenCanvasReference.value
+  if (!canvas) {
+    screenMirrorFrame = requestAnimationFrame(runScreenMirror)
+    return
+  }
+
+  const context = canvas.getContext('2d')
+  if (!context) {
+    screenMirrorFrame = requestAnimationFrame(runScreenMirror)
+    return
+  }
+
+  // Sync canvas pixel size to its CSS container
+  const parent = canvas.parentElement
+  if (parent) {
+    const rect = parent.getBoundingClientRect()
+    if (rect.width > 0 && rect.height > 0) {
+      if (canvas.width !== Math.round(rect.width) || canvas.height !== Math.round(rect.height)) {
+        canvas.width = Math.round(rect.width)
+        canvas.height = Math.round(rect.height)
+      }
+    }
+  }
+
+  if (video && video.readyState >= 2 && video.videoWidth > 0) {
+    // Draw video centered with letterbox (contain) to preserve aspect ratio
+    const scale = Math.min(canvas.width / video.videoWidth, canvas.height / video.videoHeight)
+    const drawWidth = video.videoWidth * scale
+    const drawHeight = video.videoHeight * scale
+    const offsetX = (canvas.width - drawWidth) / 2
+    const offsetY = (canvas.height - drawHeight) / 2
+
+    context.fillStyle = '#000'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+    context.drawImage(video, offsetX, offsetY, drawWidth, drawHeight)
+  } else {
+    context.fillStyle = '#000'
+    context.fillRect(0, 0, canvas.width, canvas.height)
+  }
+
+  screenMirrorFrame = requestAnimationFrame(runScreenMirror)
+}
+
+function startScreenMirror() {
+  stopScreenMirror()
+  screenMirrorFrame = requestAnimationFrame(runScreenMirror)
+}
+
+function stopScreenMirror() {
+  if (screenMirrorFrame !== null) {
+    cancelAnimationFrame(screenMirrorFrame)
+    screenMirrorFrame = null
   }
 }
 // END DEFINE METHOD
@@ -344,10 +502,15 @@ function tryAttachLocalCamera(attempt: number) {
 
 function tryAttachLocalScreenShare(attempt: number) {
   if (attempt > 5 || !props.localParticipant || !localScreenReference.value) return
-  if (localScreenReference.value.srcObject) return
+  if (localScreenReference.value.srcObject) {
+    // Track already attached — just ensure mirror is running
+    startScreenMirror()
+    return
+  }
   const publication = props.localParticipant.getTrackPublication(Track.Source.ScreenShare)
   if (publication?.track) {
     publication.track.attach(localScreenReference.value)
+    startScreenMirror()
     return
   }
   setTimeout(() => tryAttachLocalScreenShare(attempt + 1), 200)
@@ -369,6 +532,17 @@ function attachRemoteScreenShare(element: HTMLVideoElement | null, participant: 
   const track = props.remoteScreenShareTracks[participant.identity]
   if (track) {
     track.attach(element)
+    // Mobile browsers (especially iOS Safari) may reject autoplay even with muted+playsinline
+    // (e.g. Low Power Mode). Catch and retry on the first user interaction.
+    element.play().catch(() => {
+      const resume = () => {
+        element.play().catch(() => {})
+        document.removeEventListener('click', resume)
+        document.removeEventListener('touchend', resume)
+      }
+      document.addEventListener('click', resume, { once: true })
+      document.addEventListener('touchend', resume, { once: true })
+    })
   } else {
     retryAttachRemoteScreen(element, participant, 0)
   }
@@ -384,9 +558,10 @@ function retryAttachRemoteScreen(
   const track = props.remoteScreenShareTracks[participant.identity]
   if (track) {
     track.attach(element)
-    return
+    element.play().catch(() => {})
+  } else {
+    setTimeout(() => retryAttachRemoteScreen(element, participant, attempt + 1), 150)
   }
-  setTimeout(() => retryAttachRemoteScreen(element, participant, attempt + 1), 150)
 }
 
 function attachRemoteScreenAudio(element: HTMLAudioElement | null, participant: RemoteParticipant) {
@@ -421,7 +596,10 @@ watch(
 watch(
   () => props.isScreenSharing,
   async (sharing) => {
-    if (!sharing) return
+    if (!sharing) {
+      stopScreenMirror()
+      return
+    }
     await nextTick()
     tryAttachLocalScreenShare(0)
   },
@@ -445,6 +623,36 @@ watch(hasAnyScreenShare, async (active) => {
   // Clear the map when leaving presentation mode so stale refs don't accumulate.
   if (!active) screenAudioElements.clear()
 })
+
+// Auto-focus: select which screen share to display in the main area.
+// - If the current focus is still valid, keep it (user explicitly chose it).
+// - Otherwise, prefer local screen share, then first available remote.
+watch(
+  screenSharesList,
+  (shares) => {
+    if (shares.length === 0) {
+      focusedScreenIdentity.value = null
+      return
+    }
+    // Keep current focus if the screen share is still active
+    if (
+      focusedScreenIdentity.value &&
+      shares.some((share) => share.identity === focusedScreenIdentity.value)
+    ) {
+      return
+    }
+    // Default: prefer local screen share, then first remote
+    const localShare = shares.find((share) => share.isLocal)
+    focusedScreenIdentity.value = localShare ? localShare.identity : shares[0]!.identity
+  },
+  { immediate: true },
+)
+
+// Re-attach remote screen share tracks when focus changes (DOM video elements are recreated)
+watch(focusedScreenIdentity, async () => {
+  await nextTick()
+  if (props.isScreenSharing && props.localParticipant) tryAttachLocalScreenShare(0)
+})
 // END DEFINE WATCHER
 
 // START LIFECYCLE
@@ -457,6 +665,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  stopScreenMirror()
   document.removeEventListener('fullscreenchange', onFullscreenChange)
 })
 
@@ -513,6 +722,15 @@ defineExpose({ toggleFullscreen })
   padding: 8px;
 }
 
+/* Wraps the main screen area + selector strip */
+.presentation-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .presentation-main {
   position: relative;
   flex: 1;
@@ -520,6 +738,14 @@ defineExpose({ toggleFullscreen })
   display: flex;
   align-items: center;
   justify-content: center;
+  /* NOTE: no transform/isolation on this container.
+   * Previous approach used transform:translateZ(0) + isolation:isolate to prevent
+   * OS-level hardware overlays from hiding the annotation canvas. This is no longer
+   * needed because the local screen share now uses a canvas mirror (hidden <video> +
+   * visible <canvas>) — canvas elements are never promoted to OS overlays, so the
+   * annotation canvas stays visible without forcing a compositing layer group.
+   * Keeping those properties broke remote screen share rendering on many browsers
+   * because the compositing layer group prevented hardware video decoding. */
 }
 
 .presentation-main .video-tile {
@@ -568,6 +794,51 @@ defineExpose({ toggleFullscreen })
   opacity: 1;
 }
 
+/* ── Screen share selector strip ── */
+.screen-share-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0;
+}
+
+.screen-share-chip {
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border: 2px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.screen-share-chip:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.screen-share-chip--active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(var(--v-theme-primary), 0.8);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.screen-share-chip__badge {
+  margin-left: 4px;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 10px;
+  line-height: 16px;
+}
+
 /* Touch devices have no hover — always show the button */
 @media (hover: none) {
   .screen-share-fullscreen-btn {
@@ -593,6 +864,11 @@ defineExpose({ toggleFullscreen })
 @media (max-width: 640px) {
   .presentation-layout {
     flex-direction: column;
+  }
+
+  .presentation-area {
+    flex: 1;
+    min-height: 0;
   }
 
   .camera-sidebar {
@@ -655,6 +931,29 @@ defineExpose({ toggleFullscreen })
 
 .video-tile--local .video-tile__video {
   transform: scaleX(-1);
+}
+
+/* ── Local screen-share canvas mirror ── */
+.local-screen-video--hidden {
+  /* Off-screen: LiveKit attaches the MediaStreamTrack here for local decode.
+   * The track is published via WebRTC directly — this element is local-playback only.
+   * Hiding it prevents Chrome/macOS from creating an OS-level hardware overlay
+   * (IOSurface/CALayer) that would cover the annotation canvas regardless of z-index. */
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.local-screen-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
 }
 
 .video-tile--speaking {

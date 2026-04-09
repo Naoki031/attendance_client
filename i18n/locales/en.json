@@ -1135,6 +1135,7 @@
     "viewLangHint": "Language to display subtitles in",
     "selectMic": "Microphone",
     "selectSpeaker": "Speaker",
+    "noiseSuppression": "Noise suppression",
     "microphone": "Microphone",
     "speaker": "Speaker",
     "noMeetings": "No Meetings",
@@ -1172,7 +1173,59 @@
       "leave": "Leave",
       "fullscreen": "Fullscreen",
       "exitFullscreen": "Exit Fullscreen",
-      "settings": "Settings"
-    }
+      "settings": "Settings",
+      "shareQuality": {
+        "video": "Video",
+        "videoDesc": "720p · 12fps · smooth playback",
+        "balanced": "Balanced",
+        "balancedDesc": "720p · 15fps · general use",
+        "document": "Document",
+        "documentDesc": "1080p · 8fps · crisp text"
+      },
+      "annotateOn": "Annotating",
+      "annotateOff": "Annotate",
+      "noiseOn": "Noise Filter",
+      "noiseOff": "Noise Filter",
+      "annotationOverlay": "Annotation Overlay",
+      "endMeeting": "End Meeting",
+      "endMeetingConfirm": "This will end the meeting for all participants. Are you sure?",
+      "selectScreen": "Select screen to view",
+      "createVote": "Create Vote"
+    },
+    "annotation": {
+      "clearAll": "Clear all annotations"
+    },
+    "vote": {
+      "title": "Votes",
+      "noVotes": "No active votes",
+      "createVote": "New Vote",
+      "question": "Question",
+      "questionPlaceholder": "Enter your question...",
+      "options": "Options",
+      "addOption": "Add option",
+      "type": "Vote type",
+      "single": "Single choice",
+      "multiple": "Multiple choice",
+      "create": "Create",
+      "cast": "Vote",
+      "updateVote": "Change vote",
+      "results": "Results",
+      "closed": "Closed",
+      "voters": "{count} voters",
+      "by": "by {name}",
+      "optionRequired": "At least 2 options required",
+      "questionRequired": "Question is required",
+      "optionTextRequired": "Option text is required",
+      "storyPoint": "Story Point",
+      "fibonacciCards": "Fibonacci cards",
+      "average": "Avg",
+      "participants": "Participants",
+      "selectAll": "Select all",
+      "deselectAll": "Deselect all",
+      "notInvited": "You are not invited to this vote",
+      "closeVote": "Close Vote"
+    },
+    "meetingEnding": "Meeting is ending...",
+    "presenting": "You are presenting"
   }
 }

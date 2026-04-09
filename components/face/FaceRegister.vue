@@ -144,7 +144,7 @@
 
       <!-- Liveness prompt for current step -->
       <v-expand-transition>
-        <div class="text-center py-2 px-2 mb-3">
+        <div v-if="currentChallenge" class="text-center py-2 px-2 mb-3">
           <v-chip color="primary" variant="tonal" prepend-icon="mdi-eye-outline" class="mb-2">
             {{ $t(`face.liveness.${currentChallenge}`) }}
           </v-chip>
