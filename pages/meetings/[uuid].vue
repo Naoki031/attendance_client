@@ -246,6 +246,8 @@
               :cursors="cursors"
               :markers="markers"
               :participant-color-map="participantColorMap"
+              :host-user-id="currentHostId"
+              :local-user-id="localUserId"
               @cursor-move="sendCursorMove($event.x, $event.y)"
               @cursor-hide="sendCursorHide"
               @marker-place="sendScreenMarker($event.x, $event.y)"
@@ -280,10 +282,8 @@
           :is-camera-enabled="isCameraEnabled"
           :is-screen-sharing="isScreenSharing"
           :is-speaker-enabled="isSpeakerEnabled"
-          :show-subtitles="showSubtitles"
           :show-vote-panel="showVotePanel"
           :tts-enabled="ttsEnabled"
-          :is-noise-suppressed="isNoiseSuppressed"
           :has-any-screen-share="isScreenSharing || hasRemoteScreenShare"
           :is-fullscreen="isFullscreen"
           :is-host="isHost"
@@ -292,12 +292,11 @@
           @toggle-speaker="toggleSpeaker"
           @start-screen-share="startScreenShare"
           @stop-screen-share="stopScreenShare"
-          @toggle-subtitles="showSubtitles = !showSubtitles"
           @toggle-vote-panel="showVotePanel = !showVotePanel"
           @toggle-tts="ttsEnabled = !ttsEnabled"
-          @toggle-noise-suppression="toggleNoiseSuppression"
           @toggle-fullscreen="handleToggleFullscreen"
           @open-settings="settingsDialog = true"
+          @transfer-host="transferHostDialog = true"
           @end-meeting="handleEndMeeting"
           @leave="leaveMeeting"
         />
@@ -323,6 +322,56 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <!-- Transfer Host dialog -->
+      <v-dialog v-model="transferHostDialog" max-width="400" persistent>
+        <v-card rounded="xl">
+          <v-card-title class="pa-5 pb-3 d-flex align-center ga-2">
+            <v-icon color="amber">mdi-crown-outline</v-icon>
+            {{ $t('meetings.hostSchedule.transferHost') }}
+          </v-card-title>
+          <v-card-text class="pt-0 text-body-2 text-medium-emphasis">
+            {{ $t('meetings.hostSchedule.transferHostTitle') }}
+          </v-card-text>
+          <v-card-text class="pt-0">
+            <v-list density="compact" rounded="lg">
+              <v-list-item
+                v-for="participant in transferableParticipants"
+                :key="participant.userId"
+                :title="participant.username"
+                rounded="lg"
+                @click="confirmTransferHost(participant.userId)"
+              >
+                <template #prepend>
+                  <v-avatar size="32" color="primary" variant="tonal" class="mr-2">
+                    <span class="text-caption font-weight-bold">
+                      {{ participant.username.charAt(0).toUpperCase() }}
+                    </span>
+                  </v-avatar>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+          <v-card-actions class="pa-4 pt-0">
+            <v-spacer />
+            <v-btn variant="text" @click="transferHostDialog = false">{{
+              $t('common.cancel')
+            }}</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <!-- Host changed snackbar -->
+      <v-snackbar
+        v-model="hostChangedSnackbar"
+        location="top"
+        color="amber-darken-3"
+        :timeout="3000"
+        rounded="lg"
+      >
+        <v-icon class="mr-2">mdi-crown</v-icon>
+        {{ hostChangedMessage }}
+      </v-snackbar>
 
       <!-- Device settings dialog -->
       <v-dialog v-model="settingsDialog" max-width="400">
@@ -435,7 +484,7 @@ const passwordError = ref('')
 const isVerifyingPassword = ref(false)
 
 const _userLanguage = computed(() => useCookie('language').value ?? 'en')
-const showSubtitles = ref(true)
+const _showSubtitles = ref(true)
 const videoGridReference = ref<InstanceType<typeof MeetingVideoGrid> | null>(null)
 const isFullscreen = ref(false)
 
@@ -460,6 +509,9 @@ const selectedMicId = ref<string>('')
 const selectedSpeakerId = ref<string>('')
 const settingsDialog = ref(false)
 const endMeetingDialog = ref(false)
+const transferHostDialog = ref(false)
+const hostChangedSnackbar = ref(false)
+const hostChangedMessage = ref('')
 const voteDialog = ref(false)
 
 // Mic level detector
@@ -512,6 +564,8 @@ const {
   clearScreenMarkers,
   getParticipantColor,
   endMeeting,
+  currentHostId,
+  transferHost,
   votes,
   showVotePanel,
   createVote,
@@ -522,7 +576,18 @@ const {
   startEndCountdown()
 })
 
-const isHost = computed(() => localUserId.value !== 0 && localUserId.value === meetingHostId.value)
+// isHost: true when local user is the current runtime host (resolved from schedule or transfer).
+// Falls back to permanent owner (meetingHostId) before the first session starts (currentHostId null).
+const isHost = computed(() => {
+  if (localUserId.value === 0) return false
+  if (currentHostId.value !== null) return localUserId.value === currentHostId.value
+  return localUserId.value === meetingHostId.value
+})
+
+// Participants available to receive host (everyone except the current host)
+const transferableParticipants = computed(() =>
+  socketParticipants.value.filter((participant) => participant.userId !== localUserId.value),
+)
 
 // Build participantColorMap — assigns each participant a distinct color
 const participantColorMap = computed(() => {
@@ -540,6 +605,23 @@ const endCountdown = ref<number | null>(null)
 // Apply speaker device change to all active remote audio elements
 watch(selectedSpeakerId, (deviceId) => {
   if (deviceId) setRemoteSpeakerDevice(deviceId)
+})
+
+// Show a snackbar notification whenever the runtime host changes mid-session
+watch(currentHostId, (newHostId, previousHostId) => {
+  if (newHostId === null || previousHostId === null) return
+
+  const hostParticipant = socketParticipants.value.find(
+    (participant) => participant.userId === newHostId,
+  )
+  const name = hostParticipant?.username ?? `#${newHostId}`
+
+  if (newHostId === localUserId.value) {
+    hostChangedMessage.value = t('meetings.hostSchedule.youAreHost')
+  } else {
+    hostChangedMessage.value = t('meetings.hostSchedule.hostChanged', { name })
+  }
+  hostChangedSnackbar.value = true
 })
 
 // Re-enumerate devices when settings dialog opens so newly connected USB/Type-C
@@ -806,6 +888,11 @@ function handleEndMeeting() {
 function confirmEndMeeting() {
   endMeetingDialog.value = false
   endMeeting()
+}
+
+function confirmTransferHost(toUserId: number) {
+  transferHostDialog.value = false
+  transferHost(toUserId)
 }
 
 function handleToggleFullscreen() {

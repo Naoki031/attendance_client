@@ -240,6 +240,12 @@
       <div v-if="!isSpeakerEnabled" class="video-tile__speaker-off">
         <v-icon icon="mdi-volume-mute" size="14" color="white"></v-icon>
       </div>
+      <div
+        v-if="hostUserId !== null && hostUserId !== undefined && localUserId === hostUserId"
+        class="video-tile__host-badge"
+      >
+        <v-icon icon="mdi-crown" size="14" color="amber"></v-icon>
+      </div>
       <div class="video-tile__label">
         <v-icon
           v-if="localParticipant && activeSpeakerIdentities.includes(localParticipant.identity)"
@@ -248,6 +254,13 @@
           class="mr-1"
         ></v-icon>
         {{ $t('meetings.you') }}
+        <span
+          v-if="hostUserId !== null && hostUserId !== undefined && localUserId === hostUserId"
+          class="video-tile__host-chip"
+        >
+          <v-icon icon="mdi-crown" size="10"></v-icon>
+          HOST
+        </span>
       </div>
       <div class="audio-bar">
         <div
@@ -299,6 +312,16 @@
       >
         <v-icon icon="mdi-volume-mute" size="14" color="white"></v-icon>
       </div>
+      <div
+        v-if="
+          hostUserId !== null &&
+          hostUserId !== undefined &&
+          Number(participant.identity) === hostUserId
+        "
+        class="video-tile__host-badge"
+      >
+        <v-icon icon="mdi-crown" size="14" color="amber"></v-icon>
+      </div>
       <div class="video-tile__label">
         <v-icon
           v-if="activeSpeakerIdentities.includes(participant.identity)"
@@ -307,6 +330,17 @@
           class="mr-1"
         ></v-icon>
         {{ participantNameMap[participant.identity] || participant.name || participant.identity }}
+        <span
+          v-if="
+            hostUserId !== null &&
+            hostUserId !== undefined &&
+            Number(participant.identity) === hostUserId
+          "
+          class="video-tile__host-chip"
+        >
+          <v-icon icon="mdi-crown" size="10"></v-icon>
+          HOST
+        </span>
       </div>
       <div class="audio-bar">
         <div
@@ -356,6 +390,10 @@ const props = defineProps<{
   markers: ScreenMarker[]
   /** Map of String(userId) → annotation color for cursor/marker rendering */
   participantColorMap: Record<string, string>
+  /** userId of the current runtime host — shown with a crown badge */
+  hostUserId?: number | null
+  /** userId of the local user — used to check if local tile is the host */
+  localUserId?: number
 }>()
 
 const emit = defineEmits<{
@@ -986,6 +1024,36 @@ defineExpose({ toggleFullscreen })
   align-items: center;
   justify-content: center;
   z-index: 2;
+}
+
+.video-tile__host-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.video-tile__host-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 179, 0, 0.25);
+  color: #ffd54f;
+  border: 1px solid rgba(255, 179, 0, 0.5);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  vertical-align: middle;
 }
 
 .audio-bar {

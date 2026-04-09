@@ -70,6 +70,18 @@ const helpGroups = computed<ChatbotHelpGroup[]>(() => {
         t('chatbot.help.questions.trackStatus'),
       ],
     },
+    {
+      label: t('chatbot.help.groups.meetings'),
+      questions: [
+        t('chatbot.help.questions.createMeeting'),
+        t('chatbot.help.questions.joinMeeting'),
+        t('chatbot.help.questions.pinMeeting'),
+        t('chatbot.help.questions.createVote'),
+        t('chatbot.help.questions.meetingScreenShare'),
+        t('chatbot.help.questions.meetingSubtitle'),
+        t('chatbot.help.questions.hostSchedule'),
+      ],
+    },
   ]
 
   if (userStore.isAdmin) {

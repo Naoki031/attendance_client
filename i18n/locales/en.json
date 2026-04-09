@@ -798,7 +798,8 @@
         "approvals": "Approvals",
         "attendance": "Attendance",
         "usersOrg": "Users & Organization",
-        "integrations": "Integrations"
+        "integrations": "Integrations",
+        "meetings": "Meetings"
       },
       "questions": {
         "createLeave": "How to create a leave request?",
@@ -832,7 +833,14 @@
         "configGoogleSheets": "How to configure Google Sheets export?",
         "filterApprovals": "Can I filter approvals by month or request type?",
         "createTeam": "How to create a team and link it to Slack?",
-        "addTeamMembers": "How to add members to a team?"
+        "addTeamMembers": "How to add members to a team?",
+        "createMeeting": "How to create a new meeting room?",
+        "joinMeeting": "How to join a meeting?",
+        "pinMeeting": "How to pin a meeting to the top of the list?",
+        "createVote": "How to create a vote during a meeting?",
+        "meetingScreenShare": "How does screen sharing with annotations work?",
+        "meetingSubtitle": "How does the subtitle translation work in meetings?",
+        "hostSchedule": "How to set up a host rotation schedule?"
       }
     }
   },
@@ -1114,6 +1122,7 @@
     "title": "Meetings",
     "description": "Create and join internal meeting rooms",
     "create": "New Meeting",
+    "createSubtitle": "Fill in the details below to create a new meeting room",
     "join": "Join",
     "leave": "Leave",
     "end": "End Meeting",
@@ -1141,7 +1150,9 @@
     "noMeetings": "No Meetings",
     "noMeetingsDesc": "Create a new meeting to get started",
     "public": "Public",
+    "publicHint": "Anyone in the company can join",
     "private": "Private",
+    "privateHint": "Password required to join",
     "passwordGenerated": "Meeting Password",
     "passwordGeneratedDesc": "Share this password with people you want to invite. This is the only time it will be shown.",
     "passwordRequired": "This meeting is private. Enter the password to join.",
@@ -1149,6 +1160,9 @@
     "wrongPassword": "Incorrect password. Please try again.",
     "regeneratePassword": "Generate New Password",
     "regeneratePasswordConfirm": "This will invalidate the current password and generate a new one. Participants will need the new password to join.",
+    "deleteMeeting": "Delete Meeting",
+    "deleteConfirm": "Are you sure you want to delete this meeting? This action cannot be undone.",
+    "deleteFailedActive": "Cannot delete a meeting that is currently active. Please wait until all participants have left.",
     "editMeeting": "Edit Meeting",
     "sectionMeetingInfo": "Meeting Info",
     "privacySection": "Privacy",
@@ -1226,6 +1240,55 @@
       "closeVote": "Close Vote"
     },
     "meetingEnding": "Meeting is ending...",
-    "presenting": "You are presenting"
+    "presenting": "You are presenting",
+    "hostSchedule": {
+      "manageTitle": "Host Schedule",
+      "addTitle": "Add Host Schedule",
+      "editTitle": "Edit Host Schedule",
+      "subtitle": "Set who hosts this room on specific dates or on a recurring schedule",
+      "addSchedule": "Add Schedule",
+      "hostUser": "Host User",
+      "selectUser": "Select a user",
+      "scheduleType": "Schedule Type",
+      "type": {
+        "one_time": "One-time",
+        "date_list": "Date List",
+        "date_range": "Date Range",
+        "recurring": "Recurring"
+      },
+      "date": "Date",
+      "dates": "Dates",
+      "addDate": "Add date",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "recurPattern": "Repeat Pattern",
+      "recurStartDate": "Start Date",
+      "recurEndDate": "End Date (optional)",
+      "recurEndDateHint": "Leave empty for no end date",
+      "everyWeek": "Every week",
+      "everyNWeeks": "Every {count} weeks",
+      "empty": "No host schedules yet",
+      "emptyHint": "Add a schedule to set who hosts on specific dates",
+      "todayHost": "Today's host",
+      "nextHost": "Next host",
+      "viewSchedule": "View schedule",
+      "inactive": "Inactive",
+      "deleteTitle": "Delete Schedule",
+      "deleteConfirm": "Are you sure you want to delete this host schedule?",
+      "transferHost": "Transfer Host",
+      "transferHostTitle": "Transfer host rights to another participant",
+      "selectParticipant": "Select participant",
+      "youAreHost": "You are the host",
+      "hostChanged": "{name} is now the host"
+    },
+    "pin": {
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "pinned": "Pinned"
+    },
+    "companies": "Companies",
+    "companiesHint": "Only users in these companies will see this meeting. Defaults to your company.",
+    "viewDescription": "View description",
+    "createdBy": "Created by"
   }
 }

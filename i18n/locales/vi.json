@@ -798,7 +798,8 @@
         "approvals": "Phê duyệt",
         "attendance": "Chấm công",
         "usersOrg": "Nhân sự & Tổ chức",
-        "integrations": "Tích hợp"
+        "integrations": "Tích hợp",
+        "meetings": "Họp trực tuyến"
       },
       "questions": {
         "createLeave": "Cách tạo đơn nghỉ phép?",
@@ -832,7 +833,14 @@
         "configGoogleSheets": "Cách cấu hình xuất dữ liệu Google Sheets?",
         "filterApprovals": "Có thể lọc phê duyệt theo tháng hoặc loại yêu cầu không?",
         "createTeam": "Cách tạo team và liên kết với Slack?",
-        "addTeamMembers": "Cách thêm thành viên vào team?"
+        "addTeamMembers": "Cách thêm thành viên vào team?",
+        "createMeeting": "Cách tạo phòng họp mới?",
+        "joinMeeting": "Cách tham gia phòng họp?",
+        "pinMeeting": "Cách ghim phòng họp lên đầu danh sách?",
+        "createVote": "Cách tạo bình chọn trong phòng họp?",
+        "meetingScreenShare": "Chia sẻ màn hình và chú thích hoạt động thế nào?",
+        "meetingSubtitle": "Phụ đề dịch tự động trong phòng họp hoạt động thế nào?",
+        "hostSchedule": "Cách thiết lập lịch trực host?"
       }
     }
   },
@@ -1114,6 +1122,7 @@
     "title": "Cuộc họp",
     "description": "Tạo và tham gia phòng họp nội bộ",
     "create": "Tạo cuộc họp",
+    "createSubtitle": "Điền thông tin bên dưới để tạo phòng họp mới",
     "join": "Tham gia",
     "leave": "Rời phòng",
     "end": "Kết thúc họp",
@@ -1141,7 +1150,9 @@
     "noMeetings": "Chưa có cuộc họp",
     "noMeetingsDesc": "Tạo cuộc họp mới để bắt đầu",
     "public": "Công khai",
+    "publicHint": "Mọi người trong công ty đều có thể tham gia",
     "private": "Riêng tư",
+    "privateHint": "Cần mật khẩu để tham gia",
     "passwordGenerated": "Mật khẩu phòng họp",
     "passwordGeneratedDesc": "Chia sẻ mật khẩu này với người bạn muốn mời. Đây là lần duy nhất mật khẩu được hiển thị.",
     "passwordRequired": "Phòng họp này ở chế độ riêng tư. Nhập mật khẩu để tham gia.",
@@ -1149,6 +1160,9 @@
     "wrongPassword": "Mật khẩu không đúng. Vui lòng thử lại.",
     "regeneratePassword": "Tạo mật khẩu mới",
     "regeneratePasswordConfirm": "Mật khẩu hiện tại sẽ bị vô hiệu hóa và tạo mật khẩu mới. Người tham gia sẽ cần mật khẩu mới để vào phòng.",
+    "deleteMeeting": "Xóa cuộc họp",
+    "deleteConfirm": "Bạn có chắc muốn xóa cuộc họp này? Hành động này không thể hoàn tác.",
+    "deleteFailedActive": "Không thể xóa cuộc họp đang có người tham gia. Vui lòng đợi cho đến khi tất cả đã rời phòng.",
     "editMeeting": "Chỉnh sửa cuộc họp",
     "sectionMeetingInfo": "Thông tin cuộc họp",
     "privacySection": "Quyền riêng tư",
@@ -1226,6 +1240,55 @@
       "closeVote": "Đóng Bình Chọn"
     },
     "meetingEnding": "Cuộc họp sắp kết thúc...",
-    "presenting": "Bạn đang chia sẻ màn hình"
+    "presenting": "Bạn đang chia sẻ màn hình",
+    "hostSchedule": {
+      "manageTitle": "Lịch Host",
+      "addTitle": "Thêm Lịch Host",
+      "editTitle": "Sửa Lịch Host",
+      "subtitle": "Đặt ai sẽ host phòng này vào ngày cụ thể hoặc theo lịch lặp lại",
+      "addSchedule": "Thêm Lịch",
+      "hostUser": "Người Host",
+      "selectUser": "Chọn người dùng",
+      "scheduleType": "Loại Lịch",
+      "type": {
+        "one_time": "Một lần",
+        "date_list": "Danh sách ngày",
+        "date_range": "Khoảng ngày",
+        "recurring": "Lặp lại"
+      },
+      "date": "Ngày",
+      "dates": "Các ngày",
+      "addDate": "Thêm ngày",
+      "dateFrom": "Từ ngày",
+      "dateTo": "Đến ngày",
+      "recurPattern": "Chu kỳ lặp",
+      "recurStartDate": "Ngày bắt đầu",
+      "recurEndDate": "Ngày kết thúc (tùy chọn)",
+      "recurEndDateHint": "Để trống nếu không có ngày kết thúc",
+      "everyWeek": "Mỗi tuần",
+      "everyNWeeks": "Mỗi {count} tuần",
+      "empty": "Chưa có lịch host nào",
+      "emptyHint": "Thêm lịch để đặt ai host vào những ngày cụ thể",
+      "todayHost": "Host hôm nay",
+      "nextHost": "Host tiếp theo",
+      "viewSchedule": "Xem lịch host",
+      "inactive": "Tắt",
+      "deleteTitle": "Xóa Lịch",
+      "deleteConfirm": "Bạn có chắc muốn xóa lịch host này không?",
+      "transferHost": "Chuyển quyền Host",
+      "transferHostTitle": "Chuyển quyền host cho người khác trong phòng",
+      "selectParticipant": "Chọn người tham gia",
+      "youAreHost": "Bạn đang là host",
+      "hostChanged": "{name} đã trở thành host"
+    },
+    "pin": {
+      "pin": "Ghim",
+      "unpin": "Bỏ ghim",
+      "pinned": "Đã ghim"
+    },
+    "companies": "Công ty",
+    "companiesHint": "Chỉ người thuộc các công ty này mới thấy phòng họp. Mặc định là công ty của bạn.",
+    "viewDescription": "Xem mô tả",
+    "createdBy": "Tạo bởi"
   }
 }

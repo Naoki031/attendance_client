@@ -117,6 +117,10 @@ export function useMeeting(
   const votes = ref<MeetingVote[]>([])
   const showVotePanel = ref(false)
 
+  // Runtime host — userId of whoever is currently hosting this session.
+  // Resolved from schedule on first join; can be changed by transfer_host.
+  const currentHostId = ref<number | null>(null)
+
   // Speaking language — defaults to Vietnamese (primary input), en only when explicitly enabled.
   // Uses a dedicated cookie so it is independent of the UI locale cookie ('language').
   const speakingLanguageCookie = useCookie<string>('speaking_language', { default: () => 'vi' })
@@ -179,6 +183,7 @@ export function useMeeting(
       (data: {
         participants: MeetingParticipantInfo[]
         speakerStates?: Record<number, boolean>
+        hostUserId?: number | null
       }) => {
         socketParticipants.value = data.participants
 
@@ -191,6 +196,11 @@ export function useMeeting(
           }
 
           remoteSpeakerStates.value = states
+        }
+
+        // Sync runtime host (may already be set if we are the first to join)
+        if (data.hostUserId != null) {
+          currentHostId.value = data.hostUserId
         }
       },
     )
@@ -324,6 +334,11 @@ export function useMeeting(
       votes.value = votes.value.map((value) => (value.id === closedVote.id ? closedVote : value))
     })
 
+    // Runtime host changed — either from schedule resolution on session start or manual transfer
+    socket.on('host_changed', (data: { meetingId: number; hostUserId: number }) => {
+      currentHostId.value = data.hostUserId
+    })
+
     // Host has ended the meeting for everyone
     socket.on('meeting_ended', () => {
       onMeetingEnded?.()
@@ -404,6 +419,19 @@ export function useMeeting(
   function endMeeting() {
     if (!socket?.connected || localUserId === null) return
     socket.emit('end_meeting', { meetingId: meetingId.value, userId: localUserId })
+  }
+
+  /**
+   * Transfers host rights from the current user to another participant.
+   * Gateway verifies the caller is the current runtime host before applying.
+   */
+  function transferHost(toUserId: number) {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('transfer_host', {
+      meetingId: meetingId.value,
+      fromUserId: localUserId,
+      toUserId,
+    })
   }
 
   /**
@@ -1067,6 +1095,7 @@ export function useMeeting(
     cursors.value = {}
     markers.value = []
     votes.value = []
+    currentHostId.value = null
 
     if (markerPurgeInterval !== null) {
       clearInterval(markerPurgeInterval)
@@ -1117,6 +1146,8 @@ export function useMeeting(
     getLocalAnnotationColor,
     getParticipantColor,
     endMeeting,
+    currentHostId,
+    transferHost,
     votes,
     showVotePanel,
     createVote,

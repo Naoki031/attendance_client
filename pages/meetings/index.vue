@@ -53,8 +53,12 @@
             :meeting="meeting"
             :live-participants="getLiveParticipants(meeting)"
             :current-user-id="currentUserId"
+            :can-manage="canManageMeeting(meeting)"
             @regenerate-password="openRegenDialog"
             @edit="openEditDialog"
+            @delete="openDeleteDialog"
+            @manage-host-schedule="openHostScheduleDialog"
+            @toggle-pin="togglePin"
           />
         </v-col>
       </v-row>
@@ -83,12 +87,55 @@
     <!-- Regenerate Password Dialog -->
     <MeetingDialogRegenPassword v-model="regenDialog" :meeting-uuid="regenTargetUuid" />
 
+    <!-- Host Schedule Dialog -->
+    <MeetingDialogManageHostSchedules
+      v-model="hostScheduleDialog"
+      :meeting-uuid="hostScheduleTargetUuid"
+      :meeting="hostScheduleTargetMeeting"
+    />
+
     <!-- Edit Meeting Dialog -->
     <MeetingDialogEditMeeting
       v-model="editDialog"
       :meeting="editTargetMeeting"
       @saved="onMeetingUpdated"
     />
+
+    <!-- Delete Meeting Dialog -->
+    <v-dialog v-model="deleteDialog" max-width="420">
+      <v-card rounded="xl" elevation="2" class="text-center pa-6">
+        <div class="d-flex justify-center mb-4">
+          <div class="warning-icon-wrap">
+            <v-icon color="error" size="28">mdi-alert</v-icon>
+          </div>
+        </div>
+        <div class="text-h6 font-weight-bold mb-2">{{ $t('meetings.deleteMeeting') }}</div>
+        <div class="text-body-2 text-medium-emphasis mb-6 px-4">
+          {{ $t('meetings.deleteConfirm') }}
+        </div>
+        <div class="d-flex justify-center ga-3">
+          <v-btn
+            variant="text"
+            color="default"
+            rounded="lg"
+            min-width="100"
+            @click="deleteDialog = false"
+          >
+            {{ $t('common.cancel') }}
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="elevated"
+            rounded="lg"
+            min-width="100"
+            :loading="isDeleting"
+            @click="confirmDelete"
+          >
+            {{ $t('common.delete') }}
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -98,6 +145,7 @@ import { useNuxtApp } from '#app'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import type { Meeting, MeetingParticipant } from '@/interfaces/models/MeetingModel'
+import MeetingService from '@/services/MeetingService'
 /** END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -119,6 +167,16 @@ const regenTargetUuid = ref('')
 const editDialog = ref(false)
 const editTargetMeeting = ref<Meeting | null>(null)
 
+const deleteDialog = ref(false)
+const deleteTargetUuid = ref('')
+const isDeleting = ref(false)
+
+const hostScheduleDialog = ref(false)
+const hostScheduleTargetUuid = ref('')
+const hostScheduleTargetMeeting = ref<Meeting | null>(null)
+
+const currentUserRoles = ref<string[]>([])
+
 let listSocket: Socket | null = null
 
 const liveUsersByMeeting = ref<Record<number, number[]>>({})
@@ -134,6 +192,7 @@ const statusFilters = computed(() => [
 
 const filteredMeetings = computed(() => {
   if (activeFilter.value === 'all') return meetings.value
+
   return meetings.value.filter((meeting) => meeting.status === activeFilter.value)
 })
 /** END DEFINE COMPUTED */
@@ -142,6 +201,7 @@ const filteredMeetings = computed(() => {
 function getLiveParticipants(meeting: Meeting): MeetingParticipant[] {
   const liveIds = liveUsersByMeeting.value[meeting.id] ?? []
   if (liveIds.length === 0) return []
+
   return (meeting.participants ?? []).filter((participant) => liveIds.includes(participant.user_id))
 }
 
@@ -161,6 +221,7 @@ function openEditDialog(uuid: string) {
 
 function onMeetingUpdated(updated: Meeting) {
   const index = meetings.value.findIndex((item) => item.id === updated.id)
+
   if (index !== -1) {
     meetings.value[index] = updated
   }
@@ -168,10 +229,63 @@ function onMeetingUpdated(updated: Meeting) {
 
 async function loadMeetings() {
   isLoading.value = true
+
   try {
     meetings.value = await ($apiFetch as (url: string) => Promise<Meeting[]>)('/meetings')
   } finally {
     isLoading.value = false
+  }
+}
+
+function canManageMeeting(meeting: Meeting): boolean {
+  if (meeting.host_id === currentUserId.value) return true
+  return currentUserRoles.value.some((role) => {
+    const normalized = role.toLowerCase().replace(/[\s_]+/g, '')
+
+    return normalized === 'admin' || normalized === 'superadmin' || normalized === 'super'
+  })
+}
+
+function openDeleteDialog(uuid: string) {
+  deleteTargetUuid.value = uuid
+  deleteDialog.value = true
+}
+
+async function togglePin(uuid: string) {
+  const meeting = meetings.value.find((item) => item.uuid === uuid)
+  if (!meeting) return
+  if (meeting.is_pinned) {
+    await MeetingService.unpin(uuid)
+    meeting.is_pinned = false
+  } else {
+    await MeetingService.pin(uuid)
+    meeting.is_pinned = true
+  }
+  meetings.value.sort((meetingA, meetingB) => {
+    if (meetingA.is_pinned === meetingB.is_pinned) return 0
+    return meetingA.is_pinned ? -1 : 1
+  })
+}
+
+function openHostScheduleDialog(uuid: string) {
+  hostScheduleTargetUuid.value = uuid
+  hostScheduleTargetMeeting.value = meetings.value.find((item) => item.uuid === uuid) ?? null
+  hostScheduleDialog.value = true
+}
+
+async function confirmDelete() {
+  isDeleting.value = true
+
+  try {
+    await ($apiFetch as typeof $fetch)(`/meetings/${deleteTargetUuid.value}`, {
+      method: 'DELETE',
+    })
+    meetings.value = meetings.value.filter((meeting) => meeting.uuid !== deleteTargetUuid.value)
+    deleteDialog.value = false
+  } catch {
+    // Error handled by API interceptor
+  } finally {
+    isDeleting.value = false
   }
 }
 /** END DEFINE METHOD */
@@ -179,9 +293,13 @@ async function loadMeetings() {
 /** START LIFECYCLE */
 onMounted(async () => {
   loadMeetings()
+
   try {
-    const user = await ($apiFetch as (url: string) => Promise<{ id: number }>)('/auth/user')
+    const user = await ($apiFetch as (url: string) => Promise<{ id: number; roles: string[] }>)(
+      '/auth/user',
+    )
     currentUserId.value = user.id
+    currentUserRoles.value = user.roles ?? []
   } catch {
     // Fail silently
   }
@@ -223,7 +341,7 @@ onMounted(async () => {
       // Sync active status for meetings that currently have live participants
       for (const meetingId of Object.keys(liveState)) {
         const meeting = meetings.value.find((item) => item.id === Number(meetingId))
-        if (meeting && liveState[Number(meetingId)].length > 0) {
+        if (meeting && (liveState[Number(meetingId)] ?? []).length > 0) {
           meeting.status = 'active'
         }
       }

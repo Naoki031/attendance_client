@@ -27,4 +27,10 @@ export interface Meeting {
   schedule_time?: string
   schedule_day_of_week?: number
   schedule_interval_weeks?: number
+  is_pinned?: boolean
+  meeting_companies?: Array<{
+    id: number
+    company_id: number
+    company?: { id: number; name: string }
+  }>
 }

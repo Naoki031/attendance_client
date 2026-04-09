@@ -798,7 +798,8 @@
         "approvals": "承認",
         "attendance": "勤怠",
         "usersOrg": "ユーザー・組織",
-        "integrations": "連携"
+        "integrations": "連携",
+        "meetings": "オンライン会議"
       },
       "questions": {
         "createLeave": "休暇申請の作成方法は？",
@@ -832,7 +833,14 @@
         "configGoogleSheets": "Googleスプレッドシートの連携設定方法は？",
         "filterApprovals": "承認リストを月別やリクエストタイプで絞り込めますか？",
         "createTeam": "チームを作成してSlackに連携するには？",
-        "addTeamMembers": "チームにメンバーを追加するには？"
+        "addTeamMembers": "チームにメンバーを追加するには？",
+        "createMeeting": "会議室を作成するには？",
+        "joinMeeting": "会議に参加するには？",
+        "pinMeeting": "会議をリストの一番上にピン留めするには？",
+        "createVote": "会議中に投票を作成するには？",
+        "meetingScreenShare": "画面共有と注釈機能の使い方は？",
+        "meetingSubtitle": "会議の字幕翻訳機能の使い方は？",
+        "hostSchedule": "ホストのローテーションスケジュールを設定するには？"
       }
     }
   },
@@ -1114,6 +1122,7 @@
     "title": "ミーティング",
     "description": "内部ミーティングルームを作成・参加する",
     "create": "新規ミーティング",
+    "createSubtitle": "以下の情報を入力して新しいミーティングルームを作成してください",
     "join": "参加",
     "leave": "退出",
     "end": "ミーティングを終了",
@@ -1141,7 +1150,9 @@
     "noMeetings": "ミーティングなし",
     "noMeetingsDesc": "新しいミーティングを作成して始めましょう",
     "public": "公開",
+    "publicHint": "会社の誰でも参加できます",
     "private": "プライベート",
+    "privateHint": "参加にはパスワードが必要です",
     "passwordGenerated": "ミーティングパスワード",
     "passwordGeneratedDesc": "招待したい方にこのパスワードを共有してください。表示されるのはこの一度のみです。",
     "passwordRequired": "このミーティングはプライベートです。参加するにはパスワードを入力してください。",
@@ -1149,6 +1160,9 @@
     "wrongPassword": "パスワードが正しくありません。もう一度お試しください。",
     "regeneratePassword": "新しいパスワードを生成",
     "regeneratePasswordConfirm": "現在のパスワードが無効になり、新しいパスワードが生成されます。参加者は新しいパスワードが必要です。",
+    "deleteMeeting": "会議を削除",
+    "deleteConfirm": "この会議を削除してもよろしいですか？この操作は元に戻せません。",
+    "deleteFailedActive": "アクティブな会議は削除できません。参加者が全員退出するまでお待ちください。",
     "editMeeting": "会議を編集",
     "sectionMeetingInfo": "会議情報",
     "privacySection": "プライバシー",
@@ -1226,6 +1240,55 @@
       "closeVote": "投票を締め切る"
     },
     "meetingEnding": "ミーティングが終了します...",
-    "presenting": "画面共有中"
+    "presenting": "画面共有中",
+    "hostSchedule": {
+      "manageTitle": "ホストスケジュール",
+      "addTitle": "ホストスケジュールを追加",
+      "editTitle": "ホストスケジュールを編集",
+      "subtitle": "特定の日付または繰り返しスケジュールでこの部屋のホストを設定します",
+      "addSchedule": "スケジュールを追加",
+      "hostUser": "ホストユーザー",
+      "selectUser": "ユーザーを選択",
+      "scheduleType": "スケジュールタイプ",
+      "type": {
+        "one_time": "1回のみ",
+        "date_list": "日付リスト",
+        "date_range": "日付範囲",
+        "recurring": "繰り返し"
+      },
+      "date": "日付",
+      "dates": "日付一覧",
+      "addDate": "日付を追加",
+      "dateFrom": "開始日",
+      "dateTo": "終了日",
+      "recurPattern": "繰り返しパターン",
+      "recurStartDate": "開始日",
+      "recurEndDate": "終了日（任意）",
+      "recurEndDateHint": "終了日がない場合は空欄のまま",
+      "everyWeek": "毎週",
+      "everyNWeeks": "{count}週ごと",
+      "empty": "ホストスケジュールはありません",
+      "emptyHint": "スケジュールを追加して特定の日のホストを設定してください",
+      "todayHost": "本日のホスト",
+      "nextHost": "次のホスト",
+      "viewSchedule": "スケジュールを見る",
+      "inactive": "無効",
+      "deleteTitle": "スケジュールを削除",
+      "deleteConfirm": "このホストスケジュールを削除してもよろしいですか？",
+      "transferHost": "ホスト権限を移譲",
+      "transferHostTitle": "ホスト権限を別の参加者に移譲します",
+      "selectParticipant": "参加者を選択",
+      "youAreHost": "あなたはホストです",
+      "hostChanged": "{name}がホストになりました"
+    },
+    "pin": {
+      "pin": "ピン留め",
+      "unpin": "ピン解除",
+      "pinned": "ピン済み"
+    },
+    "companies": "会社",
+    "companiesHint": "これらの会社のユーザーのみがこの会議を閲覧できます。デフォルトはあなたの会社です。",
+    "viewDescription": "説明を見る",
+    "createdBy": "作成者"
   }
 }

@@ -14,129 +14,92 @@
         </v-btn>
       </div>
 
-      <v-card-text class="px-6 py-0" style="max-height: 70vh; overflow-y: auto">
-        <v-container class="pa-0">
-          <v-row>
-            <!-- ── MEETING INFO ── -->
-            <v-col cols="12">
-              <div class="section-label">{{ $t('meetings.sectionMeetingInfo').toUpperCase() }}</div>
-            </v-col>
-
-            <!-- Title -->
-            <v-col cols="12">
-              <div class="field-label">
-                {{ $t('meetings.meetingTitle').toUpperCase() }} <span class="text-error">*</span>
-              </div>
-              <v-text-field
-                v-model="form.title"
-                variant="filled"
-                rounded="lg"
-                flat
-                density="comfortable"
-                :error-messages="formErrors.title"
-                required
-                autocomplete="off"
-              />
-            </v-col>
-
-            <!-- Description -->
-            <v-col cols="12">
-              <div class="field-label">{{ $t('common.description').toUpperCase() }}</div>
-              <v-textarea
-                v-model="form.description"
-                variant="filled"
-                rounded="lg"
-                flat
-                density="comfortable"
-                rows="2"
-                autocomplete="off"
-              />
-            </v-col>
-
-            <!-- ── SCHEDULE ── -->
-            <v-col cols="12">
-              <div class="section-label">{{ $t('meetings.schedule.title').toUpperCase() }}</div>
-            </v-col>
-
-            <!-- Schedule type selector -->
-            <v-col cols="12">
-              <div class="field-label">{{ $t('meetings.schedule.title').toUpperCase() }}</div>
-              <div class="d-flex ga-2 flex-wrap">
-                <v-btn
-                  v-for="typeOption in scheduleTypeOptions"
-                  :key="typeOption.value"
-                  :color="form.meeting_type === typeOption.value ? typeOption.color : undefined"
-                  :variant="form.meeting_type === typeOption.value ? 'flat' : 'outlined'"
-                  rounded="lg"
-                  size="small"
-                  :prepend-icon="typeOption.icon"
-                  @click="form.meeting_type = typeOption.value"
-                >
-                  {{ typeOption.label }}
-                </v-btn>
-              </div>
-            </v-col>
-
-            <!-- One-time: specific date + time -->
-            <v-col v-if="form.meeting_type === 'one_time'" cols="12">
-              <div class="field-label">{{ $t('meetings.scheduledAt').toUpperCase() }}</div>
-              <v-text-field
-                v-model="form.scheduled_at"
-                type="datetime-local"
-                variant="filled"
-                rounded="lg"
-                flat
-                density="comfortable"
-                autocomplete="off"
-              />
-            </v-col>
-
-            <!-- Daily: time only -->
-            <v-col v-if="form.meeting_type === 'daily'" cols="12" md="6">
-              <div class="field-label">{{ $t('meetings.schedule.time').toUpperCase() }}</div>
-              <v-text-field
-                v-model="form.schedule_time"
-                type="time"
-                variant="filled"
-                rounded="lg"
-                flat
-                density="comfortable"
-                autocomplete="off"
-              />
-            </v-col>
-
-            <!-- Weekly: interval + day of week + time -->
-            <template v-if="form.meeting_type === 'weekly'">
+      <v-card-text class="px-6 py-0 pa-0">
+        <CommonScrollableContent max-height="70vh" class="px-6 py-0">
+          <v-container class="pa-0">
+            <v-row>
+              <!-- ── MEETING INFO ── -->
               <v-col cols="12">
-                <div class="field-label">{{ $t('meetings.schedule.everyWeek').toUpperCase() }}</div>
-                <div class="d-flex align-center ga-2 flex-wrap">
-                  <div class="d-flex ga-1">
-                    <v-btn
-                      v-for="interval in [1, 2, 3, 4]"
-                      :key="interval"
-                      :color="form.schedule_interval_weeks === interval ? 'purple' : undefined"
-                      :variant="form.schedule_interval_weeks === interval ? 'flat' : 'outlined'"
-                      size="small"
-                      rounded="lg"
-                      min-width="36"
-                      @click="form.schedule_interval_weeks = interval"
-                    >
-                      {{ interval }}
-                    </v-btn>
-                  </div>
-                  <span class="text-body-2 text-medium-emphasis">{{
-                    $t('meetings.schedule.weekOn')
-                  }}</span>
+                <div class="section-label">
+                  {{ $t('meetings.sectionMeetingInfo').toUpperCase() }}
                 </div>
               </v-col>
 
-              <v-col cols="12" md="6">
-                <div class="field-label">{{ $t('meetings.schedule.dayOfWeek').toUpperCase() }}</div>
-                <v-select
-                  v-model="form.schedule_day_of_week"
-                  :items="dayOptions"
-                  item-title="label"
-                  item-value="value"
+              <!-- Title -->
+              <v-col cols="12">
+                <div class="field-label">
+                  {{ $t('meetings.meetingTitle').toUpperCase() }} <span class="text-error">*</span>
+                </div>
+                <v-text-field
+                  v-model="form.title"
+                  variant="filled"
+                  rounded="lg"
+                  flat
+                  density="comfortable"
+                  :error-messages="formErrors.title"
+                  required
+                  autocomplete="off"
+                />
+              </v-col>
+
+              <!-- ── COMPANIES ── -->
+              <v-col cols="12">
+                <div class="section-label">{{ $t('meetings.companies').toUpperCase() }}</div>
+              </v-col>
+
+              <v-col cols="12">
+                <div class="field-label">
+                  {{ $t('meetings.companies').toUpperCase() }} <span class="text-error">*</span>
+                </div>
+                <v-autocomplete
+                  v-model="form.company_ids"
+                  :items="companies"
+                  item-title="name"
+                  item-value="id"
+                  multiple
+                  chips
+                  closable-chips
+                  variant="filled"
+                  rounded="lg"
+                  flat
+                  density="comfortable"
+                  :hint="$t('meetings.companiesHint')"
+                  persistent-hint
+                  :loading="isLoadingCompanies"
+                  :error-messages="formErrors.company_ids"
+                />
+              </v-col>
+
+              <!-- ── SCHEDULE ── -->
+              <v-col cols="12">
+                <div class="section-label">{{ $t('meetings.schedule.title').toUpperCase() }}</div>
+              </v-col>
+
+              <!-- Schedule type selector -->
+              <v-col cols="12">
+                <div class="field-label">{{ $t('meetings.schedule.title').toUpperCase() }}</div>
+                <div class="d-flex ga-2 flex-wrap">
+                  <v-btn
+                    v-for="typeOption in scheduleTypeOptions"
+                    :key="typeOption.value"
+                    :color="form.meeting_type === typeOption.value ? typeOption.color : undefined"
+                    :variant="form.meeting_type === typeOption.value ? 'flat' : 'outlined'"
+                    rounded="lg"
+                    size="small"
+                    :prepend-icon="typeOption.icon"
+                    @click="form.meeting_type = typeOption.value"
+                  >
+                    {{ typeOption.label }}
+                  </v-btn>
+                </div>
+              </v-col>
+
+              <!-- One-time: specific date + time -->
+              <v-col v-if="form.meeting_type === 'one_time'" cols="12">
+                <div class="field-label">{{ $t('meetings.scheduledAt').toUpperCase() }}</div>
+                <v-text-field
+                  v-model="form.scheduled_at"
+                  type="datetime-local"
                   variant="filled"
                   rounded="lg"
                   flat
@@ -145,7 +108,8 @@
                 />
               </v-col>
 
-              <v-col cols="12" md="6">
+              <!-- Daily: time only -->
+              <v-col v-if="form.meeting_type === 'daily'" cols="12" md="6">
                 <div class="field-label">{{ $t('meetings.schedule.time').toUpperCase() }}</div>
                 <v-text-field
                   v-model="form.schedule_time"
@@ -157,53 +121,141 @@
                   autocomplete="off"
                 />
               </v-col>
-            </template>
 
-            <!-- ── PRIVACY ── -->
-            <v-col cols="12">
-              <div class="section-label">{{ $t('meetings.privacySection').toUpperCase() }}</div>
-            </v-col>
+              <!-- Weekly: interval + day of week + time -->
+              <template v-if="form.meeting_type === 'weekly'">
+                <v-col cols="12">
+                  <div class="field-label">
+                    {{ $t('meetings.schedule.everyWeek').toUpperCase() }}
+                  </div>
+                  <div class="d-flex align-center ga-2 flex-wrap">
+                    <div class="d-flex ga-1">
+                      <v-btn
+                        v-for="interval in [1, 2, 3, 4]"
+                        :key="interval"
+                        :color="form.schedule_interval_weeks === interval ? 'purple' : undefined"
+                        :variant="form.schedule_interval_weeks === interval ? 'flat' : 'outlined'"
+                        size="small"
+                        rounded="lg"
+                        min-width="36"
+                        @click="form.schedule_interval_weeks = interval"
+                      >
+                        {{ interval }}
+                      </v-btn>
+                    </div>
+                    <span class="text-body-2 text-medium-emphasis">{{
+                      $t('meetings.schedule.weekOn')
+                    }}</span>
+                  </div>
+                </v-col>
 
-            <v-col cols="12">
-              <v-switch
-                v-model="form.is_private"
-                :label="form.is_private ? $t('meetings.private') : $t('meetings.public')"
-                color="warning"
-                density="comfortable"
-                hide-details
-                @update:model-value="onPrivateToggle"
-              />
+                <v-col cols="12" md="6">
+                  <div class="field-label">
+                    {{ $t('meetings.schedule.dayOfWeek').toUpperCase() }}
+                  </div>
+                  <v-select
+                    v-model="form.schedule_day_of_week"
+                    :items="dayOptions"
+                    item-title="label"
+                    item-value="value"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
+                    autocomplete="off"
+                  />
+                </v-col>
 
-              <!-- Password field -->
-              <div v-if="form.is_private" class="mt-3">
-                <div class="field-label">{{ $t('meetings.meetingPassword').toUpperCase() }}</div>
-                <div
-                  class="password-box d-flex align-center justify-space-between pa-3 rounded-lg mt-2"
-                >
-                  <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.2em">
-                    {{ form.password }}
-                  </span>
-                  <div class="d-flex ga-1">
-                    <v-btn
-                      icon="mdi-refresh"
-                      variant="text"
-                      size="small"
-                      :title="$t('meetings.regeneratePassword')"
-                      @click="form.password = generateRandomPassword()"
-                    />
-                    <v-btn
-                      :icon="passwordCopied ? 'mdi-check' : 'mdi-content-copy'"
-                      :color="passwordCopied ? 'success' : 'default'"
-                      variant="text"
-                      size="small"
-                      @click="copyPassword"
-                    />
+                <v-col cols="12" md="6">
+                  <div class="field-label">{{ $t('meetings.schedule.time').toUpperCase() }}</div>
+                  <v-text-field
+                    v-model="form.schedule_time"
+                    type="time"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
+                    autocomplete="off"
+                  />
+                </v-col>
+              </template>
+
+              <!-- ── PRIVACY ── -->
+              <v-col cols="12">
+                <div class="section-label">{{ $t('meetings.privacySection').toUpperCase() }}</div>
+              </v-col>
+
+              <v-col cols="12">
+                <div class="d-flex ga-3">
+                  <div
+                    class="privacy-option flex-1-1"
+                    :class="{ 'privacy-option--active privacy-option--public': !form.is_private }"
+                    @click="onPrivateToggle(false)"
+                  >
+                    <v-icon size="22" class="mb-1">mdi-lock-open-outline</v-icon>
+                    <div class="text-body-2 font-weight-medium">{{ $t('meetings.public') }}</div>
+                  </div>
+                  <div
+                    class="privacy-option flex-1-1"
+                    :class="{ 'privacy-option--active privacy-option--private': form.is_private }"
+                    @click="onPrivateToggle(true)"
+                  >
+                    <v-icon size="22" class="mb-1">mdi-lock-outline</v-icon>
+                    <div class="text-body-2 font-weight-medium">{{ $t('meetings.private') }}</div>
                   </div>
                 </div>
-              </div>
-            </v-col>
-          </v-row>
-        </v-container>
+                <div class="text-caption text-medium-emphasis mt-1 px-1">
+                  {{ form.is_private ? $t('meetings.privateHint') : $t('meetings.publicHint') }}
+                </div>
+
+                <!-- Password field -->
+                <div v-if="form.is_private" class="mt-3">
+                  <div class="field-label">{{ $t('meetings.meetingPassword').toUpperCase() }}</div>
+                  <div
+                    class="password-box d-flex align-center justify-space-between pa-3 rounded-lg mt-2"
+                  >
+                    <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.2em">
+                      {{ form.password }}
+                    </span>
+                    <div class="d-flex ga-1">
+                      <v-btn
+                        icon="mdi-refresh"
+                        variant="text"
+                        size="small"
+                        :title="$t('meetings.regeneratePassword')"
+                        @click="form.password = generateRandomPassword()"
+                      />
+                      <v-btn
+                        :icon="passwordCopied ? 'mdi-check' : 'mdi-content-copy'"
+                        :color="passwordCopied ? 'success' : 'default'"
+                        variant="text"
+                        size="small"
+                        @click="copyPassword"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </v-col>
+
+              <!-- ── DESCRIPTION (optional, at bottom) ── -->
+              <v-col cols="12">
+                <div class="section-label">{{ $t('common.description').toUpperCase() }}</div>
+              </v-col>
+
+              <v-col cols="12">
+                <v-textarea
+                  v-model="form.description"
+                  variant="filled"
+                  rounded="lg"
+                  flat
+                  density="comfortable"
+                  rows="2"
+                  autocomplete="off"
+                />
+              </v-col>
+            </v-row>
+          </v-container>
+        </CommonScrollableContent>
       </v-card-text>
 
       <!-- Footer -->
@@ -229,6 +281,9 @@
 /** START IMPORT */
 import { useNuxtApp } from '#app'
 import type { Meeting } from '@/interfaces/models/MeetingModel'
+import type { CompanyModel } from '@/interfaces/models/CompanyModel'
+import CompanyService from '@/services/CompanyService'
+import { useUserStore } from '@/stores/user'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -248,10 +303,13 @@ const emit = defineEmits<{
 /** START DEFINE STATE */
 const { $apiFetch } = useNuxtApp()
 const { t } = useI18n()
+const userStore = useUserStore()
 
 const isCreating = ref(false)
+const isLoadingCompanies = ref(false)
 const passwordCopied = ref(false)
 const formErrors = ref<Record<string, string>>({})
+const companies = ref<CompanyModel[]>([])
 
 const form = ref({
   title: '',
@@ -266,6 +324,8 @@ const form = ref({
   // weekly only
   schedule_day_of_week: 1,
   schedule_interval_weeks: 1,
+  // company scope
+  company_ids: [] as number[],
 })
 /** END DEFINE STATE */
 
@@ -306,10 +366,11 @@ function generateRandomPassword(): string {
   return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
-function onPrivateToggle(value: boolean | null) {
-  if (value) {
+function onPrivateToggle(value: boolean) {
+  form.value.is_private = value
+  if (value && !form.value.password) {
     form.value.password = generateRandomPassword()
-  } else {
+  } else if (!value) {
     form.value.password = ''
   }
 }
@@ -320,6 +381,14 @@ async function copyPassword() {
   setTimeout(() => {
     passwordCopied.value = false
   }, 2000)
+}
+
+function getDefaultCompanyIds(): number[] {
+  return (
+    userStore.user?.user_departments
+      ?.map((ud) => ud.company_id)
+      .filter((id): id is number => id != null) ?? []
+  )
 }
 
 function resetForm() {
@@ -333,9 +402,21 @@ function resetForm() {
     schedule_time: '09:00',
     schedule_day_of_week: 1,
     schedule_interval_weeks: 1,
+    company_ids: getDefaultCompanyIds(),
   }
   formErrors.value = {}
   passwordCopied.value = false
+}
+
+async function loadCompanies() {
+  isLoadingCompanies.value = true
+  try {
+    companies.value = await CompanyService.getAll()
+  } catch {
+    // non-critical — autocomplete will be empty
+  } finally {
+    isLoadingCompanies.value = false
+  }
 }
 
 function close() {
@@ -343,10 +424,18 @@ function close() {
 }
 
 async function submit() {
+  const errors: Record<string, string> = {}
+
   if (!form.value.title.trim()) {
-    formErrors.value = {
-      title: String(t('validation.required', { field: t('meetings.meetingTitle') })),
-    }
+    errors.title = String(t('validation.required', { field: t('meetings.meetingTitle') }))
+  }
+
+  if (form.value.company_ids.length === 0) {
+    errors.company_ids = String(t('validation.required', { field: t('meetings.companies') }))
+  }
+
+  if (Object.keys(errors).length > 0) {
+    formErrors.value = errors
     return
   }
 
@@ -360,6 +449,7 @@ async function submit() {
       meeting_type: form.value.meeting_type,
       is_private: form.value.is_private,
       password: form.value.is_private ? form.value.password : undefined,
+      company_ids: form.value.company_ids,
     }
 
     if (form.value.meeting_type === 'one_time') {
@@ -395,6 +485,7 @@ watch(
   (isOpen) => {
     if (isOpen) {
       resetForm()
+      loadCompanies()
     }
   },
 )
@@ -428,5 +519,37 @@ watch(
 .password-box {
   background: rgba(var(--v-theme-surface-variant), 0.4);
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+}
+
+.privacy-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  border-radius: 12px;
+  border: 2px solid rgba(var(--v-theme-on-surface), 0.12);
+  background: rgba(var(--v-theme-surface-variant), 0.3);
+  cursor: pointer;
+  text-align: center;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.privacy-option:hover {
+  border-color: rgba(var(--v-theme-on-surface), 0.3);
+}
+
+.privacy-option--active.privacy-option--public {
+  border-color: rgb(var(--v-theme-success));
+  background: rgba(var(--v-theme-success), 0.08);
+  color: rgb(var(--v-theme-success));
+}
+
+.privacy-option--active.privacy-option--private {
+  border-color: rgb(var(--v-theme-warning));
+  background: rgba(var(--v-theme-warning), 0.08);
+  color: rgb(var(--v-theme-warning));
 }
 </style>
