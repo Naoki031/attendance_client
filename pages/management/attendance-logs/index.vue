@@ -369,8 +369,8 @@ definePageMeta({
 /** START DEFINE STATE */
 const { moment } = useMoment()
 const logs = ref<AttendanceLogModel[]>([])
-const isLoading = ref(false)
-const searchUser = ref('')
+const isLoading = ref<boolean>(false)
+const searchUser = ref<string>('')
 
 const now = moment()
 const selectedMonth = ref(now.month() + 1)
@@ -378,21 +378,21 @@ const selectedYear = ref(now.year())
 
 const companies = ref<CompanyModel[]>([])
 const selectedCompanyId = ref<number | null>(null)
-const editDialog = ref(false)
+const editDialog = ref<boolean>(false)
 const editingLog = ref<AttendanceLogModel | null>(null)
-const historyDialog = ref(false)
+const historyDialog = ref<boolean>(false)
 const historyLog = ref<AttendanceLogModel | null>(null)
-const checkinImageDialog = ref(false)
+const checkinImageDialog = ref<boolean>(false)
 const checkinImageLog = ref<AttendanceLogModel | null>(null)
 
-const exportDialog = ref(false)
-const isExporting = ref(false)
+const exportDialog = ref<boolean>(false)
+const isExporting = ref<boolean>(false)
 const exportMonth = ref(now.month() + 1)
 const exportYear = ref(now.year())
 const exportCompanyId = ref<number | null>(null)
-const exportError = ref('')
-const exportSuccess = ref(false)
-const exportSheetUrl = ref('')
+const exportError = ref<string>('')
+const exportSuccess = ref<boolean>(false)
+const exportSheetUrl = ref<string>('')
 
 const monthOptions = computed(() =>
   Array.from({ length: 12 }, (_, index) => ({

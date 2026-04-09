@@ -272,11 +272,11 @@ import { REQUEST_TYPE_COLOR, REQUEST_TYPE_ICON } from '@/config/colors'
 const { t } = useI18n()
 const { moment, TIMEZONE } = useMoment()
 
-const dialogEditOpen = ref(false)
+const dialogEditOpen = ref<boolean>(false)
 const dialogRequestType = ref<EmployeeRequestType>('off')
 const dialogInitialData = ref<EmployeeRequestModel | null>(null)
 const dialogEditItemId = ref<number | null>(null)
-const canApproveRequests = ref(false)
+const canApproveRequests = ref<boolean>(false)
 
 const openEdit = (item: EmployeeRequestModel) => {
   dialogRequestType.value = item.type
@@ -298,14 +298,14 @@ definePageMeta({
 
 /** START DEFINE STATE */
 const items = ref<EmployeeRequestModel[]>([])
-const isLoading = ref(false)
+const isLoading = ref<boolean>(false)
 const statusFilter = ref<string>('')
-const dialogApprove = ref(false)
+const dialogApprove = ref<boolean>(false)
 const selectedRequest = ref<EmployeeRequestModel | null>(null)
 const pendingAction = ref<'approved' | 'rejected'>('approved')
 const approvalNote = ref<string>('')
-const isApproving = ref(false)
-const filterExpanded = ref(false)
+const isApproving = ref<boolean>(false)
+const filterExpanded = ref<boolean>(false)
 const filters = ref({
   search: '',
   type: null as string | null,

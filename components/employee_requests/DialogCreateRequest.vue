@@ -147,7 +147,7 @@
               rounded="lg"
               flat
               density="comfortable"
-              placeholder="e.g. my home, office"
+              :placeholder="$t('requests.locationPlaceholder')"
               autocomplete="off"
               :error-messages="formErrors.location ?? []"
             ></v-text-field>
@@ -463,6 +463,7 @@ import EmployeeRequestService from '@/services/EmployeeRequestService'
 import UserService from '@/services/UserService'
 import GroupService from '@/services/GroupService'
 import CompanyService from '@/services/CompanyService'
+import { calculateWorkingHours } from '@/utils/workingHours'
 /* end import */
 
 /** start define property and emits */
@@ -654,72 +655,22 @@ const combinedToDatetime = computed(() => {
 
 /** start defined methods */
 /**
- * Calculates working hours between two datetime strings in Vietnam timezone.
- * Working hours: 08:00–17:00, Mon–Fri, excluding lunch break 12:00–13:00.
- * Returns hours rounded to the nearest 0.25.
+ * Wrapper around the shared utility that injects the project's moment/timezone deps.
  */
-const calculateWorkingHours = (
+const calcHours = (
   fromDateString: string,
   fromTimeString: string,
   toDateString: string,
   toTimeString: string,
-): number => {
-  if (!fromDateString || !toDateString) return 0
-
-  const from = moment.tz(
-    `${fromDateString} ${fromTimeString || '08:00'}`,
-    'YYYY-MM-DD HH:mm',
+): number =>
+  calculateWorkingHours(
+    moment,
     TIMEZONE,
+    fromDateString,
+    fromTimeString,
+    toDateString,
+    toTimeString,
   )
-  const to = moment.tz(`${toDateString} ${toTimeString || '17:00'}`, 'YYYY-MM-DD HH:mm', TIMEZONE)
-
-  if (!from.isValid() || !to.isValid() || !from.isBefore(to)) return 0
-
-  const WORK_START = 8 * 60
-  const LUNCH_START = 12 * 60
-  const LUNCH_END = 13 * 60
-  const WORK_END = 17 * 60
-
-  let totalMinutes = 0
-  const cursor = from.clone().startOf('day').add(8, 'hours')
-
-  // Start cursor at the actual from time if it's after 08:00 on the first day
-  if (from.isAfter(cursor)) cursor.add(from.diff(cursor, 'minutes'), 'minutes')
-
-  while (cursor.isBefore(to)) {
-    const dayOfWeek = cursor.day() // 0=Sun, 6=Sat
-
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      cursor.add(1, 'day').startOf('day').add(8, 'hours')
-
-      continue
-    }
-
-    const dayEnd = cursor.clone().startOf('day').add(17, 'hours')
-    const periodEnd = to.isBefore(dayEnd) ? to.clone() : dayEnd.clone()
-
-    const startMin = cursor.hours() * 60 + cursor.minutes()
-    const endMin = periodEnd.hours() * 60 + periodEnd.minutes()
-    const clampedStart = Math.max(startMin, WORK_START)
-    const clampedEnd = Math.min(endMin, WORK_END)
-
-    if (clampedEnd > clampedStart) {
-      let worked = clampedEnd - clampedStart
-      const lunchOverlapStart = Math.max(clampedStart, LUNCH_START)
-      const lunchOverlapEnd = Math.min(clampedEnd, LUNCH_END)
-
-      if (lunchOverlapEnd > lunchOverlapStart) {
-        worked -= lunchOverlapEnd - lunchOverlapStart
-      }
-
-      totalMinutes += Math.max(0, worked)
-    }
-
-    cursor.add(1, 'day').startOf('day').add(8, 'hours')
-  }
-
-  return Math.round((totalMinutes / 60) * 4) / 4
-}
 
 const populateFromItem = (item: EmployeeRequestModel) => {
   if (item.from_datetime) {
@@ -902,12 +853,7 @@ watch(
 // Auto-calculate unit_hours for OFF requests based on working hours schedule
 watch([fromDate, fromTime, toDate, toTime], () => {
   if (props.type !== 'off') return
-  const calculated = calculateWorkingHours(
-    fromDate.value,
-    fromTime.value,
-    toDate.value,
-    toTime.value,
-  )
+  const calculated = calcHours(fromDate.value, fromTime.value, toDate.value, toTime.value)
   if (calculated > 0) unitHours.value = calculated
 })
 
@@ -921,12 +867,7 @@ watch([fromDate, fromTime, toDate, toTime], () => {
   if (!from.isValid() || !to.isValid() || !from.isBefore(to)) return
 
   const totalHours = to.diff(from, 'hours', true)
-  const workingHours = calculateWorkingHours(
-    fromDate.value,
-    fromTime.value,
-    toDate.value,
-    toTime.value,
-  )
+  const workingHours = calcHours(fromDate.value, fromTime.value, toDate.value, toTime.value)
   const overtimeHours = Math.round(Math.max(0, totalHours - workingHours) * 4) / 4
   if (overtimeHours > 0) unitHours.value = overtimeHours
 })

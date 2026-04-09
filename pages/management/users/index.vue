@@ -349,11 +349,11 @@ definePageMeta({
 
 /** START DEFINE STATE */
 const users = ref<UserModel[]>([])
-const isLoading = ref(false)
+const isLoading = ref<boolean>(false)
 const availableCompanies = ref<CompanyModel[]>([])
 const availableDepartments = ref<DepartmentModel[]>([])
 const availableRoles = ref<PermissionGroupModel[]>([])
-const filterExpanded = ref(false)
+const filterExpanded = ref<boolean>(false)
 const filters = ref({
   id: '',
   name: '',
@@ -367,18 +367,18 @@ const filters = ref({
 })
 
 const selectedUser = ref<UserModel | null>(null)
-const dialog = ref(false)
-const dialogDelete = ref(false)
-const dialogDepartments = ref(false)
+const dialog = ref<boolean>(false)
+const dialogDelete = ref<boolean>(false)
+const dialogDepartments = ref<boolean>(false)
 const selectedUserForDepartments = ref<UserModel | null>(null)
-const dialogWorkSchedule = ref(false)
+const dialogWorkSchedule = ref<boolean>(false)
 const selectedUserForSchedule = ref<UserModel | null>(null)
 const editedItem = ref<UserModel | null>(null)
-const dialogCancelKyc = ref(false)
+const dialogCancelKyc = ref<boolean>(false)
 const selectedUserForCancelKyc = ref<UserModel | null>(null)
-const cancelKycLoading = ref(false)
-const errorSnackbar = ref(false)
-const errorMessage = ref('')
+const cancelKycLoading = ref<boolean>(false)
+const errorSnackbar = ref<boolean>(false)
+const errorMessage = ref<string>('')
 const sortBy = ref<Array<{ key: string; order: 'asc' | 'desc' }>>([
   { key: 'first_name', order: 'asc' },
 ])

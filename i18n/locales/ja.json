@@ -326,6 +326,7 @@
     "unitHoursHint": "自動計算：月〜金 08:00〜17:00、昼休み 12:00〜13:00 除く。手動で上書き可能です。",
     "totalHoursOtHint": "自動計算：総経過時間から通常勤務時間（月〜金 08:00〜17:00）を差し引いた値。手動で上書き可能です。",
     "locationEquipment": "機器使用場所",
+    "locationPlaceholder": "例：自宅、オフィス",
     "workFromHomeRequest": "在宅勤務申請",
     "leaveRequest": "休暇申請",
     "equipmentRequest": "機器借用申請",

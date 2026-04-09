@@ -326,6 +326,7 @@
     "unitHoursHint": "Tự tính: Thứ 2–6, 08:00–17:00, trừ giờ nghỉ trưa 12:00–13:00. Bạn có thể nhập lại thủ công.",
     "totalHoursOtHint": "Tự tính: tổng thời gian trừ đi giờ làm việc bình thường (Thứ 2–6, 08:00–17:00). Bạn có thể nhập lại thủ công.",
     "locationEquipment": "Địa điểm sử dụng thiết bị",
+    "locationPlaceholder": "VD: nhà, văn phòng",
     "workFromHomeRequest": "Yêu cầu làm việc tại nhà",
     "leaveRequest": "Yêu cầu nghỉ phép",
     "equipmentRequest": "Yêu cầu mượn thiết bị",

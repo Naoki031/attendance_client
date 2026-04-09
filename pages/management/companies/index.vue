@@ -175,11 +175,11 @@ definePageMeta({
 
 /** START DEFINE STATE */
 const companies = ref<Array<CompanyModel>>([])
-const isLoading = ref(false)
+const isLoading = ref<boolean>(false)
 const company = ref<CompanyModel | null>(null)
-const dialog = ref(false)
-const dialogDelete = ref(false)
-const dialogApprovers = ref(false)
+const dialog = ref<boolean>(false)
+const dialogDelete = ref<boolean>(false)
+const dialogApprovers = ref<boolean>(false)
 const approverCompany = ref<CompanyModel | null>(null)
 const sortBy = ref<Array<{ key: string; order: boolean | 'asc' | 'desc' | undefined }>>([
   { key: 'name', order: 'asc' },
@@ -200,7 +200,7 @@ const editedIndex = ref(-1)
 const editedItem = ref<CompanyModel | null>(null)
 
 // Filter state
-const filterExpanded = ref(false)
+const filterExpanded = ref<boolean>(false)
 const filters = ref({
   search: '',
   countryId: null as number | null,

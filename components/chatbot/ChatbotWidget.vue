@@ -425,7 +425,7 @@ const selectHelpQuestion = async (question: string) => {
 }
 
 const renderMarkdown = (content: string): string => {
-  return marked.parse(content) as string
+  return marked.parse(content, { async: false }) as string
 }
 
 const scrollToBottom = async () => {

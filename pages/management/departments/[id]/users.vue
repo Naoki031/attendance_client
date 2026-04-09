@@ -111,12 +111,12 @@ definePageMeta({
 /** START DEFINE STATE */
 const route = useRoute()
 const departmentId = computed(() => Number(route.params.id))
-const departmentName = ref('')
+const departmentName = ref<string>('')
 const assignments = ref<Array<UserDepartmentModel>>([])
 const allCompanies = ref<Array<CompanyModel>>([])
-const isLoading = ref(false)
-const dialog = ref(false)
-const dialogDelete = ref(false)
+const isLoading = ref<boolean>(false)
+const dialog = ref<boolean>(false)
+const dialogDelete = ref<boolean>(false)
 const deletingAssignment = ref<UserDepartmentModel | null>(null)
 const headers = computed(() => [
   { title: t('profile.fullName'), key: 'user', sortable: false },

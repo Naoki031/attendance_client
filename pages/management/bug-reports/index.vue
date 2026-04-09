@@ -175,14 +175,14 @@ definePageMeta({
 
 /** START DEFINE STATE */
 const items = ref<Array<BugReportModel>>([])
-const isLoading = ref(false)
-const dialogUpdate = ref(false)
-const dialogScreenshot = ref(false)
+const isLoading = ref<boolean>(false)
+const dialogUpdate = ref<boolean>(false)
+const dialogScreenshot = ref<boolean>(false)
 const selectedItem = ref<BugReportModel | null>(null)
 const selectedScreenshot = ref<string>('')
 const updateStatus = ref<'pending' | 'in_progress' | 'resolved'>('pending')
 const updateNote = ref<string>('')
-const isUpdating = ref(false)
+const isUpdating = ref<boolean>(false)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */

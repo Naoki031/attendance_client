@@ -126,6 +126,18 @@ export const useLiveness = () => {
   /** True once the most recent challenge was successfully passed */
   const isPassed = ref<boolean>(false)
 
+  // Cache the face-api.js module after first dynamic import to avoid
+  // repeated module resolution on every 120ms tick.
+  let cachedFaceApi: typeof import('face-api.js') | null = null
+
+  const getFaceApi = async () => {
+    if (!cachedFaceApi) {
+      cachedFaceApi = await import('face-api.js')
+    }
+
+    return cachedFaceApi
+  }
+
   /**
    * Runs a single liveness challenge.
    *
@@ -163,7 +175,7 @@ export const useLiveness = () => {
         }
 
         try {
-          const faceapi = await import('face-api.js')
+          const faceapi = await getFaceApi()
           const detectionResult = await faceapi
             .detectSingleFace(
               video,

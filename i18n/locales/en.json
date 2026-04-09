@@ -326,6 +326,7 @@
     "unitHoursHint": "Auto-calculated: Mon–Fri, 08:00–17:00, excl. lunch 12:00–13:00. You can override manually.",
     "totalHoursOtHint": "Auto-calculated: total elapsed time minus regular working hours (Mon–Fri 08:00–17:00). You can override manually.",
     "locationEquipment": "Location of Using Equipment",
+    "locationPlaceholder": "e.g. my home, office",
     "workFromHomeRequest": "Work From Home Request",
     "leaveRequest": "Leave Request",
     "equipmentRequest": "Equipment Borrowing Request",

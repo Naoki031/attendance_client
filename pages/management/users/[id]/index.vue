@@ -191,7 +191,7 @@ definePageMeta({
 const route = useRoute()
 const userId = computed(() => Number(route.params.id))
 const user = ref<UserModel | null>(null)
-const isLoading = ref(false)
+const isLoading = ref<boolean>(false)
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */

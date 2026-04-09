@@ -137,12 +137,12 @@ const userStore = useUserStore()
 /** START DEFINE STATE */
 const groups = ref<GroupModel[]>([])
 const availableCompanies = ref<CompanyModel[]>([])
-const isLoading = ref(false)
-const createOrUpdateDialog = ref(false)
+const isLoading = ref<boolean>(false)
+const createOrUpdateDialog = ref<boolean>(false)
 const editingGroup = ref<GroupModel | null>(null)
-const membersDialog = ref(false)
+const membersDialog = ref<boolean>(false)
 const managingGroup = ref<GroupModel | null>(null)
-const deleteDialog = ref(false)
+const deleteDialog = ref<boolean>(false)
 const deletingGroup = ref<GroupModel | null>(null)
 
 const defaultCompanyId = computed<number | null>(

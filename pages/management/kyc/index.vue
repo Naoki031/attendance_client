@@ -73,13 +73,13 @@ definePageMeta({
 
 /** START DEFINE STATE */
 const users = ref<UserModel[]>([])
-const loading = ref(false)
+const loading = ref<boolean>(false)
 const loadingId = ref<number | null>(null)
 const reviewAction = ref<'approved' | 'rejected' | null>(null)
 const tabFilter = ref<'pending' | 'approved' | 'rejected'>('pending')
-const rejectDialog = ref(false)
+const rejectDialog = ref<boolean>(false)
 const rejectTarget = ref<UserModel | null>(null)
-const errorSnackbar = ref(false)
+const errorSnackbar = ref<boolean>(false)
 const errorMessage = ref<string>('')
 /* END DEFINE STATE */
 

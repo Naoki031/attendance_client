@@ -149,12 +149,12 @@ definePageMeta({
 /** START DEFINE STATE */
 const items = ref<SlackChannelModel[]>([])
 const availableCompanies = ref<CompanyModel[]>([])
-const isLoading = ref(false)
-const dialog = ref(false)
-const dialogDelete = ref(false)
+const isLoading = ref<boolean>(false)
+const dialog = ref<boolean>(false)
+const dialogDelete = ref<boolean>(false)
 const editedItem = ref<SlackChannelModel | null>(null)
 const selectedItem = ref<SlackChannelModel | null>(null)
-const isDuplicate = ref(false)
+const isDuplicate = ref<boolean>(false)
 
 const headers = computed(() => [
   { title: t('common.id'), key: 'id', sortable: true },
