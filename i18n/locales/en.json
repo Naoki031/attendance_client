@@ -1282,7 +1282,22 @@
       "selectParticipant": "Select participant",
       "youAreHost": "You are the host",
       "hostChanged": "{name} is now the host",
-      "dateConflict": "Date {date} is already taken by another host schedule"
+      "dateConflict": "Date {date} is already taken by another host schedule",
+      "actionSwap": "Swap host dates",
+      "actionSwapHint": "Select this date and another to swap their hosts",
+      "actionExclude": "Remove this date",
+      "actionExcludeHint": "Only remove this specific date from the schedule",
+      "actionTruncate": "Remove this date and all after",
+      "actionTruncateHint": "The schedule will end before this date",
+      "excludeConfirmTitle": "Remove host date",
+      "excludeConfirmBody": "Remove {name} as host on {date}? That day will have no scheduled host.",
+      "truncateConfirmTitle": "Truncate host schedule",
+      "truncateConfirmBody": "Remove {date} and all following dates from {name}'s schedule?",
+      "swapSelectFirst": "Select the first date to swap",
+      "swapSelectSecond": "Selected {date} ({name}). Now click the date to swap with.",
+      "swapConfirmTitle": "Confirm host swap",
+      "swapConfirmBody": "These two hosts will exchange their scheduled dates.",
+      "swapConfirmButton": "Swap"
     },
     "pin": {
       "pin": "Pin",

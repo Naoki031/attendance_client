@@ -124,6 +124,8 @@ const nextHostEntry = computed(() => {
 
 /** START DEFINE METHOD */
 function matchesDate(schedule: MeetingHostSchedule, dateString: string): boolean {
+  if ((schedule.excluded_dates ?? []).includes(dateString)) return false
+
   switch (schedule.schedule_type) {
     case 'one_time':
       return schedule.date === dateString

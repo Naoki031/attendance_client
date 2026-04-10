@@ -281,6 +281,7 @@
 /** START IMPORT */
 import { apiClient } from '@/utils/apiClient'
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import type { ChatbotMessage } from '@/types'
 /* END IMPORT */
 
@@ -425,7 +426,27 @@ const selectHelpQuestion = async (question: string) => {
 }
 
 const renderMarkdown = (content: string): string => {
-  return marked.parse(content, { async: false }) as string
+  const rawHtml = marked.parse(content, { async: false }) as string
+  if (typeof window === 'undefined') return rawHtml
+  return DOMPurify.sanitize(rawHtml, {
+    ALLOWED_TAGS: [
+      'p',
+      'br',
+      'strong',
+      'em',
+      'u',
+      'del',
+      'code',
+      'pre',
+      'ul',
+      'ol',
+      'li',
+      'blockquote',
+      'span',
+      'a',
+    ],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+  })
 }
 
 const scrollToBottom = async () => {

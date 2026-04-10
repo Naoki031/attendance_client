@@ -43,7 +43,13 @@
               'cal-day-cell--other': !calDay.isCurrentMonth,
               'cal-day-cell--today': calDay.isToday,
               'cal-day-cell--has-host': !!calDay.hostEntry,
+              'cal-day-cell--interactive': interactive && !!calDay.hostEntry && !calDay.isPast,
             }"
+            @click="
+              interactive && calDay.hostEntry && !calDay.isPast
+                ? emit('date-click', calDay.dateStr, calDay.hostEntry)
+                : undefined
+            "
           >
             <span class="cal-day-num">{{ calDay.day }}</span>
             <v-avatar
@@ -90,6 +96,11 @@ import type {
 const props = defineProps<{
   schedules: MeetingHostSchedule[]
   meetingHostId: number
+  interactive?: boolean
+}>()
+
+const emit = defineEmits<{
+  'date-click': [date: string, hostEntry: HostEntry]
 }>()
 /** END DEFINE PROPERTY AND EMITS */
 
@@ -136,6 +147,7 @@ interface CalendarDay {
   day: number
   isCurrentMonth: boolean
   isToday: boolean
+  isPast: boolean
   hostEntry: HostEntry | null
 }
 
@@ -155,6 +167,7 @@ const calendarDays = computed((): CalendarDay[] => {
       day: date.getDate(),
       isCurrentMonth: false,
       isToday: dateString === today,
+      isPast: dateString < today,
       hostEntry: resolveHostForDate(dateString),
     })
   }
@@ -167,6 +180,7 @@ const calendarDays = computed((): CalendarDay[] => {
       day: dayNumber,
       isCurrentMonth: true,
       isToday: dateString === today,
+      isPast: dateString < today,
       hostEntry: resolveHostForDate(dateString),
     })
   }
@@ -182,6 +196,7 @@ const calendarDays = computed((): CalendarDay[] => {
       day: date.getDate(),
       isCurrentMonth: false,
       isToday: dateString === today,
+      isPast: dateString < today,
       hostEntry: resolveHostForDate(dateString),
     })
   }
@@ -222,6 +237,8 @@ const legendItems = computed(() => {
 
 /** START DEFINE METHOD */
 function matchesDate(schedule: MeetingHostSchedule, dateString: string): boolean {
+  if ((schedule.excluded_dates ?? []).includes(dateString)) return false
+
   switch (schedule.schedule_type) {
     case 'one_time':
       return schedule.date === dateString
@@ -348,6 +365,15 @@ function nextMonth() {
 
 .cal-day-cell--has-host:not(.cal-day-cell--today):hover {
   background: rgba(var(--v-theme-on-surface), 0.04);
+}
+
+.cal-day-cell--interactive {
+  cursor: pointer;
+}
+
+.cal-day-cell--interactive:hover {
+  background: rgba(var(--v-theme-primary), 0.08) !important;
+  outline: 1px solid rgba(var(--v-theme-primary), 0.3);
 }
 
 .cal-day-num {

@@ -16,6 +16,7 @@ export interface MeetingHostSchedule {
   interval_weeks?: number
   recur_start_date?: string
   recur_end_date?: string
+  excluded_dates?: string[]
   is_active: boolean
   created_at: string
   updated_at: string

@@ -36,11 +36,38 @@
 
         <template v-else>
           <!-- Calendar view -->
-          <MeetingHostCalendar
-            v-if="viewMode === 'calendar'"
-            :schedules="schedules"
-            :meeting-host-id="meeting?.host_id ?? 0"
-          />
+          <template v-if="viewMode === 'calendar'">
+            <!-- Swap mode banner -->
+            <v-alert
+              v-if="swapState"
+              type="info"
+              variant="tonal"
+              density="compact"
+              rounded="lg"
+              class="mb-3"
+              :closable="true"
+              @click:close="cancelSwap"
+            >
+              <template v-if="swapState.dateA">
+                {{
+                  $t('meetings.hostSchedule.swapSelectSecond', {
+                    name: swapState.hostNameA,
+                    date: swapState.dateA,
+                  })
+                }}
+              </template>
+              <template v-else>
+                {{ $t('meetings.hostSchedule.swapSelectFirst') }}
+              </template>
+            </v-alert>
+
+            <MeetingHostCalendar
+              :schedules="schedules"
+              :meeting-host-id="meeting?.host_id ?? 0"
+              interactive
+              @date-click="onCalendarDateClick"
+            />
+          </template>
 
           <!-- List view -->
           <template v-else>
@@ -167,6 +194,110 @@
     :editing-schedule="editingSchedule"
     @saved="onScheduleSaved"
   />
+
+  <!-- Date action menu -->
+  <v-dialog v-model="showDateActionDialog" max-width="360">
+    <v-card rounded="xl" elevation="2">
+      <v-card-text class="pt-5 pb-2 px-6">
+        <div class="text-subtitle-1 font-weight-bold mb-1">{{ selectedDateInfo?.date }}</div>
+        <div class="text-body-2 text-medium-emphasis mb-4">
+          <v-icon size="16" class="mr-1">mdi-account-outline</v-icon>
+          {{ selectedDateInfo?.hostName }}
+        </div>
+        <v-list density="compact" class="pa-0">
+          <v-list-item
+            prepend-icon="mdi-swap-horizontal"
+            rounded="lg"
+            :title="$t('meetings.hostSchedule.actionSwap')"
+            :subtitle="$t('meetings.hostSchedule.actionSwapHint')"
+            @click="startSwapFromDate"
+          />
+          <v-list-item
+            prepend-icon="mdi-calendar-remove-outline"
+            rounded="lg"
+            color="warning"
+            :title="$t('meetings.hostSchedule.actionExclude')"
+            :subtitle="$t('meetings.hostSchedule.actionExcludeHint')"
+            @click="confirmExcludeDate"
+          />
+          <v-list-item
+            prepend-icon="mdi-calendar-arrow-right"
+            rounded="lg"
+            color="error"
+            :title="$t('meetings.hostSchedule.actionTruncate')"
+            :subtitle="$t('meetings.hostSchedule.actionTruncateHint')"
+            @click="confirmTruncateDate"
+          />
+        </v-list>
+      </v-card-text>
+      <v-card-actions class="px-6 pb-4 pt-0 justify-end">
+        <v-btn variant="text" rounded="lg" @click="showDateActionDialog = false">{{
+          $t('common.cancel')
+        }}</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Exclude / Truncate confirm -->
+  <v-dialog v-model="showDateConfirmDialog" max-width="400" persistent>
+    <v-card rounded="xl">
+      <v-card-text class="pt-6 pb-2 px-6">
+        <div class="text-h6 font-weight-bold mb-2">{{ dateConfirmTitle }}</div>
+        <div class="text-body-2 text-medium-emphasis">{{ dateConfirmBody }}</div>
+      </v-card-text>
+      <v-card-actions class="px-6 pb-4 pt-2 d-flex justify-end ga-2">
+        <v-btn variant="text" rounded="lg" @click="showDateConfirmDialog = false">{{
+          $t('common.cancel')
+        }}</v-btn>
+        <v-btn
+          :color="dateConfirmAction === 'truncate' ? 'error' : 'warning'"
+          variant="flat"
+          rounded="lg"
+          :loading="isDateActionLoading"
+          @click="executeDateAction"
+        >
+          {{ $t('common.confirm') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Swap confirm -->
+  <v-dialog v-model="showSwapConfirmDialog" max-width="420" persistent>
+    <v-card rounded="xl">
+      <v-card-text class="pt-6 pb-2 px-6">
+        <div class="text-h6 font-weight-bold mb-3">
+          {{ $t('meetings.hostSchedule.swapConfirmTitle') }}
+        </div>
+        <div class="d-flex align-center ga-3 mb-2">
+          <div class="swap-date-chip">
+            <div class="text-caption text-medium-emphasis">{{ swapState?.dateA }}</div>
+            <div class="text-body-2 font-weight-medium">{{ swapState?.hostNameA }}</div>
+          </div>
+          <v-icon color="primary">mdi-swap-horizontal</v-icon>
+          <div class="swap-date-chip">
+            <div class="text-caption text-medium-emphasis">{{ swapState?.dateB }}</div>
+            <div class="text-body-2 font-weight-medium">{{ swapState?.hostNameB }}</div>
+          </div>
+        </div>
+        <div class="text-body-2 text-medium-emphasis mt-2">
+          {{ $t('meetings.hostSchedule.swapConfirmBody') }}
+        </div>
+      </v-card-text>
+      <v-card-actions class="px-6 pb-4 pt-2 d-flex justify-end ga-2">
+        <v-btn variant="text" rounded="lg" @click="cancelSwap">{{ $t('common.cancel') }}</v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          rounded="lg"
+          :loading="isDateActionLoading"
+          @click="executeSwap"
+        >
+          {{ $t('meetings.hostSchedule.swapConfirmButton') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -196,6 +327,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isLoading = ref(false)
 const isDeleting = ref(false)
+const isDateActionLoading = ref(false)
 const viewMode = ref<'calendar' | 'list'>('calendar')
 const schedules = ref<MeetingHostSchedule[]>([])
 const showCreateDialog = ref(false)
@@ -203,10 +335,48 @@ const showDeleteConfirm = ref(false)
 const editingSchedule = ref<MeetingHostSchedule | null>(null)
 const deletingSchedule = ref<MeetingHostSchedule | null>(null)
 const resolvedHostName = ref<string | null>(null)
+
+// Date action state
+interface SelectedDateInfo {
+  date: string
+  hostName: string
+  scheduleId: number
+}
+const showDateActionDialog = ref(false)
+const showDateConfirmDialog = ref(false)
+const showSwapConfirmDialog = ref(false)
+const selectedDateInfo = ref<SelectedDateInfo | null>(null)
+const dateConfirmAction = ref<'exclude' | 'truncate'>('exclude')
+
+interface SwapState {
+  dateA: string
+  hostNameA: string
+  scheduleIdA: number
+  dateB?: string
+  hostNameB?: string
+  scheduleIdB?: number
+}
+const swapState = ref<SwapState | null>(null)
 /** END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
 const resolvedHostLabel = computed(() => resolvedHostName.value)
+
+const dateConfirmTitle = computed(() => {
+  if (dateConfirmAction.value === 'truncate') {
+    return t('meetings.hostSchedule.truncateConfirmTitle')
+  }
+  return t('meetings.hostSchedule.excludeConfirmTitle')
+})
+
+const dateConfirmBody = computed(() => {
+  const date = selectedDateInfo.value?.date ?? ''
+  const name = selectedDateInfo.value?.hostName ?? ''
+  if (dateConfirmAction.value === 'truncate') {
+    return t('meetings.hostSchedule.truncateConfirmBody', { date, name })
+  }
+  return t('meetings.hostSchedule.excludeConfirmBody', { date, name })
+})
 /** END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
@@ -296,6 +466,135 @@ function close() {
   emit('update:modelValue', false)
 }
 
+/** Resolves the schedule ID for a given date by finding the best-match active schedule. */
+function resolveScheduleIdForDate(date: string): number | null {
+  const active = schedules.value.filter((item) => item.is_active)
+  const PRIORITY: Record<string, number> = {
+    one_time: 4,
+    date_list: 3,
+    date_range: 2,
+    recurring: 1,
+  }
+
+  const matching = active.filter((item) => {
+    if ((item.excluded_dates ?? []).includes(date)) return false
+    switch (item.schedule_type) {
+      case 'one_time':
+        return item.date === date
+      case 'date_list':
+        return (item.dates ?? []).includes(date)
+      case 'date_range':
+        return !!item.date_from && !!item.date_to && date >= item.date_from && date <= item.date_to
+      case 'recurring': {
+        if (!item.recur_start_date || item.day_of_week === undefined) return false
+        if (item.recur_end_date && date > item.recur_end_date) return false
+        const target = new Date(date + 'T00:00:00Z')
+        if (target.getUTCDay() !== item.day_of_week) return false
+        const anchor = new Date(item.recur_start_date + 'T00:00:00Z')
+        const daysUntilFirst = (item.day_of_week - anchor.getUTCDay() + 7) % 7
+        const first = new Date(anchor)
+        first.setUTCDate(first.getUTCDate() + daysUntilFirst)
+        if (target < first) return false
+        const msPerWeek = 7 * 24 * 60 * 60 * 1000
+        const weekDiff = (target.getTime() - first.getTime()) / msPerWeek
+        return weekDiff % (item.interval_weeks ?? 1) === 0
+      }
+      default:
+        return false
+    }
+  })
+
+  if (matching.length === 0) return null
+  matching.sort(
+    (scheduleA, scheduleB) =>
+      (PRIORITY[scheduleB.schedule_type] ?? 0) - (PRIORITY[scheduleA.schedule_type] ?? 0),
+  )
+  return matching[0]!.id
+}
+
+function onCalendarDateClick(date: string, hostEntry: { userId: number; name: string }) {
+  const scheduleId = resolveScheduleIdForDate(date)
+  if (!scheduleId) return
+
+  if (swapState.value && !swapState.value.dateB) {
+    // Second selection in swap mode
+    if (swapState.value.dateA === date) return // same date, ignore
+    swapState.value.dateB = date
+    swapState.value.hostNameB = hostEntry.name
+    swapState.value.scheduleIdB = scheduleId
+    showSwapConfirmDialog.value = true
+    return
+  }
+
+  selectedDateInfo.value = { date, hostName: hostEntry.name, scheduleId }
+  showDateActionDialog.value = true
+}
+
+function startSwapFromDate() {
+  if (!selectedDateInfo.value) return
+  swapState.value = {
+    dateA: selectedDateInfo.value.date,
+    hostNameA: selectedDateInfo.value.hostName,
+    scheduleIdA: selectedDateInfo.value.scheduleId,
+  }
+  showDateActionDialog.value = false
+}
+
+function cancelSwap() {
+  swapState.value = null
+  showSwapConfirmDialog.value = false
+}
+
+function confirmExcludeDate() {
+  dateConfirmAction.value = 'exclude'
+  showDateActionDialog.value = false
+  showDateConfirmDialog.value = true
+}
+
+function confirmTruncateDate() {
+  dateConfirmAction.value = 'truncate'
+  showDateActionDialog.value = false
+  showDateConfirmDialog.value = true
+}
+
+async function executeDateAction() {
+  if (!selectedDateInfo.value) return
+  isDateActionLoading.value = true
+  try {
+    const { date, scheduleId } = selectedDateInfo.value
+    if (dateConfirmAction.value === 'exclude') {
+      await MeetingHostScheduleService.excludeDate(props.meetingUuid, scheduleId, date)
+    } else {
+      await MeetingHostScheduleService.truncateFromDate(props.meetingUuid, scheduleId, date)
+    }
+    showDateConfirmDialog.value = false
+    await load()
+  } catch {
+    // non-critical
+  } finally {
+    isDateActionLoading.value = false
+  }
+}
+
+async function executeSwap() {
+  if (!swapState.value?.dateB) return
+  isDateActionLoading.value = true
+  try {
+    await MeetingHostScheduleService.swapDates(
+      props.meetingUuid,
+      swapState.value.dateA,
+      swapState.value.dateB,
+    )
+    showSwapConfirmDialog.value = false
+    swapState.value = null
+    await load()
+  } catch {
+    // non-critical
+  } finally {
+    isDateActionLoading.value = false
+  }
+}
+
 async function load() {
   isLoading.value = true
   try {
@@ -325,8 +624,18 @@ watch(
   () => props.modelValue,
   (isOpen) => {
     if (isOpen) {
-      editingSchedule.value = null
       load()
+    } else {
+      // Reset all nested dialog states so stale overlays don't block reopening
+      editingSchedule.value = null
+      deletingSchedule.value = null
+      swapState.value = null
+      selectedDateInfo.value = null
+      showCreateDialog.value = false
+      showDeleteConfirm.value = false
+      showDateActionDialog.value = false
+      showDateConfirmDialog.value = false
+      showSwapConfirmDialog.value = false
     }
   },
 )
@@ -342,5 +651,13 @@ watch(showCreateDialog, (isOpen) => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+}
+
+.swap-date-chip {
+  flex: 1;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
 }
 </style>

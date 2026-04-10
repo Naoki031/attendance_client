@@ -1282,7 +1282,22 @@
       "selectParticipant": "Chọn người tham gia",
       "youAreHost": "Bạn đang là host",
       "hostChanged": "{name} đã trở thành host",
-      "dateConflict": "Ngày {date} đã được đặt bởi một lịch host khác"
+      "dateConflict": "Ngày {date} đã được đặt bởi một lịch host khác",
+      "actionSwap": "Hoán đổi ngày host",
+      "actionSwapHint": "Chọn ngày này và một ngày khác để đổi host cho nhau",
+      "actionExclude": "Xóa ngày hôm đó",
+      "actionExcludeHint": "Chỉ bỏ ngày này khỏi lịch, các ngày khác không đổi",
+      "actionTruncate": "Xóa từ ngày này trở về sau",
+      "actionTruncateHint": "Lịch sẽ kết thúc trước ngày này",
+      "excludeConfirmTitle": "Xóa ngày host",
+      "excludeConfirmBody": "Bạn có chắc muốn xóa host ngày {date} ({name})? Ngày đó sẽ không có host.",
+      "truncateConfirmTitle": "Cắt lịch host",
+      "truncateConfirmBody": "Xóa ngày {date} và tất cả các ngày sau đó khỏi lịch của {name}?",
+      "swapSelectFirst": "Chọn ngày đầu tiên cần hoán đổi",
+      "swapSelectSecond": "Đã chọn {date} ({name}). Bây giờ chọn ngày muốn hoán đổi.",
+      "swapConfirmTitle": "Xác nhận hoán đổi host",
+      "swapConfirmBody": "Hai người này sẽ đổi lịch host cho nhau vào hai ngày tương ứng.",
+      "swapConfirmButton": "Hoán đổi"
     },
     "pin": {
       "pin": "Ghim",

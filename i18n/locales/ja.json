@@ -1282,7 +1282,22 @@
       "selectParticipant": "参加者を選択",
       "youAreHost": "あなたはホストです",
       "hostChanged": "{name}がホストになりました",
-      "dateConflict": "日付{date}はすでに別のホストスケジュールに使用されています"
+      "dateConflict": "日付{date}はすでに別のホストスケジュールに使用されています",
+      "actionSwap": "ホスト日を入れ替え",
+      "actionSwapHint": "この日付と別の日付を選んでホストを交換します",
+      "actionExclude": "この日付を削除",
+      "actionExcludeHint": "この特定の日付だけをスケジュールから除外します",
+      "actionTruncate": "この日以降を削除",
+      "actionTruncateHint": "スケジュールはこの日付の前に終了します",
+      "excludeConfirmTitle": "ホスト日付を削除",
+      "excludeConfirmBody": "{date}の{name}のホスト担当を削除しますか？その日はホストが割り当てられません。",
+      "truncateConfirmTitle": "ホストスケジュールを短縮",
+      "truncateConfirmBody": "{name}のスケジュールから{date}以降の日付をすべて削除しますか？",
+      "swapSelectFirst": "入れ替える最初の日付を選択してください",
+      "swapSelectSecond": "{date}（{name}）を選択しました。次に交換する日付をクリックしてください。",
+      "swapConfirmTitle": "ホスト入れ替えの確認",
+      "swapConfirmBody": "この2人のホストは互いの担当日を交換します。",
+      "swapConfirmButton": "入れ替え"
     },
     "pin": {
       "pin": "ピン留め",
