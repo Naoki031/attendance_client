@@ -139,7 +139,7 @@
             variant="tonal"
             prepend-icon="mdi-login"
           >
-            {{ item.clock_in }}
+            {{ item.clock_in.substring(0, 5) }}
           </v-chip>
           <span v-else class="text-medium-emphasis text-caption">—</span>
         </template>
@@ -153,7 +153,7 @@
             variant="tonal"
             prepend-icon="mdi-logout"
           >
-            {{ item.clock_out }}
+            {{ item.clock_out.substring(0, 5) }}
           </v-chip>
           <span v-else class="text-medium-emphasis text-caption">—</span>
         </template>
@@ -188,16 +188,6 @@
         <template #item.actions="{ item }">
           <div class="d-flex ga-1">
             <v-btn
-              icon="mdi-pencil-outline"
-              size="x-small"
-              variant="tonal"
-              color="primary"
-              rounded="lg"
-              class="btn-shine"
-              :title="$t('attendanceLogs.editTitle')"
-              @click="openEditDialog(item)"
-            />
-            <v-btn
               icon="mdi-history"
               size="x-small"
               variant="tonal"
@@ -221,14 +211,6 @@
         </template>
       </v-data-table>
     </v-card>
-
-    <!-- Edit dialog -->
-    <DialogEditAttendanceLog
-      :item="editingLog"
-      :dialog="editDialog"
-      @confirm="onEditConfirm"
-      @close-modal="editDialog = false"
-    />
 
     <!-- History dialog -->
     <DialogAttendanceLogHistory
@@ -351,7 +333,6 @@ import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import AttendanceLogService from '@/services/AttendanceLogService'
 import CompanyService from '@/services/CompanyService'
 import { useUserStore } from '@/stores/user'
-import DialogEditAttendanceLog from '~/components/attendance_logs/DialogEditAttendanceLog.vue'
 import DialogAttendanceLogHistory from '~/components/attendance_logs/DialogAttendanceLogHistory.vue'
 import DialogCheckinImage from '~/components/attendance_logs/DialogCheckinImage.vue'
 /* END IMPORT */
@@ -378,8 +359,6 @@ const selectedYear = ref(now.year())
 
 const companies = ref<CompanyModel[]>([])
 const selectedCompanyId = ref<number | null>(null)
-const editDialog = ref<boolean>(false)
-const editingLog = ref<AttendanceLogModel | null>(null)
 const historyDialog = ref<boolean>(false)
 const historyLog = ref<AttendanceLogModel | null>(null)
 const checkinImageDialog = ref<boolean>(false)
@@ -483,11 +462,6 @@ const statusColor = (log: AttendanceLogModel): string => {
   return 'success'
 }
 
-const openEditDialog = (log: AttendanceLogModel) => {
-  editingLog.value = log
-  editDialog.value = true
-}
-
 const openHistoryDialog = (log: AttendanceLogModel) => {
   historyLog.value = log
   historyDialog.value = true
@@ -496,12 +470,6 @@ const openHistoryDialog = (log: AttendanceLogModel) => {
 const openCheckinImageDialog = (log: AttendanceLogModel) => {
   checkinImageLog.value = log
   checkinImageDialog.value = true
-}
-
-const onEditConfirm = (updated: AttendanceLogModel) => {
-  const index = logs.value.findIndex((log) => log.id === updated.id)
-  if (index !== -1) logs.value[index] = updated
-  editDialog.value = false
 }
 
 const openExportDialog = () => {
