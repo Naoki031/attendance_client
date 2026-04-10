@@ -538,6 +538,14 @@
       "reloadPromptsAction": "Tải lại",
       "reloadPromptsSuccess": "Đã tải lại thành công {count} đoạn prompt.",
       "reloadPromptsError": "Tải lại prompt thất bại. Vui lòng kiểm tra log server."
+    },
+    "translation": {
+      "title": "Cache dịch thuật",
+      "retranslateAll": "Dịch lại tất cả các phòng",
+      "retranslateAllDesc": "Dịch lại toàn bộ tin nhắn trong tất cả phòng chat bằng prompt AI hiện tại. Dùng sau khi xóa cache dịch hoặc cập nhật prompt.",
+      "retranslateAllAction": "Dịch lại",
+      "retranslateAllSuccess": "Hoàn tất. Đã dịch lại {total} tin nhắn trong {rooms} phòng.",
+      "retranslateAllError": "Dịch lại thất bại. Vui lòng kiểm tra log server."
     }
   },
   "attendanceLogs": {

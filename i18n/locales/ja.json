@@ -538,6 +538,14 @@
       "reloadPromptsAction": "再読み込み",
       "reloadPromptsSuccess": "{count}件のプロンプトセクションを正常に再読み込みしました。",
       "reloadPromptsError": "プロンプトの再読み込みに失敗しました。サーバーログを確認してください。"
+    },
+    "translation": {
+      "title": "翻訳キャッシュ",
+      "retranslateAll": "全ルームを再翻訳",
+      "retranslateAllDesc": "現在のAIプロンプトを使用して、全チャットルームのメッセージを再翻訳します。翻訳キャッシュをクリアしたり、プロンプトを更新した後に使用してください。",
+      "retranslateAllAction": "再翻訳",
+      "retranslateAllSuccess": "{rooms}ルームの{total}件のメッセージを再翻訳しました。",
+      "retranslateAllError": "再翻訳に失敗しました。サーバーログを確認してください。"
     }
   },
   "attendanceLogs": {

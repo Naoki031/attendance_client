@@ -538,6 +538,14 @@
       "reloadPromptsAction": "Reload",
       "reloadPromptsSuccess": "Successfully reloaded {count} prompt sections.",
       "reloadPromptsError": "Failed to reload prompts. Please check the server logs."
+    },
+    "translation": {
+      "title": "Translation Cache",
+      "retranslateAll": "Retranslate All Rooms",
+      "retranslateAllDesc": "Re-translate all messages in every chat room using the current AI prompt. Use this after clearing the translation cache or updating the prompt.",
+      "retranslateAllAction": "Retranslate",
+      "retranslateAllSuccess": "Done. Retranslated {total} messages across {rooms} rooms.",
+      "retranslateAllError": "Retranslation failed. Please check the server logs."
     }
   },
   "attendanceLogs": {

@@ -102,4 +102,8 @@ export default class ChatRoomService {
   public static async getReadMessages(): Promise<UnreadMessageModel[]> {
     return await apiClient.get<UnreadMessageModel[]>('chat-rooms/read-messages')
   }
+
+  public static async retranslateRoom(uuid: string): Promise<{ retranslated: number }> {
+    return await apiClient.post<{ retranslated: number }>(`messages/retranslate-room/${uuid}`, {})
+  }
 }
