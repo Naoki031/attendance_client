@@ -2,6 +2,7 @@
   "common": {
     "save": "保存",
     "cancel": "キャンセル",
+    "later": "後で",
     "delete": "削除",
     "edit": "編集",
     "create": "作成",
@@ -1353,12 +1354,10 @@
       "rsvpDesc": "この会議の招待に返答してください。",
       "accept": "承諾",
       "decline": "辞退",
-      "maybe": "未定",
       "status": {
         "pending": "保留中",
         "accepted": "承諾済み",
         "declined": "辞退済み",
-        "maybe": "未定",
         "missed": "不在着信"
       },
       "join": "参加する",
@@ -1369,6 +1368,47 @@
       "resultDeclined": "{name}が招待を辞退しました",
       "resultMissed": "{name}が着信に応答しませんでした",
       "missedCall": "不在着信"
+    },
+    "scheduledParticipants": {
+      "title": "予定参加者の管理",
+      "manageTitle": "予定参加者",
+      "selectUsers": "会議前に招待するユーザーを追加",
+      "sendInvite": "招待する",
+      "participantList": "予定参加者一覧",
+      "noParticipants": "まだ予定参加者がいません",
+      "status": {
+        "pending": "未回答",
+        "accepted": "承認",
+        "declined": "辞退"
+      },
+      "autoCall": {
+        "title": "自動通話設定",
+        "minutesBefore": "開始前（分）",
+        "retryCount": "再試行回数",
+        "retryInterval": "再試行間隔（分）"
+      }
+    },
+    "rsvp": {
+      "title": "会議招待",
+      "chooseResponse": "この会議招待に返答してください：",
+      "accept": "承認",
+      "decline": "辞退",
+      "invalidToken": "このリンクは無効か、すでに使用されています。",
+      "done": {
+        "accepted": {
+          "title": "招待を承認しました！",
+          "subtitle": "会議でお会いしましょう。"
+        },
+        "declined": {
+          "title": "招待を辞退しました。",
+          "subtitle": "返答が記録されました。"
+        }
+      }
+    },
+    "scheduledRsvp": {
+      "title": "保留中の会議招待",
+      "subtitle": "以下の会議に招待されています。各招待に返答してください。",
+      "hostedBy": "主催者"
     }
   }
 }

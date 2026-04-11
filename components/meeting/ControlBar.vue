@@ -374,7 +374,7 @@ const qualityOptions = computed(() => [
     display: none;
   }
 
-  .control-bar :deep(.v-btn) {
+  .control-bar :deep(.v-btn:not(.share-quality-btn)) {
     width: 40px !important;
     height: 40px !important;
   }

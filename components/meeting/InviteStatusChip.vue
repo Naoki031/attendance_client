@@ -26,7 +26,6 @@ const chipColor = computed(() => {
     pending: 'warning',
     accepted: 'success',
     declined: 'error',
-    maybe: 'info',
     missed: 'grey',
   }
   return colorMap[props.status]
@@ -37,7 +36,6 @@ const chipIcon = computed(() => {
     pending: 'mdi-clock-outline',
     accepted: 'mdi-check-circle-outline',
     declined: 'mdi-close-circle-outline',
-    maybe: 'mdi-help-circle-outline',
     missed: 'mdi-phone-missed',
   }
   return iconMap[props.status]

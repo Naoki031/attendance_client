@@ -15,6 +15,14 @@
 
     <!-- Unified notification stack: missed calls + real-time alerts -->
     <LayoutNotificationStack />
+
+    <!-- Scheduled meeting RSVP dialog (global — shows from any page) -->
+    <MeetingDialogScheduledRsvp
+      :dialog="scheduledRsvpDialog"
+      :invites="scheduledRsvpInvites"
+      @close="scheduledRsvpDialog = false"
+      @responded="onScheduledRsvpResponded"
+    />
   </v-app>
 </template>
 
@@ -32,12 +40,16 @@ import { useMeetingInvitesStore } from '@/stores/meeting-invites'
 import { useFirebaseMessaging } from '@/composables/useFirebaseMessaging'
 import { useAppNotifications } from '@/composables/useAppNotifications'
 import type { EmployeeRequestModel } from '@/interfaces/models/EmployeeRequestModel'
+import MeetingScheduledParticipantService from '@/services/MeetingScheduledParticipantService'
+import type { MeetingScheduledParticipantModel } from '@/interfaces/models/MeetingScheduledParticipantModel'
+import { useScheduledParticipantsStore } from '@/stores/scheduled-participants'
 /* END IMPORT */
 
 /** START DEFINE STATE */
 const userStore = useUserStore()
 const approvalsStore = useApprovalsStore()
 const invitesStore = useMeetingInvitesStore()
+const scheduledParticipantsStore = useScheduledParticipantsStore()
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
@@ -46,9 +58,32 @@ const isChatPage = computed<boolean>(() => route.path.startsWith('/chat'))
 const { initMessaging } = useFirebaseMessaging()
 
 let meetingSocket: Socket | null = null
+
+const scheduledRsvpDialog = ref(false)
+const scheduledRsvpInvites = ref<MeetingScheduledParticipantModel[]>([])
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+async function loadScheduledRsvpInvites() {
+  try {
+    scheduledRsvpInvites.value = await MeetingScheduledParticipantService.getMyPendingInvites()
+
+    if (scheduledRsvpInvites.value.length > 0) {
+      scheduledRsvpDialog.value = true
+    }
+  } catch {
+    // Fail silently
+  }
+}
+
+function onScheduledRsvpResponded(invite: MeetingScheduledParticipantModel) {
+  scheduledRsvpInvites.value = scheduledRsvpInvites.value.filter((item) => item.id !== invite.id)
+
+  if (scheduledRsvpInvites.value.length === 0) {
+    scheduledRsvpDialog.value = false
+  }
+}
+
 function getRequestTypeLabel(type: string | undefined): string {
   const labels: Record<string, string> = {
     wfh: t('requestType.wfh'),
@@ -110,7 +145,36 @@ onMounted(() => {
       meetingSocket.on('invite_result', (data: { meetingUuid: string }) => {
         invitesStore.notifyInviteResult(data.meetingUuid)
       })
+
+      // Show RSVP dialog when a new scheduled invite arrives (visible from any page)
+      meetingSocket.on('scheduled_invite', (invite: MeetingScheduledParticipantModel) => {
+        const alreadyExists = scheduledRsvpInvites.value.some((item) => item.id === invite.id)
+        if (!alreadyExists) {
+          scheduledRsvpInvites.value = [invite, ...scheduledRsvpInvites.value]
+          scheduledRsvpDialog.value = true
+        }
+      })
+
+      // Dismiss invite from dialog when host removes the scheduled participant
+      meetingSocket.on('scheduled_invite_removed', (data: { meetingUuid: string }) => {
+        scheduledRsvpInvites.value = scheduledRsvpInvites.value.filter(
+          (item) => item.meeting?.uuid !== data.meetingUuid,
+        )
+        if (scheduledRsvpInvites.value.length === 0) {
+          scheduledRsvpDialog.value = false
+        }
+      })
+
+      // Notify host's manage-participants dialog of real-time RSVP status change
+      meetingSocket.on(
+        'scheduled_rsvp_updated',
+        (data: { meetingUuid: string; userId: number; status: string }) => {
+          scheduledParticipantsStore.notifyRsvpUpdate(data)
+        },
+      )
     }
+
+    loadScheduledRsvpInvites()
 
     // Register FCM token and handle foreground messages
     initMessaging((payload) => {

@@ -2,6 +2,7 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
+    "later": "Later",
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
@@ -1353,12 +1354,10 @@
       "rsvpDesc": "Please respond to this meeting invitation.",
       "accept": "Accept",
       "decline": "Decline",
-      "maybe": "Maybe",
       "status": {
         "pending": "Pending",
         "accepted": "Accepted",
         "declined": "Declined",
-        "maybe": "Maybe",
         "missed": "Missed"
       },
       "join": "Join",
@@ -1369,6 +1368,47 @@
       "resultDeclined": "{name} declined the invite",
       "resultMissed": "{name} missed the call",
       "missedCall": "Missed call"
+    },
+    "scheduledParticipants": {
+      "title": "Manage Scheduled Participants",
+      "manageTitle": "Scheduled Participants",
+      "selectUsers": "Add users to invite before the meeting",
+      "sendInvite": "Invite",
+      "participantList": "Scheduled Participants",
+      "noParticipants": "No scheduled participants yet",
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "declined": "Declined"
+      },
+      "autoCall": {
+        "title": "Auto-call Settings",
+        "minutesBefore": "Minutes before",
+        "retryCount": "Retry count",
+        "retryInterval": "Retry interval (min)"
+      }
+    },
+    "rsvp": {
+      "title": "Meeting Invitation",
+      "chooseResponse": "Please respond to this meeting invitation:",
+      "accept": "Accept",
+      "decline": "Decline",
+      "invalidToken": "This link is invalid or has already been used.",
+      "done": {
+        "accepted": {
+          "title": "You have accepted the invitation!",
+          "subtitle": "We look forward to seeing you at the meeting."
+        },
+        "declined": {
+          "title": "You have declined the invitation.",
+          "subtitle": "Your response has been recorded."
+        }
+      }
+    },
+    "scheduledRsvp": {
+      "title": "Pending Meeting Invitations",
+      "subtitle": "You have been invited to the following meetings. Please respond to each invitation.",
+      "hostedBy": "Hosted by"
     }
   }
 }

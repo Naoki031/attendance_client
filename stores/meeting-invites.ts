@@ -73,20 +73,22 @@ export const useMeetingInvitesStore = defineStore('meetingInvites', {
 
     /**
      * Accept the invite: marks RSVP as accepted, navigates into the meeting room.
+     * RSVP recording is best-effort — navigation always proceeds even if the API call fails.
      */
     async accept(meetingUuid: string) {
       if (this.responding[meetingUuid]) return
       this.responding[meetingUuid] = true
+
       try {
         await MeetingInviteService.rsvp(meetingUuid, 'accepted')
-        this.dismiss()
-        const router = useRouter()
-        await router.push(`/meetings/${meetingUuid}`)
       } catch (error) {
-        console.error('Failed to accept invite:', error)
-      } finally {
-        this.responding[meetingUuid] = false
+        console.error('Failed to record RSVP:', error)
       }
+
+      this.dismiss()
+      this.responding[meetingUuid] = false
+      const router = useRouter()
+      await router.push(`/meetings/${meetingUuid}`)
     },
 
     /**

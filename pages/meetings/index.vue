@@ -105,6 +105,7 @@
             @edit="openEditDialog"
             @delete="openDeleteDialog"
             @manage-host-schedule="openHostScheduleDialog"
+            @manage-scheduled-participants="openScheduledParticipantsDialog"
             @toggle-pin="togglePin"
           />
         </v-col>
@@ -147,6 +148,13 @@
       v-model="hostScheduleDialog"
       :meeting-uuid="hostScheduleTargetUuid"
       :meeting="hostScheduleTargetMeeting"
+    />
+
+    <!-- Scheduled Participants Dialog -->
+    <MeetingDialogManageScheduledParticipants
+      :dialog="scheduledParticipantsDialog"
+      :meeting-uuid="scheduledParticipantsTargetUuid"
+      @close-modal="scheduledParticipantsDialog = false"
     />
 
     <!-- Edit Meeting Dialog -->
@@ -233,6 +241,9 @@ const hostScheduleDialog = ref(false)
 const hostScheduleTargetUuid = ref('')
 const hostScheduleTargetMeeting = ref<Meeting | null>(null)
 
+const scheduledParticipantsDialog = ref(false)
+const scheduledParticipantsTargetUuid = ref('')
+
 const inviteDialog = ref(false)
 const inviteTargetUuid = ref('')
 const inviteDialogReference = ref<{ refresh: () => void } | null>(null)
@@ -304,6 +315,7 @@ async function loadMeetings() {
 function isPrivilegedRole(roles: string[]): boolean {
   return roles.some((role) => {
     const normalized = role.toLowerCase().replace(/[\s_]+/g, '')
+
     return normalized === 'admin' || normalized === 'superadmin' || normalized === 'super'
   })
 }
@@ -321,6 +333,7 @@ function openDeleteDialog(uuid: string) {
 async function togglePin(uuid: string) {
   const meeting = meetings.value.find((item) => item.uuid === uuid)
   if (!meeting) return
+
   if (meeting.is_pinned) {
     await MeetingService.unpin(uuid)
     meeting.is_pinned = false
@@ -328,6 +341,7 @@ async function togglePin(uuid: string) {
     await MeetingService.pin(uuid)
     meeting.is_pinned = true
   }
+
   meetings.value.sort((meetingA, meetingB) => {
     if (meetingA.is_pinned === meetingB.is_pinned) return 0
     return meetingA.is_pinned ? -1 : 1
@@ -348,22 +362,24 @@ function getMeetingTitle(meetingId: number): string {
 }
 
 async function joinMeeting(invite: MeetingInviteModel) {
-  const meeting = meetings.value.find((item) => item.id === invite.meeting_id)
-  if (!meeting) return
+  const meetingUuid = invite.meeting?.uuid
+  if (!meetingUuid) return
+
   try {
-    await MeetingInviteService.rsvp(meeting.uuid, 'accepted')
+    await MeetingInviteService.rsvp(meetingUuid, 'accepted')
     pendingInvites.value = pendingInvites.value.filter((item) => item.id !== invite.id)
-    await navigateTo(`/meetings/${meeting.uuid}`)
+    await navigateTo(`/meetings/${meetingUuid}`)
   } catch (error) {
     console.error('Failed to join meeting:', error)
   }
 }
 
 async function respondInvite(invite: MeetingInviteModel, status: 'declined') {
-  const meeting = meetings.value.find((item) => item.id === invite.meeting_id)
-  if (!meeting) return
+  const meetingUuid = invite.meeting?.uuid
+  if (!meetingUuid) return
+
   try {
-    await MeetingInviteService.rsvp(meeting.uuid, status)
+    await MeetingInviteService.rsvp(meetingUuid, status)
     pendingInvites.value = pendingInvites.value.filter((item) => item.id !== invite.id)
   } catch (error) {
     console.error('Failed to respond to invite:', error)
@@ -382,6 +398,11 @@ function openHostScheduleDialog(uuid: string) {
   hostScheduleTargetUuid.value = uuid
   hostScheduleTargetMeeting.value = meetings.value.find((item) => item.uuid === uuid) ?? null
   hostScheduleDialog.value = true
+}
+
+function openScheduledParticipantsDialog(uuid: string) {
+  scheduledParticipantsTargetUuid.value = uuid
+  scheduledParticipantsDialog.value = true
 }
 
 async function confirmDelete() {

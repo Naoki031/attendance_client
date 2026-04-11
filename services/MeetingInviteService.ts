@@ -33,7 +33,7 @@ export default class MeetingInviteService {
    */
   public static async rsvp(
     meetingUuid: string,
-    status: 'accepted' | 'declined' | 'maybe',
+    status: 'accepted' | 'declined',
   ): Promise<MeetingInviteModel> {
     return await apiClient.patch<MeetingInviteModel>(`/meetings/${meetingUuid}/invites/rsvp`, {
       status,

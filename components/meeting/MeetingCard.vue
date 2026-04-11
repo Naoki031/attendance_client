@@ -69,6 +69,11 @@
               @click="$emit('edit', meeting.uuid)"
             />
             <v-list-item
+              prepend-icon="mdi-account-multiple-plus-outline"
+              :title="$t('meetings.scheduledParticipants.manageTitle')"
+              @click="$emit('manage-scheduled-participants', meeting.uuid)"
+            />
+            <v-list-item
               prepend-icon="mdi-calendar-account-outline"
               :title="$t('meetings.hostSchedule.manageTitle')"
               @click="$emit('manage-host-schedule', meeting.uuid)"
@@ -209,6 +214,20 @@
         color="medium-emphasis"
         icon
         class="btn-shine"
+        @click="$emit('manage-scheduled-participants', meeting.uuid)"
+      >
+        <v-icon size="16">mdi-account-multiple-plus-outline</v-icon>
+        <v-tooltip activator="parent" location="top">
+          {{ $t('meetings.scheduledParticipants.manageTitle') }}
+        </v-tooltip>
+      </v-btn>
+      <v-btn
+        v-if="canManage"
+        size="small"
+        variant="text"
+        color="medium-emphasis"
+        icon
+        class="btn-shine"
         @click="$emit('manage-host-schedule', meeting.uuid)"
       >
         <v-icon size="16">mdi-calendar-account-outline</v-icon>
@@ -290,6 +309,7 @@ const props = defineProps({
 defineEmits<{
   'regenerate-password': [uuid: string]
   'manage-host-schedule': [uuid: string]
+  'manage-scheduled-participants': [uuid: string]
   'toggle-pin': [uuid: string]
   invite: [uuid: string]
   edit: [uuid: string]

@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware((to) => {
     return navigateTo('/home')
   }
 
-  if (!userStore.isAuthenticated && to?.name !== 'login') {
+  if (!userStore.isAuthenticated && to?.name !== 'login' && to?.name !== 'meetings-rsvp') {
     return navigateTo('/login')
   }
 

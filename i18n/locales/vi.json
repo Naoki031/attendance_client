@@ -2,6 +2,7 @@
   "common": {
     "save": "Lưu",
     "cancel": "Hủy",
+    "later": "Để sau",
     "delete": "Xóa",
     "edit": "Sửa",
     "create": "Tạo mới",
@@ -1353,12 +1354,10 @@
       "rsvpDesc": "Vui lòng phản hồi lời mời họp này.",
       "accept": "Chấp nhận",
       "decline": "Từ chối",
-      "maybe": "Có thể",
       "status": {
         "pending": "Chờ phản hồi",
         "accepted": "Đã chấp nhận",
         "declined": "Đã từ chối",
-        "maybe": "Có thể",
         "missed": "Bỏ lỡ"
       },
       "join": "Tham gia",
@@ -1369,6 +1368,47 @@
       "resultDeclined": "{name} đã từ chối lời mời",
       "resultMissed": "{name} bỏ lỡ cuộc gọi",
       "missedCall": "Cuộc gọi nhỡ"
+    },
+    "scheduledParticipants": {
+      "title": "Quản lý người tham dự",
+      "manageTitle": "Người tham dự đã đặt lịch",
+      "selectUsers": "Thêm người dùng để mời trước cuộc họp",
+      "sendInvite": "Mời tham dự",
+      "participantList": "Danh sách người tham dự",
+      "noParticipants": "Chưa có người tham dự nào",
+      "status": {
+        "pending": "Chờ phản hồi",
+        "accepted": "Đã chấp nhận",
+        "declined": "Đã từ chối"
+      },
+      "autoCall": {
+        "title": "Cài đặt gọi tự động",
+        "minutesBefore": "Phút trước cuộc họp",
+        "retryCount": "Số lần gọi lại",
+        "retryInterval": "Khoảng cách gọi lại (phút)"
+      }
+    },
+    "rsvp": {
+      "title": "Lời mời họp",
+      "chooseResponse": "Vui lòng phản hồi lời mời họp này:",
+      "accept": "Chấp nhận",
+      "decline": "Từ chối",
+      "invalidToken": "Liên kết này không hợp lệ hoặc đã được sử dụng.",
+      "done": {
+        "accepted": {
+          "title": "Bạn đã chấp nhận lời mời!",
+          "subtitle": "Hẹn gặp bạn trong cuộc họp."
+        },
+        "declined": {
+          "title": "Bạn đã từ chối lời mời.",
+          "subtitle": "Phản hồi của bạn đã được ghi nhận."
+        }
+      }
+    },
+    "scheduledRsvp": {
+      "title": "Lời mời họp đang chờ",
+      "subtitle": "Bạn được mời tham gia các cuộc họp sau. Vui lòng phản hồi từng lời mời.",
+      "hostedBy": "Host"
     }
   }
 }

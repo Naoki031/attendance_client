@@ -1,4 +1,4 @@
-export type MeetingInviteStatus = 'pending' | 'accepted' | 'declined' | 'maybe' | 'missed'
+export type MeetingInviteStatus = 'pending' | 'accepted' | 'declined' | 'missed'
 
 export interface MeetingInviteModel {
   id: number

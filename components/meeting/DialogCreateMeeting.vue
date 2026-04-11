@@ -279,6 +279,7 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import moment from 'moment'
 import type { Meeting } from '@/interfaces/models/MeetingModel'
 import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import CompanyService from '@/services/CompanyService'
@@ -452,7 +453,10 @@ async function submit() {
     }
 
     if (form.value.meeting_type === 'one_time') {
-      payload.scheduled_at = form.value.scheduled_at || undefined
+      // Convert local datetime string to UTC ISO before sending — server (Docker UTC) would misparse local time
+      payload.scheduled_at = form.value.scheduled_at
+        ? moment(form.value.scheduled_at).utc().toISOString()
+        : undefined
     } else if (form.value.meeting_type === 'daily') {
       payload.schedule_time = form.value.schedule_time
     } else if (form.value.meeting_type === 'weekly') {

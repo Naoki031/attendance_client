@@ -441,7 +441,10 @@ async function confirm() {
     }
 
     if (form.value.meeting_type === 'one_time') {
-      payload.scheduled_at = form.value.scheduled_at || undefined
+      // Convert local datetime string to UTC ISO before sending — server (Docker UTC) would misparse local time
+      payload.scheduled_at = form.value.scheduled_at
+        ? moment(form.value.scheduled_at).utc().toISOString()
+        : undefined
       payload.schedule_time = undefined
       payload.schedule_day_of_week = undefined
       payload.schedule_interval_weeks = undefined
@@ -473,10 +476,10 @@ async function confirm() {
 /** START DEFINE WATCHER */
 watch(
   () => props.modelValue,
-  (isOpen) => {
+  async (isOpen) => {
     if (isOpen && props.meeting) {
+      await loadCompanies()
       populateForm(props.meeting)
-      loadCompanies()
     }
   },
 )

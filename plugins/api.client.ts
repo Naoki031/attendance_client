@@ -24,7 +24,7 @@ export default defineNuxtPlugin(() => {
       }
     },
 
-    onResponseError({ response }: { response: Response }) {
+    onResponseError({ request, response }: { request: Request | string; response: Response }) {
       if (response.status === 401) {
         const route = useRoute()
 
@@ -48,6 +48,14 @@ export default defineNuxtPlugin(() => {
             navigateTo('/login')
           }
         }
+      }
+
+      if (response.status === 403) {
+        // Log clearly so developers know a permission is missing — check server logs for details
+        console.warn(
+          `[403 Forbidden] ${String(request)} — user lacks required permission. ` +
+            `Check server logs: [PermissionsGuard] WARN for the exact missing permission.`,
+        )
       }
 
       if (response.status === 500) {
