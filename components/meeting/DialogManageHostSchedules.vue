@@ -488,15 +488,13 @@ function resolveScheduleIdForDate(date: string): number | null {
       case 'recurring': {
         if (!item.recur_start_date || item.day_of_week === undefined) return false
         if (item.recur_end_date && date > item.recur_end_date) return false
-        const target = new Date(date + 'T00:00:00Z')
-        if (target.getUTCDay() !== item.day_of_week) return false
-        const anchor = new Date(item.recur_start_date + 'T00:00:00Z')
-        const daysUntilFirst = (item.day_of_week - anchor.getUTCDay() + 7) % 7
-        const first = new Date(anchor)
-        first.setUTCDate(first.getUTCDate() + daysUntilFirst)
-        if (target < first) return false
-        const msPerWeek = 7 * 24 * 60 * 60 * 1000
-        const weekDiff = (target.getTime() - first.getTime()) / msPerWeek
+        const target = moment.utc(date)
+        if (target.day() !== item.day_of_week) return false
+        const anchor = moment.utc(item.recur_start_date)
+        const daysUntilFirst = (item.day_of_week - anchor.day() + 7) % 7
+        const first = anchor.clone().add(daysUntilFirst, 'days')
+        if (target.isBefore(first)) return false
+        const weekDiff = target.diff(first, 'weeks')
         return weekDiff % (item.interval_weeks ?? 1) === 0
       }
       default:

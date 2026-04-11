@@ -106,8 +106,8 @@ const emit = defineEmits<{
 
 /** START DEFINE STATE */
 const { locale } = useI18n()
-const currentYear = ref(new Date().getFullYear())
-const currentMonth = ref(new Date().getMonth())
+const currentYear = ref(moment().year())
+const currentMonth = ref(moment().month())
 
 const SCHEDULE_TYPE_PRIORITY: Record<HostScheduleType, number> = {
   one_time: 4,
@@ -121,16 +121,16 @@ const HOST_COLORS = ['teal', 'blue', 'purple', 'deep-orange', 'pink', 'cyan', 'g
 
 /** START DEFINE COMPUTED */
 const monthLabel = computed(() => {
-  const date = new Date(currentYear.value, currentMonth.value, 1)
-  return date.toLocaleDateString(locale.value, { month: 'long', year: 'numeric' })
+  return moment({ year: currentYear.value, month: currentMonth.value })
+    .locale(locale.value)
+    .format('MMMM YYYY')
 })
 
 const dowLabels = computed(() => {
   const labels: string[] = []
   for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
     // 2006-01-01 was a Sunday — use as anchor for DOW label order
-    const date = new Date(2006, 0, 1 + dayIndex)
-    labels.push(date.toLocaleDateString(locale.value, { weekday: 'short' }))
+    labels.push(moment('2006-01-01').add(dayIndex, 'days').locale(locale.value).format('ddd'))
   }
   return labels
 })
@@ -153,18 +153,17 @@ interface CalendarDay {
 
 const calendarDays = computed((): CalendarDay[] => {
   const today = moment().format('YYYY-MM-DD')
-  const firstDay = new Date(currentYear.value, currentMonth.value, 1)
-  const lastDay = new Date(currentYear.value, currentMonth.value + 1, 0)
-  const leadingDays = firstDay.getDay()
+  const firstDay = moment({ year: currentYear.value, month: currentMonth.value, date: 1 })
+  const lastDay = firstDay.clone().endOf('month')
+  const leadingDays = firstDay.day()
   const days: CalendarDay[] = []
 
   for (let offset = leadingDays - 1; offset >= 0; offset--) {
-    const date = new Date(firstDay)
-    date.setDate(date.getDate() - offset - 1)
-    const dateString = moment(date).format('YYYY-MM-DD')
+    const dayMoment = firstDay.clone().subtract(offset + 1, 'days')
+    const dateString = dayMoment.format('YYYY-MM-DD')
     days.push({
       dateStr: dateString,
-      day: date.getDate(),
+      day: dayMoment.date(),
       isCurrentMonth: false,
       isToday: dateString === today,
       isPast: dateString < today,
@@ -172,9 +171,12 @@ const calendarDays = computed((): CalendarDay[] => {
     })
   }
 
-  for (let dayNumber = 1; dayNumber <= lastDay.getDate(); dayNumber++) {
-    const date = new Date(currentYear.value, currentMonth.value, dayNumber)
-    const dateString = moment(date).format('YYYY-MM-DD')
+  for (let dayNumber = 1; dayNumber <= lastDay.date(); dayNumber++) {
+    const dateString = moment({
+      year: currentYear.value,
+      month: currentMonth.value,
+      date: dayNumber,
+    }).format('YYYY-MM-DD')
     days.push({
       dateStr: dateString,
       day: dayNumber,
@@ -188,12 +190,11 @@ const calendarDays = computed((): CalendarDay[] => {
   const totalCells = 42
   const trailingCount = totalCells - days.length
   for (let offset = 1; offset <= trailingCount; offset++) {
-    const date = new Date(lastDay)
-    date.setDate(date.getDate() + offset)
-    const dateString = moment(date).format('YYYY-MM-DD')
+    const dayMoment = lastDay.clone().add(offset, 'days')
+    const dateString = dayMoment.format('YYYY-MM-DD')
     days.push({
       dateStr: dateString,
-      day: date.getDate(),
+      day: dayMoment.date(),
       isCurrentMonth: false,
       isToday: dateString === today,
       isPast: dateString < today,

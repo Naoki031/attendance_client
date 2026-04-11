@@ -59,6 +59,11 @@
           </template>
           <v-list density="compact">
             <v-list-item
+              prepend-icon="mdi-email-plus-outline"
+              :title="$t('meetings.invite.title')"
+              @click="$emit('invite', meeting.uuid)"
+            />
+            <v-list-item
               prepend-icon="mdi-pencil-outline"
               :title="$t('meetings.editMeeting')"
               @click="$emit('edit', meeting.uuid)"
@@ -286,6 +291,7 @@ defineEmits<{
   'regenerate-password': [uuid: string]
   'manage-host-schedule': [uuid: string]
   'toggle-pin': [uuid: string]
+  invite: [uuid: string]
   edit: [uuid: string]
   delete: [uuid: string]
 }>()

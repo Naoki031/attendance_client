@@ -17,6 +17,52 @@
       </v-btn>
     </div>
 
+    <!-- RSVP banners for pending invites -->
+    <template v-if="pendingInvites.length > 0">
+      <v-alert
+        v-for="invite in pendingInvites"
+        :key="invite.id"
+        type="info"
+        variant="tonal"
+        rounded="lg"
+        class="mb-3"
+        :icon="false"
+      >
+        <div class="d-flex align-center justify-space-between flex-wrap ga-2">
+          <div>
+            <div class="text-body-2 font-weight-medium">
+              {{ $t('meetings.invite.rsvpTitle') }} —
+              {{ invite.meeting?.title ?? getMeetingTitle(invite.meeting_id) }}
+            </div>
+            <div class="text-caption text-medium-emphasis">
+              {{ $t('meetings.invite.rsvpDesc') }}
+            </div>
+          </div>
+          <div class="d-flex ga-2">
+            <v-btn
+              color="primary"
+              variant="flat"
+              size="small"
+              rounded="lg"
+              prepend-icon="mdi-video"
+              @click="joinMeeting(invite)"
+            >
+              {{ $t('meetings.invite.join') }}
+            </v-btn>
+            <v-btn
+              color="error"
+              variant="tonal"
+              size="small"
+              rounded="lg"
+              @click="respondInvite(invite, 'declined')"
+            >
+              {{ $t('meetings.invite.decline') }}
+            </v-btn>
+          </div>
+        </div>
+      </v-alert>
+    </template>
+
     <!-- Filter chips -->
     <div class="d-flex ga-2 mb-5 flex-wrap">
       <v-chip
@@ -55,6 +101,7 @@
             :current-user-id="currentUserId"
             :can-manage="canManageMeeting(meeting)"
             @regenerate-password="openRegenDialog"
+            @invite="openInviteDialog"
             @edit="openEditDialog"
             @delete="openDeleteDialog"
             @manage-host-schedule="openHostScheduleDialog"
@@ -83,6 +130,14 @@
 
     <!-- Create Meeting Dialog -->
     <MeetingDialogCreateMeeting v-model="createDialog" @created="onMeetingCreated" />
+
+    <!-- Invite Dialog -->
+    <MeetingDialogInvite
+      ref="inviteDialogReference"
+      :dialog="inviteDialog"
+      :meeting-uuid="inviteTargetUuid"
+      @close-modal="onCloseInviteDialog"
+    />
 
     <!-- Regenerate Password Dialog -->
     <MeetingDialogRegenPassword v-model="regenDialog" :meeting-uuid="regenTargetUuid" />
@@ -141,11 +196,14 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { useNuxtApp } from '#app'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import type { Meeting, MeetingParticipant } from '@/interfaces/models/MeetingModel'
+import type { MeetingInviteModel } from '@/interfaces/models/MeetingInviteModel'
 import MeetingService from '@/services/MeetingService'
+import MeetingInviteService from '@/services/MeetingInviteService'
+import { apiClient } from '@/utils/apiClient'
+import { useMeetingInvitesStore } from '@/stores/meeting-invites'
 /** END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -153,8 +211,8 @@ definePageMeta({ name: 'meetings.index' })
 /** END DEFINE NAME COMPONENT */
 
 /** START DEFINE STATE */
-const { $apiFetch } = useNuxtApp()
 const { t } = useI18n()
+const invitesStore = useMeetingInvitesStore()
 
 const isLoading = ref(false)
 const createDialog = ref(false)
@@ -174,6 +232,12 @@ const isDeleting = ref(false)
 const hostScheduleDialog = ref(false)
 const hostScheduleTargetUuid = ref('')
 const hostScheduleTargetMeeting = ref<Meeting | null>(null)
+
+const inviteDialog = ref(false)
+const inviteTargetUuid = ref('')
+const inviteDialogReference = ref<{ refresh: () => void } | null>(null)
+
+const pendingInvites = ref<MeetingInviteModel[]>([])
 
 const currentUserRoles = ref<string[]>([])
 
@@ -231,19 +295,22 @@ async function loadMeetings() {
   isLoading.value = true
 
   try {
-    meetings.value = await ($apiFetch as (url: string) => Promise<Meeting[]>)('/meetings')
+    meetings.value = await MeetingService.getAll()
   } finally {
     isLoading.value = false
   }
 }
 
-function canManageMeeting(meeting: Meeting): boolean {
-  if (meeting.host_id === currentUserId.value) return true
-  return currentUserRoles.value.some((role) => {
+function isPrivilegedRole(roles: string[]): boolean {
+  return roles.some((role) => {
     const normalized = role.toLowerCase().replace(/[\s_]+/g, '')
-
     return normalized === 'admin' || normalized === 'superadmin' || normalized === 'super'
   })
+}
+
+function canManageMeeting(meeting: Meeting): boolean {
+  if (meeting.host_id === currentUserId.value) return true
+  return isPrivilegedRole(currentUserRoles.value)
 }
 
 function openDeleteDialog(uuid: string) {
@@ -267,6 +334,50 @@ async function togglePin(uuid: string) {
   })
 }
 
+function openInviteDialog(uuid: string) {
+  inviteTargetUuid.value = uuid
+  inviteDialog.value = true
+}
+
+function onCloseInviteDialog() {
+  inviteDialog.value = false
+}
+
+function getMeetingTitle(meetingId: number): string {
+  return meetings.value.find((meeting) => meeting.id === meetingId)?.title ?? ''
+}
+
+async function joinMeeting(invite: MeetingInviteModel) {
+  const meeting = meetings.value.find((item) => item.id === invite.meeting_id)
+  if (!meeting) return
+  try {
+    await MeetingInviteService.rsvp(meeting.uuid, 'accepted')
+    pendingInvites.value = pendingInvites.value.filter((item) => item.id !== invite.id)
+    await navigateTo(`/meetings/${meeting.uuid}`)
+  } catch (error) {
+    console.error('Failed to join meeting:', error)
+  }
+}
+
+async function respondInvite(invite: MeetingInviteModel, status: 'declined') {
+  const meeting = meetings.value.find((item) => item.id === invite.meeting_id)
+  if (!meeting) return
+  try {
+    await MeetingInviteService.rsvp(meeting.uuid, status)
+    pendingInvites.value = pendingInvites.value.filter((item) => item.id !== invite.id)
+  } catch (error) {
+    console.error('Failed to respond to invite:', error)
+  }
+}
+
+async function loadPendingInvites() {
+  try {
+    pendingInvites.value = await MeetingInviteService.getMyPendingInvites()
+  } catch (error) {
+    console.error('Failed to load pending invites:', error)
+  }
+}
+
 function openHostScheduleDialog(uuid: string) {
   hostScheduleTargetUuid.value = uuid
   hostScheduleTargetMeeting.value = meetings.value.find((item) => item.uuid === uuid) ?? null
@@ -277,9 +388,7 @@ async function confirmDelete() {
   isDeleting.value = true
 
   try {
-    await ($apiFetch as typeof $fetch)(`/meetings/${deleteTargetUuid.value}`, {
-      method: 'DELETE',
-    })
+    await MeetingService.deleteMeeting(deleteTargetUuid.value)
     meetings.value = meetings.value.filter((meeting) => meeting.uuid !== deleteTargetUuid.value)
     deleteDialog.value = false
   } catch {
@@ -290,14 +399,25 @@ async function confirmDelete() {
 }
 /** END DEFINE METHOD */
 
+/** START DEFINE WATCHER */
+// Refresh invite dialog when invite_result arrives for the meeting currently open in the dialog
+watch(
+  () => invitesStore.inviteResultVersion,
+  () => {
+    if (invitesStore.inviteResultMeetingUuid === inviteTargetUuid.value) {
+      inviteDialogReference.value?.refresh()
+    }
+  },
+)
+/** END DEFINE WATCHER */
+
 /** START LIFECYCLE */
 onMounted(async () => {
-  loadMeetings()
+  await loadMeetings()
+  loadPendingInvites()
 
   try {
-    const user = await ($apiFetch as (url: string) => Promise<{ id: number; roles: string[] }>)(
-      '/auth/user',
-    )
+    const user = await apiClient.get<{ id: number; roles: string[] }>('/auth/user')
     currentUserId.value = user.id
     currentUserRoles.value = user.roles ?? []
   } catch {
@@ -353,6 +473,18 @@ onMounted(async () => {
         liveUsersByMeeting.value = {
           ...liveUsersByMeeting.value,
           [data.meetingId]: data.activeUserIds,
+        }
+      },
+    )
+
+    // Receive invite status updates (accepted / declined / missed) from the gateway
+    // so the host sees real-time RSVP results in the invite dialog without being inside the meeting room
+    // Refresh invite dialog immediately when invite result arrives for the open meeting
+    listSocket.on(
+      'invite_result',
+      (data: { meetingUuid: string; userId: number; userName: string; result: string }) => {
+        if (data.meetingUuid === inviteTargetUuid.value) {
+          inviteDialogReference.value?.refresh()
         }
       },
     )

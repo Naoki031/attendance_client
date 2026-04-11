@@ -191,6 +191,7 @@
                 :members="members"
                 :is-admin="isAdmin"
                 @edit="handleEditMessage"
+                @delete="handleDeleteMessage"
                 @reply="handleReply"
                 @react="handleReact"
                 @pin="handlePin"
@@ -457,6 +458,7 @@ const {
   disconnect,
   sendMessage,
   editMessage,
+  deleteMessage,
   loadMore,
   setTyping,
   updateLanguage,
@@ -579,6 +581,10 @@ const onMemberRemoved = (userId: number) => {
 
 function handleEditMessage(messageId: number, newContent: string) {
   editMessage(messageId, newContent)
+}
+
+function handleDeleteMessage(messageId: number) {
+  deleteMessage(messageId)
 }
 
 function handleReply(message: ChatMessage) {

@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import { Room, RoomEvent, Track, VideoPresets } from 'livekit-client'
@@ -121,6 +122,14 @@ export function useMeeting(
   // Resolved from schedule on first join; can be changed by transfer_host.
   const currentHostId = ref<number | null>(null)
 
+  // Last invite activity event from the gateway (invite sent or result received)
+  const lastInviteEvent = ref<{
+    type: 'sent' | 'result'
+    userId: number
+    userName: string
+    result?: 'accepted' | 'declined' | 'missed'
+  } | null>(null)
+
   // Speaking language — defaults to Vietnamese (primary input), en only when explicitly enabled.
   // Uses a dedicated cookie so it is independent of the UI locale cookie ('language').
   const speakingLanguageCookie = useCookie<string>('speaking_language', { default: () => 'vi' })
@@ -150,13 +159,42 @@ export function useMeeting(
   let socket: Socket | null = null
   let localUserId: number | null = null
 
+  /**
+   * Plays a soft two-note chime when a new participant joins the room.
+   * C5 → G5 ascending, using Web Audio API so no audio file assets are required.
+   */
+  function playJoinChime() {
+    if (!import.meta.client) return
+    try {
+      const context = new AudioContext()
+      const notes = [523.25, 783.99] // C5 → G5 ascending
+      notes.forEach((freq, index) => {
+        const oscillator = context.createOscillator()
+        const gain = context.createGain()
+        oscillator.connect(gain)
+        gain.connect(context.destination)
+        oscillator.type = 'sine'
+        oscillator.frequency.value = freq
+        const startTime = context.currentTime + index * 0.13
+        gain.gain.setValueAtTime(0.12, startTime)
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.38)
+        oscillator.start(startTime)
+        oscillator.stop(startTime + 0.38)
+      })
+      setTimeout(() => context.close().catch(() => {}), 1500)
+    } catch {
+      // AudioContext unavailable — fail silently
+    }
+  }
+
   async function connect(userId: number, username: string) {
     localUserId = userId
 
     // Connect Socket.IO for signaling + subtitles
+    const authToken = import.meta.client ? localStorage.getItem('token') : null
     socket = io(`${wsUrl}/meeting`, {
       path: '/ws',
-      auth: { token: useCookie('auth_token').value },
+      auth: { token: authToken },
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 2000,
@@ -164,12 +202,11 @@ export function useMeeting(
 
     socket.on('connect', () => {
       isConnected.value = true
-      socket!.emit('join_meeting', { meetingId: meetingId.value, userId, username })
+      socket!.emit('join_meeting', { meetingId: meetingId.value, username })
 
       // Broadcast our current speaker state so existing participants know it immediately
       socket!.emit('speaker_state', {
         meetingId: meetingId.value,
-        userId,
         enabled: isSpeakerEnabled.value,
       })
     })
@@ -208,6 +245,7 @@ export function useMeeting(
     socket.on('participant_joined', (data: MeetingParticipantInfo) => {
       if (!socketParticipants.value.find((participant) => participant.userId === data.userId)) {
         socketParticipants.value.push(data)
+        playJoinChime()
       }
     })
 
@@ -235,7 +273,7 @@ export function useMeeting(
           language: entry.language,
           translations: {},
           audioBase64: {},
-          timestamp: Date.now(),
+          timestamp: moment().valueOf(),
           pending: true,
         })
 
@@ -256,7 +294,7 @@ export function useMeeting(
         existing.pending = false
       } else {
         // Fallback: partial was missed, add full entry directly
-        subtitles.value.push({ ...entry, timestamp: Date.now(), pending: false })
+        subtitles.value.push({ ...entry, timestamp: moment().valueOf(), pending: false })
 
         if (subtitles.value.length > 50) {
           subtitles.value.shift()
@@ -344,6 +382,20 @@ export function useMeeting(
       onMeetingEnded?.()
     })
 
+    // Invite activity events — emitted by the gateway when someone is called or responds
+    socket.on('invite_sent', (data: { userId: number; userName: string }) => {
+      lastInviteEvent.value = { type: 'sent', userId: data.userId, userName: data.userName }
+    })
+
+    socket.on('invite_result', (data: { userId: number; userName: string; result: string }) => {
+      lastInviteEvent.value = {
+        type: 'result',
+        userId: data.userId,
+        userName: data.userName,
+        result: data.result as 'accepted' | 'declined' | 'missed',
+      }
+    })
+
     // Purge expired markers (older than 8s)
     const MARKER_TTL_MS = 8000
     markerPurgeInterval = setInterval(() => {
@@ -365,7 +417,6 @@ export function useMeeting(
     lastCursorSendTime = now
     socket.emit('cursor_move', {
       meetingId: meetingId.value,
-      userId: localUserId,
       x: posX,
       y: posY,
     })
@@ -376,7 +427,7 @@ export function useMeeting(
    */
   function sendCursorHide() {
     if (!socket?.connected || localUserId === null) return
-    socket.emit('cursor_hide', { meetingId: meetingId.value, userId: localUserId })
+    socket.emit('cursor_hide', { meetingId: meetingId.value })
   }
 
   /**
@@ -418,7 +469,7 @@ export function useMeeting(
    */
   function endMeeting() {
     if (!socket?.connected || localUserId === null) return
-    socket.emit('end_meeting', { meetingId: meetingId.value, userId: localUserId })
+    socket.emit('end_meeting', { meetingId: meetingId.value })
   }
 
   /**
@@ -429,7 +480,6 @@ export function useMeeting(
     if (!socket?.connected || localUserId === null) return
     socket.emit('transfer_host', {
       meetingId: meetingId.value,
-      fromUserId: localUserId,
       toUserId,
     })
   }
@@ -694,7 +744,6 @@ export function useMeeting(
     if (socket?.connected && localUserId !== null) {
       socket.emit('speaker_state', {
         meetingId: meetingId.value,
-        userId: localUserId,
         enabled: isSpeakerEnabled.value,
       })
     }
@@ -1034,7 +1083,6 @@ export function useMeeting(
     if (!socket?.connected || localUserId === null) return
     socket.emit('vote_create', {
       meetingId: meetingId.value,
-      userId: localUserId,
       creatorName:
         socketParticipants.value.find((participant) => participant.userId === localUserId)
           ?.username ?? '',
@@ -1053,7 +1101,6 @@ export function useMeeting(
     socket.emit('vote_cast', {
       meetingId: meetingId.value,
       voteId,
-      userId: localUserId,
       optionIds,
     })
   }
@@ -1066,7 +1113,6 @@ export function useMeeting(
     socket.emit('vote_close', {
       meetingId: meetingId.value,
       voteId,
-      userId: localUserId,
     })
   }
 
@@ -1153,5 +1199,6 @@ export function useMeeting(
     createVote,
     castVote,
     closeVote,
+    lastInviteEvent,
   }
 }

@@ -32,7 +32,7 @@
             </div>
             <div class="text-body-2 reply-content">
               <!-- eslint-disable-next-line vue/no-v-html -->
-              <div v-html="parentRenderedContent"></div>
+              <div class="chat-rendered-markdown" v-html="parentRenderedContent"></div>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@
               </div>
               <div class="reply-content">
                 <!-- eslint-disable-next-line vue/no-v-html -->
-                <div v-html="getReplyRenderedContent(reply)"></div>
+                <div class="chat-rendered-markdown" v-html="getReplyRenderedContent(reply)"></div>
               </div>
             </div>
 
@@ -570,6 +570,47 @@ watch(
   display: flex;
   border-radius: 50%;
   transition: opacity 0.15s;
+}
+
+/* Markdown rendered content — mirrors MessageBubble's .chat-rendered-markdown rules */
+.chat-rendered-markdown :deep(p) {
+  margin: 0 0 6px 0;
+}
+.chat-rendered-markdown :deep(p:last-child) {
+  margin-bottom: 0;
+}
+.chat-rendered-markdown :deep(.chat-custom-emoji) {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  vertical-align: middle;
+  display: inline;
+  margin: 0 1px;
+}
+.chat-rendered-markdown :deep(ul),
+.chat-rendered-markdown :deep(ol) {
+  margin: 4px 0 6px 0;
+  padding-left: 20px;
+}
+.chat-rendered-markdown :deep(ul) {
+  list-style-type: disc;
+}
+.chat-rendered-markdown :deep(ol) {
+  list-style-type: decimal;
+}
+.chat-rendered-markdown :deep(li) {
+  margin-bottom: 2px;
+}
+.chat-rendered-markdown :deep(strong) {
+  font-weight: 600;
+}
+.chat-rendered-markdown :deep(code) {
+  background: rgba(var(--v-theme-primary), 0.1);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 0.85em;
+  font-family: monospace;
+  color: rgb(var(--v-theme-primary));
 }
 
 .thread-avatar-btn:hover {

@@ -110,9 +110,7 @@ const nextHostEntry = computed(() => {
   if (schedules.value.length === 0) return null
   const todayId = todayHostId.value ?? props.meetingHostId
   for (let offset = 1; offset <= 30; offset++) {
-    const date = new Date()
-    date.setDate(date.getDate() + offset)
-    const dateString = moment(date).format('YYYY-MM-DD')
+    const dateString = moment().add(offset, 'days').format('YYYY-MM-DD')
     const entry = resolveHostForDate(dateString)
     if (entry && entry.userId !== todayId) {
       return { ...entry, dateStr: dateString }

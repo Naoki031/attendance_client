@@ -60,6 +60,23 @@
                   </div>
                 </template>
               </v-tooltip>
+              <v-tooltip
+                v-if="isOwnMessage"
+                :text="canDelete ? '' : $t('chat.deleteExpired')"
+                location="left"
+                :disabled="canDelete"
+              >
+                <template #activator="{ props: tooltipProps }">
+                  <div v-bind="tooltipProps">
+                    <v-list-item
+                      :title="$t('chat.delete')"
+                      prepend-icon="mdi-delete-outline"
+                      :disabled="!canDelete"
+                      @click="canDelete && openDeleteConfirm()"
+                    />
+                  </div>
+                </template>
+              </v-tooltip>
               <v-list-item
                 v-if="!message.isPinned"
                 :title="$t('chat.pinMessage')"
@@ -90,7 +107,11 @@
       </div>
 
       <!-- Row 3: message bubble (rendered markdown) -->
-      <div v-if="!isEditing" class="message-text text-body-2">
+      <div
+        v-if="!isEditing"
+        class="message-text text-body-2"
+        :class="{ 'message-text--single-emoji': isSingleEmoji }"
+      >
         <!-- eslint-disable-next-line vue/no-v-html -->
         <div class="chat-rendered-markdown" v-html="renderedContent"></div>
       </div>
@@ -237,6 +258,25 @@
     </div>
   </div>
 
+  <v-dialog v-model="deleteDialogOpen" max-width="400">
+    <v-card rounded="xl">
+      <v-card-title class="pa-6 pb-2 text-subtitle-1 font-weight-bold">
+        {{ $t('chat.deleteMessageTitle') }}
+      </v-card-title>
+      <v-card-text class="px-6 pb-4 text-body-2">
+        {{ $t('chat.deleteMessageConfirm') }}
+      </v-card-text>
+      <v-card-actions class="pa-6 pt-0 d-flex justify-end ga-2">
+        <v-btn variant="text" @click="deleteDialogOpen = false">
+          {{ $t('common.cancel') }}
+        </v-btn>
+        <v-btn color="error" variant="elevated" @click="confirmDelete">
+          {{ $t('chat.delete') }}
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <DialogUserProfile v-model="profileDialogOpen" :user="profileUser" />
 </template>
 
@@ -292,6 +332,7 @@ const props = defineProps({
 /** START DEFINE EMITS */
 const emit = defineEmits<{
   edit: [messageId: number, newContent: string]
+  delete: [messageId: number]
   reply: [message: ChatMessage]
   react: [messageId: number, emoji: string]
   pin: [messageId: number]
@@ -308,6 +349,7 @@ const editContent = ref('')
 const reactionMenuOpen = ref(false)
 const profileDialogOpen = ref(false)
 const profileUser = ref<UserProfileData | null>(null)
+const deleteDialogOpen = ref(false)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -315,7 +357,7 @@ const isOwnMessage = computed(() => props.message.userId === props.currentUserId
 
 const isUnread = computed(() => {
   if (!props.lastReadAt || isOwnMessage.value) return false
-  return new Date(props.message.createdAt) > new Date(props.lastReadAt)
+  return moment.utc(props.message.createdAt).isAfter(moment.utc(props.lastReadAt))
 })
 
 const initials = computed(() => {
@@ -344,12 +386,37 @@ const renderedContent = computed(() => {
   return renderChatMarkdown(displayContent.value, props.members)
 })
 
+/**
+ * A regex that matches exactly one emoji grapheme cluster:
+ * - Simple emoji: 😀
+ * - With variation selector: ❤️
+ * - With keycap: 1️⃣
+ * - With skin tone modifier: 👋🏽
+ * - ZWJ sequence: 👨‍👩‍👧
+ * - Regional indicator flag: 🇺🇸 (two code points)
+ * - Single custom emoji key: :blob-happy:
+ */
+const SINGLE_EMOJI_RE =
+  /^(?:[\u{1F1E0}-\u{1F1FF}]{2}|\p{Extended_Pictographic}\p{Emoji_Modifier}?(?:\uFE0F\u20E3?|\u20E3)?(?:\u200D\p{Extended_Pictographic}\p{Emoji_Modifier}?(?:\uFE0F\u20E3?|\u20E3)?)*)$/u
+
+const isSingleEmoji = computed(() => {
+  const content = displayContent.value.trim()
+  if (!content) return false
+  // Custom emoji like :blob-happy:
+  if (/^:[a-z0-9-]+:$/.test(content) && isCustomEmoji(content)) return true
+  return SINGLE_EMOJI_RE.test(content)
+})
+
 const canEdit = computed(() => {
   if (!isOwnMessage.value) return false
-  const fifteenMinutes = 15 * 60 * 1000
-  const elapsed = Date.now() - new Date(props.message.createdAt).getTime()
+  const elapsed = moment().diff(moment.utc(props.message.createdAt))
+  return elapsed <= 15 * 60 * 1000
+})
 
-  return elapsed <= fifteenMinutes
+const canDelete = computed(() => {
+  if (!isOwnMessage.value) return false
+  const elapsed = moment().diff(moment.utc(props.message.createdAt))
+  return elapsed <= 15 * 60 * 1000
 })
 
 const formattedTime = computed(() => {
@@ -408,6 +475,15 @@ function getReactionUserNames(userIds: number[]): string {
 function onSelectReaction(emoji: string) {
   reactionMenuOpen.value = false
   emit('react', props.message.id, emoji)
+}
+
+function openDeleteConfirm() {
+  deleteDialogOpen.value = true
+}
+
+function confirmDelete() {
+  deleteDialogOpen.value = false
+  emit('delete', props.message.id)
 }
 /* END DEFINE METHOD */
 
@@ -497,6 +573,23 @@ watch(
   border-radius: 12px;
   padding: 8px 14px;
   word-break: break-word;
+}
+
+/* Single-emoji messages: no bubble, large emoji */
+.message-text--single-emoji {
+  background-color: transparent !important;
+  padding: 2px 2px !important;
+}
+
+.message-text--single-emoji .chat-rendered-markdown :deep(p) {
+  font-size: 40px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.message-text--single-emoji .chat-rendered-markdown :deep(.chat-custom-emoji) {
+  width: 40px;
+  height: 40px;
 }
 
 .message-bubble--own .message-text {

@@ -213,6 +213,16 @@ export function useChat() {
     }, 5000)
   }
 
+  function handleMessageDeleted(data: { messageId: number }) {
+    messages.value = messages.value.filter((message) => message.id !== data.messageId)
+    threadReplies.value = threadReplies.value.filter((message) => message.id !== data.messageId)
+
+    if (activeThreadParent.value?.id === data.messageId) {
+      activeThreadParent.value = null
+      threadReplies.value = []
+    }
+  }
+
   function handleReactionUpdated(data: { messageId: number; reactions: ReactionGroup[] }) {
     updateInAllLists(data.messageId, () => ({ reactions: data.reactions }))
   }
@@ -276,6 +286,7 @@ export function useChat() {
 
     socket.on('message_new', handleMessageNew)
     socket.on('message_edited', handleMessageEdited)
+    socket.on('message_deleted', handleMessageDeleted)
     socket.on('message_translations_ready', handleTranslationsReady)
     socket.on('message_translation_stream', handleTranslationStream)
     socket.on('thread_reply_new', handleThreadReplyNew)
@@ -365,6 +376,11 @@ export function useChat() {
       messageId,
       newContent: newContent.trim(),
     })
+  }
+
+  function deleteMessage(messageId: number) {
+    if (!socket || !currentRoomUuid) return
+    socket.emit('delete_message', { roomUuid: currentRoomUuid, messageId })
   }
 
   async function loadMore() {
@@ -481,6 +497,7 @@ export function useChat() {
     disconnect,
     sendMessage,
     editMessage,
+    deleteMessage,
     loadMore,
     setTyping,
     updateLanguage,

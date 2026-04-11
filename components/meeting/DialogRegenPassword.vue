@@ -70,7 +70,7 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { useNuxtApp } from '#app'
+import MeetingService from '@/services/MeetingService'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -92,8 +92,6 @@ const emit = defineEmits<{
 /** END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
-const { $apiFetch } = useNuxtApp()
-
 const step = ref<'confirm' | 'done'>('confirm')
 const isRegenerating = ref(false)
 const password = ref('')
@@ -120,9 +118,7 @@ async function fetchNewPassword() {
   if (!props.meetingUuid) return
   isRegenerating.value = true
   try {
-    const result = await (
-      $apiFetch as (url: string, options?: object) => Promise<{ plain_password: string }>
-    )(`/meetings/${props.meetingUuid}/generate-password`, { method: 'POST' })
+    const result = await MeetingService.generatePassword(props.meetingUuid)
     password.value = result.plain_password
     step.value = 'done'
   } finally {

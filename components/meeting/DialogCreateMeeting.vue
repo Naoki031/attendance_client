@@ -279,10 +279,10 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { useNuxtApp } from '#app'
 import type { Meeting } from '@/interfaces/models/MeetingModel'
 import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import CompanyService from '@/services/CompanyService'
+import MeetingService from '@/services/MeetingService'
 import { useUserStore } from '@/stores/user'
 /** END IMPORT */
 
@@ -301,7 +301,6 @@ const emit = defineEmits<{
 /** END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
-const { $apiFetch } = useNuxtApp()
 const { t } = useI18n()
 const userStore = useUserStore()
 
@@ -462,10 +461,7 @@ async function submit() {
       payload.schedule_interval_weeks = form.value.schedule_interval_weeks
     }
 
-    const created = await ($apiFetch as (url: string, options?: object) => Promise<Meeting>)(
-      '/meetings',
-      { method: 'POST', body: payload },
-    )
+    const created = await MeetingService.create(payload)
     emit('created', created)
     close()
     resetForm()

@@ -88,7 +88,7 @@
               density="comfortable"
               :color="editor?.isActive('codeBlock') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @mousedown.prevent="editor?.chain().focus().toggleCodeBlock().run()"
+              @mousedown.prevent="applyBlockFormat('codeBlock')"
             >
               <v-icon size="16">mdi-code-braces</v-icon>
             </v-btn>
@@ -104,7 +104,7 @@
               density="comfortable"
               :color="editor?.isActive('blockquote') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @mousedown.prevent="editor?.chain().focus().toggleBlockquote().run()"
+              @mousedown.prevent="applyBlockFormat('blockquote')"
             >
               <v-icon size="16">mdi-format-quote-close</v-icon>
             </v-btn>
@@ -119,7 +119,7 @@
               density="comfortable"
               :color="editor?.isActive('bulletList') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @mousedown.prevent="editor?.chain().focus().toggleBulletList().run()"
+              @mousedown.prevent="applyListFormat('bulletList')"
             >
               <v-icon size="16">mdi-format-list-bulleted</v-icon>
             </v-btn>
@@ -134,7 +134,7 @@
               density="comfortable"
               :color="editor?.isActive('orderedList') ? 'primary' : undefined"
               v-bind="tooltipProps"
-              @mousedown.prevent="editor?.chain().focus().toggleOrderedList().run()"
+              @mousedown.prevent="applyListFormat('orderedList')"
             >
               <v-icon size="16">mdi-format-list-numbered</v-icon>
             </v-btn>
@@ -403,6 +403,20 @@ const editor = useEditor({
         }
       }
 
+      // Shift+Enter inside a list: create a new list item instead of a hardBreak
+      if (event.key === 'Enter' && event.shiftKey) {
+        const inList = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList')
+
+        if (inList) {
+          event.preventDefault()
+          editor.value?.chain().focus().splitListItem('listItem').run()
+
+          return true
+        }
+
+        return false
+      }
+
       // Enter to send (without shift), but let TipTap handle Enter inside lists
       if (event.key === 'Enter' && !event.shiftKey) {
         const inList = editor.value?.isActive('bulletList') || editor.value?.isActive('orderedList')
@@ -491,6 +505,270 @@ function insertMention(member: ChatRoomMemberModel) {
     .run()
 
   mentionSearch.value = null
+}
+
+/**
+ * Applies blockquote or codeBlock format scoped to the current selection,
+ * mirroring Slack behavior: only the selected lines are wrapped.
+ *
+ * blockquote: splits the paragraph at selection boundaries so that only the
+ * chosen lines become a blockquote — unselected lines remain as plain text.
+ * When the selection already spans multiple top-level paragraphs, the standard
+ * toggleBlockquote is used after expanding to paragraph boundaries.
+ *
+ * codeBlock: extracts the selected text (with \n separators) and inserts a
+ * codeBlock node. code_block nodes allow literal \n in text, so a single text
+ * node is sufficient — hardBreak nodes are not needed here.
+ */
+function applyBlockFormat(type: 'blockquote' | 'codeBlock') {
+  if (!editor.value) return
+
+  const editorInstance = editor.value
+  const { from, to, empty } = editorInstance.state.selection
+
+  if (empty) {
+    if (type === 'blockquote') {
+      editorInstance.chain().focus().toggleBlockquote().run()
+    } else {
+      editorInstance.chain().focus().toggleCodeBlock().run()
+    }
+    return
+  }
+
+  // Toggle off if already inside the block format
+  if (editorInstance.isActive(type)) {
+    if (type === 'blockquote') {
+      editorInstance.chain().focus().lift('blockquote').run()
+    } else {
+      editorInstance.chain().focus().clearNodes().run()
+    }
+    return
+  }
+
+  if (type === 'blockquote') {
+    const { state } = editorInstance
+    const { $from, $to } = state.selection
+    const { schema } = state
+
+    if (!$from.sameParent($to)) {
+      // Selection spans multiple paragraphs — expand to boundaries and wrap normally
+      editorInstance
+        .chain()
+        .focus()
+        .setTextSelection({ from: $from.start($from.depth), to: $to.end($to.depth) })
+        .toggleBlockquote()
+        .run()
+      return
+    }
+
+    // Selection is within the same paragraph (chat input uses Shift+Enter / hardBreaks,
+    // so all "lines" are inline content inside a single <p> node).
+    // Split the paragraph at the selection boundaries and wrap only the selected portion.
+    const paraNode = $from.parent
+    const paraStart = $from.start($from.depth)
+    const paraNodePos = $from.before($from.depth)
+
+    // Fragment offsets relative to the start of the paragraph's inline content
+    const selStartOffset = from - paraStart
+    const selEndOffset = to - paraStart
+
+    // Slice the paragraph content into three fragments
+    let beforeFrag = paraNode.content.cut(0, selStartOffset)
+    const selectedFrag = paraNode.content.cut(selStartOffset, selEndOffset)
+    let afterFrag = paraNode.content.cut(selEndOffset)
+
+    // Remove the hardBreak that separates the before-content from the selection
+    if (beforeFrag.lastChild?.type === schema.nodes.hardBreak) {
+      beforeFrag = beforeFrag.cut(0, beforeFrag.size - 1)
+    }
+
+    // Remove the hardBreak that separates the selection from the after-content
+    if (afterFrag.firstChild?.type === schema.nodes.hardBreak) {
+      afterFrag = afterFrag.cut(1)
+    }
+
+    const replacementNodes = [
+      ...(beforeFrag.size > 0 ? [schema.nodes.paragraph.create(null, beforeFrag)] : []),
+      schema.nodes.blockquote.create(null, schema.nodes.paragraph.create(null, selectedFrag)),
+      ...(afterFrag.size > 0 ? [schema.nodes.paragraph.create(null, afterFrag)] : []),
+    ]
+
+    editorInstance.view.focus()
+    editorInstance.view.dispatch(
+      state.tr.replaceWith(paraNodePos, paraNodePos + paraNode.nodeSize, replacementNodes),
+    )
+  } else {
+    // codeBlock: same paragraph-splitting approach as blockquote — a codeBlock is a
+    // block-level node and cannot be inserted into inline context via deleteRange +
+    // insertContentAt. Instead, split the paragraph at the selection boundaries and
+    // replace the whole paragraph with [before?, codeBlock, after?].
+    // code_block nodes allow literal \n inside text content (unlike regular paragraphs).
+    const { state } = editorInstance
+    const { $from, $to } = state.selection
+    const { schema } = state
+
+    const selectedText = state.doc.textBetween(from, to, '\n')
+
+    if (!$from.sameParent($to)) {
+      // Selection spans multiple top-level blocks — wrap with a simple chain
+      editorInstance
+        .chain()
+        .focus()
+        .deleteRange({ from, to })
+        .insertContentAt(from, {
+          type: 'codeBlock',
+          content: selectedText.length > 0 ? [{ type: 'text', text: selectedText }] : [],
+        })
+        .run()
+      return
+    }
+
+    const paraNode = $from.parent
+    const paraStart = $from.start($from.depth)
+    const paraNodePos = $from.before($from.depth)
+
+    const selStartOffset = from - paraStart
+    const selEndOffset = to - paraStart
+
+    let beforeFrag = paraNode.content.cut(0, selStartOffset)
+    let afterFrag = paraNode.content.cut(selEndOffset)
+
+    // Strip the hardBreak separators at the selection boundaries
+    if (beforeFrag.lastChild?.type === schema.nodes.hardBreak) {
+      beforeFrag = beforeFrag.cut(0, beforeFrag.size - 1)
+    }
+    if (afterFrag.firstChild?.type === schema.nodes.hardBreak) {
+      afterFrag = afterFrag.cut(1)
+    }
+
+    const codeBlockNode = schema.nodes.codeBlock.create(
+      null,
+      selectedText.length > 0 ? schema.text(selectedText) : null,
+    )
+
+    const replacementNodes = [
+      ...(beforeFrag.size > 0 ? [schema.nodes.paragraph.create(null, beforeFrag)] : []),
+      codeBlockNode,
+      ...(afterFrag.size > 0 ? [schema.nodes.paragraph.create(null, afterFrag)] : []),
+    ]
+
+    editorInstance.view.focus()
+    editorInstance.view.dispatch(
+      state.tr.replaceWith(paraNodePos, paraNodePos + paraNode.nodeSize, replacementNodes),
+    )
+  }
+}
+
+/**
+ * Applies bullet or ordered list format scoped to the current selection (Slack-like).
+ * Each selected "line" (separated by hardBreaks) becomes its own list item.
+ * Content before/after the selection remains as plain paragraphs.
+ */
+function applyListFormat(type: 'bulletList' | 'orderedList') {
+  if (!editor.value) return
+
+  const editorInstance = editor.value
+
+  // Toggle off if already inside the target list type
+  if (editorInstance.isActive(type)) {
+    if (type === 'bulletList') {
+      editorInstance.chain().focus().toggleBulletList().run()
+    } else {
+      editorInstance.chain().focus().toggleOrderedList().run()
+    }
+    return
+  }
+
+  const { from, to, empty } = editorInstance.state.selection
+
+  if (empty) {
+    if (type === 'bulletList') {
+      editorInstance.chain().focus().toggleBulletList().run()
+    } else {
+      editorInstance.chain().focus().toggleOrderedList().run()
+    }
+    return
+  }
+
+  const { state } = editorInstance
+  const { $from, $to } = state.selection
+  const { schema } = state
+
+  if (!$from.sameParent($to)) {
+    // Selection spans multiple top-level paragraphs — expand to boundaries and wrap
+    if (type === 'bulletList') {
+      editorInstance
+        .chain()
+        .focus()
+        .setTextSelection({ from: $from.start($from.depth), to: $to.end($to.depth) })
+        .toggleBulletList()
+        .run()
+    } else {
+      editorInstance
+        .chain()
+        .focus()
+        .setTextSelection({ from: $from.start($from.depth), to: $to.end($to.depth) })
+        .toggleOrderedList()
+        .run()
+    }
+    return
+  }
+
+  // Same paragraph: split the paragraph at selection boundaries so that only
+  // the selected lines become list items (one hardBreak = one new list item).
+  const paraNode = $from.parent
+  const paraStart = $from.start($from.depth)
+  const paraNodePos = $from.before($from.depth)
+
+  const selStartOffset = from - paraStart
+  const selEndOffset = to - paraStart
+
+  let beforeFrag = paraNode.content.cut(0, selStartOffset)
+  const selectedFrag = paraNode.content.cut(selStartOffset, selEndOffset)
+  let afterFrag = paraNode.content.cut(selEndOffset)
+
+  if (beforeFrag.lastChild?.type === schema.nodes.hardBreak) {
+    beforeFrag = beforeFrag.cut(0, beforeFrag.size - 1)
+  }
+  if (afterFrag.firstChild?.type === schema.nodes.hardBreak) {
+    afterFrag = afterFrag.cut(1)
+  }
+
+  // Split the selected fragment at each hardBreak to produce per-line fragments,
+  // preserving inline formatting (bold, italic, etc.) within each line.
+  const hardBreakPositions: number[] = []
+  let fragOffset = 0
+  selectedFrag.forEach((node) => {
+    if (node.type === schema.nodes.hardBreak) {
+      hardBreakPositions.push(fragOffset)
+    }
+    fragOffset += node.nodeSize
+  })
+
+  const lineFragments = []
+  let lineStart = 0
+  for (const breakPos of hardBreakPositions) {
+    lineFragments.push(selectedFrag.cut(lineStart, breakPos))
+    lineStart = breakPos + 1 // hardBreak nodeSize = 1
+  }
+  lineFragments.push(selectedFrag.cut(lineStart))
+
+  const listItems = lineFragments.map((lineFrag) =>
+    schema.nodes.listItem.create(null, schema.nodes.paragraph.create(null, lineFrag)),
+  )
+
+  const listNode = schema.nodes[type].create(null, listItems)
+
+  const replacementNodes = [
+    ...(beforeFrag.size > 0 ? [schema.nodes.paragraph.create(null, beforeFrag)] : []),
+    listNode,
+    ...(afterFrag.size > 0 ? [schema.nodes.paragraph.create(null, afterFrag)] : []),
+  ]
+
+  editorInstance.view.focus()
+  editorInstance.view.dispatch(
+    state.tr.replaceWith(paraNodePos, paraNodePos + paraNode.nodeSize, replacementNodes),
+  )
 }
 
 function handleSend() {

@@ -529,6 +529,9 @@
     "selectCompanyFirst": "Select a company first",
     "someUsersFailed": "{count} user(s) could not be added (already members)"
   },
+  "userSettings": {
+    "title": "Settings"
+  },
   "settings": {
     "title": "System Settings",
     "chatbot": {
@@ -546,6 +549,18 @@
       "retranslateAllAction": "Retranslate",
       "retranslateAllSuccess": "Done. Retranslated {total} messages across {rooms} rooms.",
       "retranslateAllError": "Retranslation failed. Please check the server logs."
+    },
+    "meeting": {
+      "title": "Meeting Notifications",
+      "ringtone": {
+        "label": "Ringtone",
+        "desc": "Choose the sound played when someone invites you to a meeting.",
+        "preview": "Preview",
+        "phone": "Phone Ring",
+        "chime": "Chime",
+        "beep": "Beep",
+        "pulse": "Pulse"
+      }
     }
   },
   "attendanceLogs": {
@@ -1026,7 +1041,11 @@
     "lastSeenLabel": "Last seen",
     "position": "Position",
     "company": "Company",
-    "dateOfBirth": "Date of birth"
+    "dateOfBirth": "Date of birth",
+    "deleteMessageTitle": "Delete Message?",
+    "deleteMessageConfirm": "This message will be permanently deleted. This action cannot be undone.",
+    "deleteExpired": "Can only delete within 15 minutes of sending",
+    "selectLanguage": "Select Language"
   },
   "face": {
     "registerTitle": "Register Face",
@@ -1315,6 +1334,41 @@
     "companies": "Companies",
     "companiesHint": "Only users in these companies will see this meeting. Defaults to your company.",
     "viewDescription": "View description",
-    "createdBy": "Created by"
+    "createdBy": "Created by",
+    "chat": {
+      "title": "Meeting Chat",
+      "empty": "No messages yet. Start the conversation!",
+      "placeholder": "Message meeting..."
+    },
+    "invite": {
+      "title": "Invite Guests",
+      "selectUsers": "Select users to invite",
+      "searchUsers": "Search users...",
+      "send": "Send Invites",
+      "guestList": "Guest List",
+      "noInvites": "No guests invited yet",
+      "cancel": "Cancel invite",
+      "confirmCancel": "Remove this invite?",
+      "rsvpTitle": "You've been invited",
+      "rsvpDesc": "Please respond to this meeting invitation.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "maybe": "Maybe",
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "declined": "Declined",
+        "maybe": "Maybe",
+        "missed": "Missed"
+      },
+      "join": "Join",
+      "incomingCall": "Incoming Meeting",
+      "recall": "Call Again",
+      "calling": "Calling {name}…",
+      "resultJoined": "{name} joined the meeting",
+      "resultDeclined": "{name} declined the invite",
+      "resultMissed": "{name} missed the call",
+      "missedCall": "Missed call"
+    }
   }
 }

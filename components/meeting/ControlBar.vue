@@ -153,6 +153,18 @@
       </div>
       -->
 
+      <div v-if="isHost" class="control-bar__item">
+        <v-btn
+          icon="mdi-email-plus-outline"
+          color="white"
+          variant="flat"
+          rounded="xl"
+          size="48"
+          @click="emit('open-invite')"
+        ></v-btn>
+        <span class="control-bar__label">{{ $t('meetings.invite.title') }}</span>
+      </div>
+
       <div class="control-bar__item">
         <v-btn
           icon="mdi-poll"
@@ -164,6 +176,25 @@
         ></v-btn>
         <span class="control-bar__label" :class="showVotePanel ? 'control-bar__label--on' : ''">
           {{ $t('meetings.vote.title') }}
+        </span>
+      </div>
+
+      <div class="control-bar__item">
+        <div class="chat-btn-wrapper">
+          <v-btn
+            icon="mdi-chat-outline"
+            :color="showChatPanel ? 'primary' : 'white'"
+            variant="flat"
+            rounded="xl"
+            size="48"
+            @click="emit('toggle-chat-panel')"
+          ></v-btn>
+          <span v-if="chatUnreadCount > 0" class="chat-unread-badge">
+            {{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}
+          </span>
+        </div>
+        <span class="control-bar__label" :class="showChatPanel ? 'control-bar__label--on' : ''">
+          {{ $t('meetings.chat.title') }}
         </span>
       </div>
     </div>
@@ -243,6 +274,8 @@ defineProps<{
   isScreenSharing: boolean
   isSpeakerEnabled: boolean
   showVotePanel: boolean
+  showChatPanel: boolean
+  chatUnreadCount: number
   ttsEnabled: boolean
   hasAnyScreenShare: boolean
   isFullscreen: boolean
@@ -256,9 +289,11 @@ const emit = defineEmits<{
   'stop-screen-share': []
   'toggle-speaker': []
   'toggle-vote-panel': []
+  'toggle-chat-panel': []
   'toggle-tts': []
   'toggle-fullscreen': []
   'open-settings': []
+  'open-invite': []
   'transfer-host': []
   'end-meeting': []
   leave: []
@@ -384,6 +419,30 @@ const qualityOptions = computed(() => [
 
 .control-bar__label--host {
   color: var(--cb-label-host);
+}
+
+.chat-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.chat-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: rgb(var(--v-theme-error));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .control-bar__item--share {

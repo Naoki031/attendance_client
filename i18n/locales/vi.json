@@ -529,6 +529,9 @@
     "selectCompanyFirst": "Chọn công ty trước",
     "someUsersFailed": "{count} người dùng không thể thêm (đã là thành viên)"
   },
+  "userSettings": {
+    "title": "Cài đặt"
+  },
   "settings": {
     "title": "Cài đặt hệ thống",
     "chatbot": {
@@ -546,6 +549,18 @@
       "retranslateAllAction": "Dịch lại",
       "retranslateAllSuccess": "Hoàn tất. Đã dịch lại {total} tin nhắn trong {rooms} phòng.",
       "retranslateAllError": "Dịch lại thất bại. Vui lòng kiểm tra log server."
+    },
+    "meeting": {
+      "title": "Thông báo cuộc họp",
+      "ringtone": {
+        "label": "Nhạc chuông",
+        "desc": "Chọn âm thanh phát khi có người mời bạn vào cuộc họp.",
+        "preview": "Nghe thử",
+        "phone": "Chuông điện thoại",
+        "chime": "Chuông ngân",
+        "beep": "Tiếng bíp",
+        "pulse": "Xung động"
+      }
     }
   },
   "attendanceLogs": {
@@ -1026,7 +1041,11 @@
     "lastSeenLabel": "Lần cuối online",
     "position": "Chức vụ",
     "company": "Công ty",
-    "dateOfBirth": "Ngày sinh"
+    "dateOfBirth": "Ngày sinh",
+    "deleteMessageTitle": "Xoá tin nhắn?",
+    "deleteMessageConfirm": "Tin nhắn này sẽ bị xoá vĩnh viễn. Hành động này không thể hoàn tác.",
+    "deleteExpired": "Chỉ có thể xoá trong vòng 15 phút sau khi gửi",
+    "selectLanguage": "Chọn ngôn ngữ"
   },
   "face": {
     "registerTitle": "Đăng ký khuôn mặt",
@@ -1315,6 +1334,41 @@
     "companies": "Công ty",
     "companiesHint": "Chỉ người thuộc các công ty này mới thấy phòng họp. Mặc định là công ty của bạn.",
     "viewDescription": "Xem mô tả",
-    "createdBy": "Tạo bởi"
+    "createdBy": "Tạo bởi",
+    "chat": {
+      "title": "Chat cuộc họp",
+      "empty": "Chưa có tin nhắn. Hãy bắt đầu cuộc trò chuyện!",
+      "placeholder": "Nhắn tin trong cuộc họp..."
+    },
+    "invite": {
+      "title": "Mời khách",
+      "selectUsers": "Chọn người dùng để mời",
+      "searchUsers": "Tìm người dùng...",
+      "send": "Gửi lời mời",
+      "guestList": "Danh sách khách",
+      "noInvites": "Chưa có khách nào được mời",
+      "cancel": "Hủy lời mời",
+      "confirmCancel": "Xóa lời mời này?",
+      "rsvpTitle": "Bạn được mời tham dự",
+      "rsvpDesc": "Vui lòng phản hồi lời mời họp này.",
+      "accept": "Chấp nhận",
+      "decline": "Từ chối",
+      "maybe": "Có thể",
+      "status": {
+        "pending": "Chờ phản hồi",
+        "accepted": "Đã chấp nhận",
+        "declined": "Đã từ chối",
+        "maybe": "Có thể",
+        "missed": "Bỏ lỡ"
+      },
+      "join": "Tham gia",
+      "incomingCall": "Cuộc họp đến",
+      "recall": "Gọi lại",
+      "calling": "Đang gọi {name}…",
+      "resultJoined": "{name} đã tham gia cuộc họp",
+      "resultDeclined": "{name} đã từ chối lời mời",
+      "resultMissed": "{name} bỏ lỡ cuộc gọi",
+      "missedCall": "Cuộc gọi nhỡ"
+    }
   }
 }

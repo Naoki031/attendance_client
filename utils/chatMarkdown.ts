@@ -74,8 +74,20 @@ function replaceCustomEmoji(text: string): string {
 }
 
 /**
+ * Only same-origin relative paths (e.g. /emoji/blob/...) are allowed as img src.
+ * This blocks markdown images like ![x](https://external.com/pixel.gif) that could
+ * be used for pixel tracking, while still allowing our custom emoji images.
+ */
+const ALLOWED_URI_REGEXP = /^\/[^/]/
+
+/**
  * Renders chat message content as HTML with markdown formatting, custom emoji, and mention highlighting.
  * Output is sanitized with DOMPurify to prevent XSS from user-supplied content.
+ *
+ * Security notes:
+ * - marked.parse() is NOT safe on its own; DOMPurify must always follow it.
+ * - highlightMentions runs after DOMPurify and only injects escapeHtml'd user data.
+ * - ALLOWED_URI_REGEXP restricts img src to same-origin paths, blocking external tracking pixels.
  */
 export function renderChatMarkdown(content: string, members?: ChatRoomMemberModel[]): string {
   const withEmoji = replaceCustomEmoji(content)
@@ -85,7 +97,7 @@ export function renderChatMarkdown(content: string, members?: ChatRoomMemberMode
   // Chat messages are never SSR-rendered (fetched after auth), so this guard is safe.
   const sanitizedHtml =
     typeof window !== 'undefined'
-      ? DOMPurify.sanitize(rawHtml, { ALLOWED_TAGS, ALLOWED_ATTR })
+      ? DOMPurify.sanitize(rawHtml, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOWED_URI_REGEXP })
       : rawHtml
 
   return highlightMentions(sanitizedHtml, members)

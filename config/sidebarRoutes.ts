@@ -18,13 +18,14 @@ const userRoutes: RouteItem[] = [
   { icon: 'mdi-home-outline', link: '/home', textKey: 'nav.home' },
   { icon: 'mdi-chat-outline', link: '/chat', textKey: 'nav.chat' },
   { icon: 'mdi-video-outline', link: '/meetings', textKey: 'nav.meetings' },
-  { icon: 'mdi-account', link: '/profile', textKey: 'nav.profile' },
   {
     icon: 'mdi-clipboard-text-clock-outline',
     link: '/requests',
     textKey: 'nav.myRequests',
     name: 'requests.index',
   },
+  { icon: 'mdi-account', link: '/profile', textKey: 'nav.profile' },
+  { icon: 'mdi-cog-outline', link: '/settings', textKey: 'nav.settings' },
 ]
 
 const adminGroups: RouteGroup[] = [

@@ -86,7 +86,7 @@
           "
           size="small"
           variant="tonal"
-          color="white"
+          color="on-surface"
           class="screen-share-fullscreen-btn"
           @click="toggleFullscreen"
         ></v-btn>

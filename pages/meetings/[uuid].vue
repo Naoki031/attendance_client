@@ -275,6 +275,19 @@
               @close-vote="closeVote"
             />
           </div>
+
+          <div class="meeting-room__chat" :class="{ 'meeting-room__chat--hidden': !showChatPanel }">
+            <MeetingChatPanel
+              v-show="showChatPanel"
+              :meeting-uuid="meetingUuid"
+              :user-id="localUserId"
+              :username="localUsername"
+              :avatar="localAvatar"
+              :language="_userLanguage"
+              @close="showChatPanel = false"
+              @new-message="onNewChatMessage"
+            />
+          </div>
         </div>
 
         <MeetingControlBar
@@ -283,6 +296,8 @@
           :is-screen-sharing="isScreenSharing"
           :is-speaker-enabled="isSpeakerEnabled"
           :show-vote-panel="showVotePanel"
+          :show-chat-panel="showChatPanel"
+          :chat-unread-count="chatUnreadCount"
           :tts-enabled="ttsEnabled"
           :has-any-screen-share="isScreenSharing || hasRemoteScreenShare"
           :is-fullscreen="isFullscreen"
@@ -293,9 +308,11 @@
           @start-screen-share="startScreenShare"
           @stop-screen-share="stopScreenShare"
           @toggle-vote-panel="showVotePanel = !showVotePanel"
+          @toggle-chat-panel="handleToggleChatPanel"
           @toggle-tts="ttsEnabled = !ttsEnabled"
           @toggle-fullscreen="handleToggleFullscreen"
           @open-settings="settingsDialog = true"
+          @open-invite="inviteDialog = true"
           @transfer-host="transferHostDialog = true"
           @end-meeting="handleEndMeeting"
           @leave="leaveMeeting"
@@ -322,6 +339,14 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <!-- Invite dialog -->
+      <MeetingDialogInvite
+        ref="inviteDialogReference"
+        :dialog="inviteDialog"
+        :meeting-uuid="meetingUuid"
+        @close-modal="inviteDialog = false"
+      />
 
       <!-- Transfer Host dialog -->
       <v-dialog v-model="transferHostDialog" max-width="400" persistent>
@@ -432,6 +457,18 @@
         @create="handleCreateVote"
       />
 
+      <!-- Invite activity toast (calling / joined / declined / missed) -->
+      <v-snackbar
+        v-model="roomToastVisible"
+        location="top"
+        :color="roomToastColor"
+        :timeout="4000"
+        rounded="lg"
+        min-width="240"
+      >
+        {{ roomToastMessage }}
+      </v-snackbar>
+
       <!-- macOS Screen Recording permission warning -->
       <v-snackbar
         :model-value="!!screenShareWarning"
@@ -454,17 +491,18 @@
 
 <script lang="ts" setup>
 // START IMPORT
-import { useNuxtApp, useRoute } from '#app'
+import { useRoute } from '#app'
 import { useMeeting } from '@/composables/useMeeting'
 import type MeetingVideoGrid from '@/components/meeting/VideoGrid.vue'
 import type { MediaDeviceItem } from '@/types/meeting/MediaDeviceItem'
+import { apiClient } from '@/utils/apiClient'
+import MeetingService from '@/services/MeetingService'
 // END IMPORT
 
 definePageMeta({ layout: false })
 
 // START DEFINE STATE
 const route = useRoute()
-const { $apiFetch } = useNuxtApp()
 const { t } = useI18n()
 const meetingUuid = ref(route.params.uuid as string)
 
@@ -476,6 +514,9 @@ const meetingId = ref(0)
 const meetingIsPrivate = ref(false)
 const meetingHostId = ref(0)
 const localUserId = ref(0)
+const localUsername = ref('')
+const showChatPanel = ref(false)
+const chatUnreadCount = ref(0)
 
 // Password step state
 const meetingPassword = ref('')
@@ -508,6 +549,8 @@ const speakerDevices = ref<MediaDeviceItem[]>([])
 const selectedMicId = ref<string>('')
 const selectedSpeakerId = ref<string>('')
 const settingsDialog = ref(false)
+const inviteDialog = ref(false)
+const inviteDialogReference = ref<{ refresh: () => void } | null>(null)
 const endMeetingDialog = ref(false)
 const transferHostDialog = ref(false)
 const hostChangedSnackbar = ref(false)
@@ -571,6 +614,7 @@ const {
   createVote,
   castVote,
   closeVote,
+  lastInviteEvent,
 } = useMeeting(meetingId, meetingUuid, () => {
   // Host ended the meeting — show countdown then disconnect and navigate away
   startEndCountdown()
@@ -600,6 +644,11 @@ const participantColorMap = computed(() => {
 
 // Countdown shown to all participants when the host ends the meeting (3 → 2 → 1 → leave)
 const endCountdown = ref<number | null>(null)
+
+// In-room activity toast (invite sent / result received)
+const roomToastVisible = ref(false)
+const roomToastMessage = ref('')
+const roomToastColor = ref('primary')
 // END DEFINE STATE
 
 // Apply speaker device change to all active remote audio elements
@@ -644,6 +693,30 @@ watch(remoteParticipants, (participants) => {
   if (Object.keys(updates).length > 0) {
     participantNameMap.value = { ...participantNameMap.value, ...updates }
   }
+})
+
+// Show a brief toast whenever an invite is sent or responded to in this meeting room
+// Also refresh the invite dialog so the host sees updated RSVP status immediately
+watch(lastInviteEvent, (event) => {
+  if (!event) return
+  if (event.type === 'sent') {
+    roomToastMessage.value = t('meetings.invite.calling', { name: event.userName })
+    roomToastColor.value = 'primary'
+  } else if (event.type === 'result') {
+    if (event.result === 'accepted') {
+      roomToastMessage.value = t('meetings.invite.resultJoined', { name: event.userName })
+      roomToastColor.value = 'success'
+    } else if (event.result === 'declined') {
+      roomToastMessage.value = t('meetings.invite.resultDeclined', { name: event.userName })
+      roomToastColor.value = 'error'
+    } else if (event.result === 'missed') {
+      roomToastMessage.value = t('meetings.invite.resultMissed', { name: event.userName })
+      roomToastColor.value = 'warning'
+    }
+    // Refresh the invite list so status columns update in real time
+    inviteDialogReference.value?.refresh()
+  }
+  roomToastVisible.value = true
 })
 
 // Show a warning snackbar when black frames are detected (macOS Screen Recording permission blocked)
@@ -812,10 +885,7 @@ async function submitPassword() {
 
   try {
     // Attempt to get a token with the entered password — if wrong, API returns 403
-    await ($apiFetch as (url: string, options?: object) => Promise<{ token: string }>)(
-      `/meetings/${meetingUuid.value}/token`,
-      { method: 'POST', body: { password: meetingPassword.value } },
-    )
+    await MeetingService.getToken(meetingUuid.value, meetingPassword.value)
     // Password valid — save for future visits and proceed to prejoin
     savePassword(meetingUuid.value, meetingPassword.value)
     step.value = 'prejoin'
@@ -833,18 +903,14 @@ async function confirmJoin() {
   stopPreviewStream()
 
   try {
-    const user = await ($apiFetch as (url: string) => Promise<{ id: number; full_name: string }>)(
-      '/auth/user',
-    )
+    const user = await apiClient.get<{ id: number; full_name: string }>('/auth/user')
 
     await connect(user.id, user.full_name)
 
-    const { token } = await (
-      $apiFetch as (url: string, options?: object) => Promise<{ token: string }>
-    )(`/meetings/${meetingUuid.value}/token`, {
-      method: 'POST',
-      body: meetingPassword.value ? { password: meetingPassword.value } : {},
-    })
+    const { token } = await MeetingService.getToken(
+      meetingUuid.value,
+      meetingPassword.value || undefined,
+    )
 
     await joinLiveKit(token, selectedMicId.value || undefined)
 
@@ -900,6 +966,22 @@ function handleToggleFullscreen() {
   // isFullscreen is kept in sync via document.fullscreenchange listener
 }
 
+function handleToggleChatPanel() {
+  showChatPanel.value = !showChatPanel.value
+
+  // Clear unread badge when opening the panel
+  if (showChatPanel.value) {
+    chatUnreadCount.value = 0
+  }
+}
+
+function onNewChatMessage() {
+  // Only increment badge when the chat panel is hidden — if it's open, user already sees the message
+  if (!showChatPanel.value) {
+    chatUnreadCount.value++
+  }
+}
+
 function handleCreateVote(payload: {
   question: string
   options: string[]
@@ -915,18 +997,7 @@ onMounted(async () => {
   // Sync isFullscreen when user exits via Escape (browser fires fullscreenchange globally)
   document.addEventListener('fullscreenchange', onFullscreenChange)
   try {
-    const meeting = await (
-      $apiFetch as (url: string) => Promise<{
-        title: string
-        id: number
-        host_id: number
-        is_private: boolean
-        participants?: Array<{
-          user_id: number
-          user?: { avatar?: string | null; full_name?: string }
-        }>
-      }>
-    )(`/meetings/${meetingUuid.value}`)
+    const meeting = await MeetingService.getOne(meetingUuid.value)
     meetingTitle.value = meeting.title
     meetingId.value = meeting.id
     meetingIsPrivate.value = meeting.is_private
@@ -944,15 +1015,12 @@ onMounted(async () => {
     participantNameMap.value = nameMap
 
     // Fetch local user avatar
-    const authUser = await (
-      $apiFetch as (url: string) => Promise<{
-        id: number
-        full_name: string
-        avatar?: string | null
-      }>
-    )('/auth/user')
+    const authUser = await apiClient.get<{ id: number; full_name: string; avatar?: string | null }>(
+      '/auth/user',
+    )
     localAvatar.value = authUser.avatar ?? ''
     localUserId.value = authUser.id
+    localUsername.value = authUser.full_name
 
     // Show password screen for non-host joining a private room; otherwise go to prejoin
     if (meeting.is_private && authUser.id !== meeting.host_id) {
@@ -960,10 +1028,7 @@ onMounted(async () => {
       const savedPassword = loadSavedPassword(meetingUuid.value)
       if (savedPassword) {
         try {
-          await ($apiFetch as (url: string, options?: object) => Promise<{ token: string }>)(
-            `/meetings/${meetingUuid.value}/token`,
-            { method: 'POST', body: { password: savedPassword } },
-          )
+          await MeetingService.getToken(meetingUuid.value, savedPassword)
           meetingPassword.value = savedPassword
           step.value = 'prejoin'
           enumerateDevices()
@@ -1138,6 +1203,16 @@ function onFullscreenChange() {
   border: none;
 }
 
+.meeting-room__chat {
+  flex: 0 0 clamp(280px, 25%, 360px);
+  overflow: hidden;
+  transition: flex-basis 0.2s ease;
+}
+
+.meeting-room__chat--hidden {
+  flex: 0 0 0 !important;
+}
+
 .prejoin-control {
   display: flex;
   flex-direction: column;
@@ -1153,11 +1228,11 @@ function onFullscreenChange() {
 }
 
 .prejoin-control__label--on {
-  color: #81c784;
+  color: rgb(var(--v-theme-success));
 }
 
 .prejoin-control__label--off {
-  color: #e57373;
+  color: rgb(var(--v-theme-error));
 }
 
 /* ── Meeting-ended countdown overlay ── */

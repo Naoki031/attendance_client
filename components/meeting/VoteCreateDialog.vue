@@ -124,6 +124,7 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
+import type { PropType } from 'vue'
 import {
   FIBONACCI_OPTIONS,
   STORY_POINT_COFFEE,
@@ -158,6 +159,7 @@ const emit = defineEmits<{
 /** END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
+const { t } = useI18n()
 const question = ref('')
 const options = ref<string[]>(['', ''])
 const voteType = ref<'single' | 'multiple' | 'story_point'>('single')
@@ -219,7 +221,7 @@ function handleCreate() {
   let valid = true
 
   if (!question.value.trim()) {
-    questionError.value = 'meetings.vote.questionRequired'
+    questionError.value = t('meetings.vote.questionRequired')
     valid = false
   }
 
@@ -243,13 +245,13 @@ function handleCreate() {
   const filledOptions = options.value.map((option) => option.trim())
   const emptyIndex = filledOptions.findIndex((option) => !option)
   if (emptyIndex !== -1) {
-    optionsError.value = 'meetings.vote.optionTextRequired'
+    optionsError.value = t('meetings.vote.optionTextRequired')
     optionsErrorIndex.value = emptyIndex
     valid = false
   }
 
   if (filledOptions.filter(Boolean).length < 2) {
-    optionsError.value = 'meetings.vote.optionRequired'
+    optionsError.value = t('meetings.vote.optionRequired')
     valid = false
   }
 

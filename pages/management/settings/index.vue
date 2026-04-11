@@ -108,6 +108,7 @@ definePageMeta({
 const { t } = useI18n()
 
 /** START DEFINE STATE */
+
 const isReloadingPrompts = ref(false)
 const reloadPromptsResult = ref<{ success: boolean; message: string } | null>(null)
 
@@ -171,4 +172,24 @@ const retranslateAll = async () => {
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
 
-<style scoped></style>
+<style scoped>
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.ringtone-tile {
+  position: relative;
+  transition: transform 0.1s;
+  user-select: none;
+}
+
+.ringtone-tile:active {
+  transform: scale(0.97);
+}
+
+.ringtone-check {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+</style>

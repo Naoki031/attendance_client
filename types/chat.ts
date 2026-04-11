@@ -21,6 +21,7 @@ export type ChatMessage = {
   reactions: ReactionGroup[]
   createdAt: string
   isPinned?: boolean
+  isDeleted?: boolean
 }
 
 export type ChatOnlineUser = {

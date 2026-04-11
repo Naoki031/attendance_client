@@ -273,11 +273,12 @@
 
 <script lang="ts" setup>
 /** START IMPORT */
-import { useNuxtApp } from '#app'
+import moment from 'moment'
 import type { PropType } from 'vue'
 import type { Meeting } from '@/interfaces/models/MeetingModel'
 import type { CompanyModel } from '@/interfaces/models/CompanyModel'
 import CompanyService from '@/services/CompanyService'
+import MeetingService from '@/services/MeetingService'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -300,7 +301,6 @@ const emit = defineEmits<{
 /** END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
-const { $apiFetch } = useNuxtApp()
 const { t } = useI18n()
 
 const isSaving = ref(false)
@@ -385,7 +385,7 @@ function populateForm(meeting: Meeting) {
     is_private: meeting.is_private ?? false,
     password: '',
     scheduled_at: meeting.scheduled_at
-      ? new Date(meeting.scheduled_at).toISOString().slice(0, 16)
+      ? moment.utc(meeting.scheduled_at).local().format('YYYY-MM-DDTHH:mm')
       : '',
     schedule_time: meeting.schedule_time ?? '09:00',
     schedule_day_of_week: meeting.schedule_day_of_week ?? 1,
@@ -457,10 +457,7 @@ async function confirm() {
       payload.scheduled_at = undefined
     }
 
-    const updated = await ($apiFetch as (url: string, options?: object) => Promise<Meeting>)(
-      `/meetings/${props.meeting.uuid}`,
-      { method: 'PATCH', body: payload },
-    )
+    const updated = await MeetingService.update(props.meeting.uuid, payload)
     emit('saved', updated)
     close()
   } catch (error) {

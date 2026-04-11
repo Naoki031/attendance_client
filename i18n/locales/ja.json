@@ -529,6 +529,9 @@
     "selectCompanyFirst": "先に会社を選択してください",
     "someUsersFailed": "{count}人のユーザーを追加できませんでした（既にメンバーです）"
   },
+  "userSettings": {
+    "title": "設定"
+  },
   "settings": {
     "title": "システム設定",
     "chatbot": {
@@ -546,6 +549,18 @@
       "retranslateAllAction": "再翻訳",
       "retranslateAllSuccess": "{rooms}ルームの{total}件のメッセージを再翻訳しました。",
       "retranslateAllError": "再翻訳に失敗しました。サーバーログを確認してください。"
+    },
+    "meeting": {
+      "title": "ミーティング通知",
+      "ringtone": {
+        "label": "着信音",
+        "desc": "ミーティングに招待されたときに再生するサウンドを選択してください。",
+        "preview": "プレビュー",
+        "phone": "電話の着信音",
+        "chime": "チャイム",
+        "beep": "ビープ音",
+        "pulse": "パルス"
+      }
     }
   },
   "attendanceLogs": {
@@ -1026,7 +1041,11 @@
     "lastSeenLabel": "最終オンライン",
     "position": "役職",
     "company": "会社",
-    "dateOfBirth": "生年月日"
+    "dateOfBirth": "生年月日",
+    "deleteMessageTitle": "メッセージを削除しますか？",
+    "deleteMessageConfirm": "このメッセージは完全に削除されます。この操作は元に戻せません。",
+    "deleteExpired": "送信後15分以内のみ削除できます",
+    "selectLanguage": "言語を選択"
   },
   "face": {
     "registerTitle": "顔を登録",
@@ -1315,6 +1334,41 @@
     "companies": "会社",
     "companiesHint": "これらの会社のユーザーのみがこの会議を閲覧できます。デフォルトはあなたの会社です。",
     "viewDescription": "説明を見る",
-    "createdBy": "作成者"
+    "createdBy": "作成者",
+    "chat": {
+      "title": "ミーティングチャット",
+      "empty": "メッセージはまだありません。会話を始めましょう！",
+      "placeholder": "ミーティングにメッセージを送る..."
+    },
+    "invite": {
+      "title": "ゲストを招待",
+      "selectUsers": "招待するユーザーを選択",
+      "searchUsers": "ユーザーを検索...",
+      "send": "招待を送る",
+      "guestList": "ゲスト一覧",
+      "noInvites": "まだゲストが招待されていません",
+      "cancel": "招待をキャンセル",
+      "confirmCancel": "この招待を削除しますか？",
+      "rsvpTitle": "招待されました",
+      "rsvpDesc": "この会議の招待に返答してください。",
+      "accept": "承諾",
+      "decline": "辞退",
+      "maybe": "未定",
+      "status": {
+        "pending": "保留中",
+        "accepted": "承諾済み",
+        "declined": "辞退済み",
+        "maybe": "未定",
+        "missed": "不在着信"
+      },
+      "join": "参加する",
+      "incomingCall": "着信ミーティング",
+      "recall": "再度発信",
+      "calling": "{name}を呼び出し中…",
+      "resultJoined": "{name}がミーティングに参加しました",
+      "resultDeclined": "{name}が招待を辞退しました",
+      "resultMissed": "{name}が着信に応答しませんでした",
+      "missedCall": "不在着信"
+    }
   }
 }
