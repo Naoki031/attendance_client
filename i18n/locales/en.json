@@ -139,7 +139,8 @@
     "googleSheets": "Google Sheets",
     "settings": "Settings",
     "systemSettings": "System Settings",
-    "meetings": "Meetings"
+    "meetings": "Meetings",
+    "translationLogs": "Translation Logs"
   },
   "auth": {
     "attendanceSystem": "Attendance System",
@@ -1414,5 +1415,47 @@
       "subtitle": "You have been invited to the following meetings. Please respond to each invitation.",
       "hostedBy": "Hosted by"
     }
+  },
+  "translationLogs": {
+    "title": "Translation Logs",
+    "sourceTarget": "Source → Target",
+    "inputLength": "Input Length",
+    "targetLangs": "Target Languages",
+    "status": "Status",
+    "cache": "Cache",
+    "tokens": "Tokens",
+    "duration": "Duration",
+    "errorMessage": "Error Message",
+    "purgeOld": "Purge Old Logs",
+    "purgeTitle": "Purge Translation Logs",
+    "purgeConfirm": "Delete all translation logs older than the specified number of days? This action cannot be undone.",
+    "purgeDays": "Days to keep",
+    "statusSuccess": "Success",
+    "statusError": "Error",
+    "statusPartial": "Partial",
+    "stats": {
+      "total": "Total Requests",
+      "cacheHitRate": "Cache Hit Rate",
+      "tokensSaved": "Tokens Saved",
+      "errorRate": "Error Rate",
+      "avgDuration": "Avg Duration"
+    },
+    "cacheBreakdown": {
+      "title": "Cache Breakdown by Language",
+      "languagePair": "Language Pair",
+      "requests": "Requests",
+      "cacheHitRate": "Hit Rate",
+      "avgDuration": "Avg Duration",
+      "tokensSaved": "Tokens Saved"
+    }
+  },
+  "sections": {
+    "manageSections": "Manage Sections",
+    "manageSectionsDesc": "Create sections to organize your rooms",
+    "newSectionPlaceholder": "New section name...",
+    "noSections": "No sections yet. Create one to get started.",
+    "moveToSection": "Move to section",
+    "removeFromSection": "Remove from section",
+    "unsectioned": "Unsectioned"
   }
 }

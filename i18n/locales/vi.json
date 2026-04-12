@@ -139,7 +139,8 @@
     "groups": "Teams",
     "settings": "Cài đặt",
     "systemSettings": "Cài đặt hệ thống",
-    "meetings": "Cuộc họp"
+    "meetings": "Cuộc họp",
+    "translationLogs": "Nhật ký dịch thuật"
   },
   "auth": {
     "attendanceSystem": "Hệ thống Chấm công",
@@ -1414,5 +1415,47 @@
       "subtitle": "Bạn được mời tham gia các cuộc họp sau. Vui lòng phản hồi từng lời mời.",
       "hostedBy": "Host"
     }
+  },
+  "translationLogs": {
+    "title": "Nhật ký dịch thuật",
+    "sourceTarget": "Nguồn → Đích",
+    "inputLength": "Độ dài đầu vào",
+    "targetLangs": "Ngôn ngữ đích",
+    "status": "Trạng thái",
+    "cache": "Cache",
+    "tokens": "Tokens",
+    "duration": "Thời gian",
+    "errorMessage": "Lỗi",
+    "purgeOld": "Xóa log cũ",
+    "purgeTitle": "Xóa nhật ký dịch thuật",
+    "purgeConfirm": "Xóa tất cả log dịch thuật cũ hơn số ngày chỉ định? Không thể hoàn tác.",
+    "purgeDays": "Số ngày giữ lại",
+    "statusSuccess": "Thành công",
+    "statusError": "Lỗi",
+    "statusPartial": "Một phần",
+    "stats": {
+      "total": "Tổng yêu cầu",
+      "cacheHitRate": "Tỷ lệ cache hit",
+      "tokensSaved": "Tokens tiết kiệm",
+      "errorRate": "Tỷ lệ lỗi",
+      "avgDuration": "TB thời gian"
+    },
+    "cacheBreakdown": {
+      "title": "Phân tích cache theo ngôn ngữ",
+      "languagePair": "Cặp ngôn ngữ",
+      "requests": "Yêu cầu",
+      "cacheHitRate": "Tỷ lệ hit",
+      "avgDuration": "TB thời gian",
+      "tokensSaved": "Tokens tiết kiệm"
+    }
+  },
+  "sections": {
+    "manageSections": "Quản lý Section",
+    "manageSectionsDesc": "Tạo section để sắp xếp các phòng của bạn",
+    "newSectionPlaceholder": "Tên section mới...",
+    "noSections": "Chưa có section nào. Tạo ngay để bắt đầu.",
+    "moveToSection": "Chuyển vào section",
+    "removeFromSection": "Bỏ khỏi section",
+    "unsectioned": "Chưa phân loại"
   }
 }

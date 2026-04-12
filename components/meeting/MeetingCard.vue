@@ -46,6 +46,48 @@
           @click.stop="$emit('toggle-pin', meeting.uuid)"
         />
 
+        <!-- Section menu -->
+        <v-menu v-if="sections.length > 0">
+          <template #activator="{ props: menuProps }">
+            <v-btn
+              :icon="currentSectionId ? 'mdi-folder' : 'mdi-folder-outline'"
+              :color="currentSectionId ? 'primary' : undefined"
+              variant="text"
+              size="small"
+              class="btn-shine"
+              v-bind="menuProps"
+              @click.stop
+            />
+          </template>
+          <v-list density="compact">
+            <v-list-subheader>{{ $t('sections.moveToSection') }}</v-list-subheader>
+            <v-list-item
+              v-for="section in sections"
+              :key="section.id"
+              :prepend-icon="
+                currentSectionId === section.id ? 'mdi-folder-check' : 'mdi-folder-outline'
+              "
+              :title="section.name"
+              :active="currentSectionId === section.id"
+              color="primary"
+              @click.stop="
+                $emit(
+                  'move-to-section',
+                  meeting.uuid,
+                  currentSectionId === section.id ? null : section.id,
+                )
+              "
+            />
+            <v-divider v-if="currentSectionId" class="my-1" />
+            <v-list-item
+              v-if="currentSectionId"
+              prepend-icon="mdi-folder-remove-outline"
+              :title="$t('sections.removeFromSection')"
+              @click.stop="$emit('move-to-section', meeting.uuid, null)"
+            />
+          </v-list>
+        </v-menu>
+
         <!-- Menu -->
         <v-menu v-if="canManage">
           <template #activator="{ props: menuProps }">
@@ -281,6 +323,7 @@
 import moment from 'moment'
 import type { PropType } from 'vue'
 import type { Meeting, MeetingParticipant } from '@/interfaces/models/MeetingModel'
+import type { RoomSectionModel } from '@/interfaces/models/RoomSectionModel'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -304,6 +347,16 @@ const props = defineProps({
     required: false,
     default: false,
   },
+  sections: {
+    type: Array as PropType<RoomSectionModel[]>,
+    required: false,
+    default: () => [],
+  },
+  currentSectionId: {
+    type: Number as PropType<number | null>,
+    required: false,
+    default: null,
+  },
 })
 
 defineEmits<{
@@ -314,6 +367,7 @@ defineEmits<{
   invite: [uuid: string]
   edit: [uuid: string]
   delete: [uuid: string]
+  'move-to-section': [uuid: string, sectionId: number | null]
 }>()
 /** END DEFINE PROPERTY AND EMITS */
 

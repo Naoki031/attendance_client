@@ -6,15 +6,26 @@
         <div class="text-h5 font-weight-bold">{{ $t('meetings.title') }}</div>
         <div class="text-body-2 text-medium-emphasis">{{ $t('meetings.description') }}</div>
       </div>
-      <v-btn
-        variant="elevated"
-        color="primary"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="createDialog = true"
-      >
-        {{ $t('meetings.create') }}
-      </v-btn>
+      <div class="d-flex ga-2">
+        <v-btn
+          variant="tonal"
+          color="default"
+          rounded="lg"
+          prepend-icon="mdi-folder-multiple-outline"
+          @click="manageSectionsDialog = true"
+        >
+          {{ $t('sections.manageSections') }}
+        </v-btn>
+        <v-btn
+          variant="elevated"
+          color="primary"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="createDialog = true"
+        >
+          {{ $t('meetings.create') }}
+        </v-btn>
+      </div>
     </div>
 
     <!-- RSVP banners for pending invites -->
@@ -86,30 +97,216 @@
 
     <!-- Meeting List -->
     <template v-else>
-      <v-row v-if="filteredMeetings.length > 0" align="stretch">
-        <v-col
-          v-for="meeting in filteredMeetings"
-          :key="meeting.id"
-          cols="12"
-          md="6"
-          lg="4"
-          class="d-flex"
-        >
-          <MeetingCard
-            :meeting="meeting"
-            :live-participants="getLiveParticipants(meeting)"
-            :current-user-id="currentUserId"
-            :can-manage="canManageMeeting(meeting)"
-            @regenerate-password="openRegenDialog"
-            @invite="openInviteDialog"
-            @edit="openEditDialog"
-            @delete="openDeleteDialog"
-            @manage-host-schedule="openHostScheduleDialog"
-            @manage-scheduled-participants="openScheduledParticipantsDialog"
-            @toggle-pin="togglePin"
-          />
-        </v-col>
-      </v-row>
+      <!-- With sections -->
+      <template v-if="hasSections">
+        <!-- Named sections -->
+        <div v-for="group in sectionedGroups" :key="group.sectionId" class="mb-6">
+          <!-- Section header -->
+          <div
+            class="section-group-header d-flex align-center ga-2 mb-3 cursor-pointer"
+            @click="toggleSectionCollapse(group.sectionId)"
+          >
+            <v-icon
+              size="16"
+              color="medium-emphasis"
+              :style="collapsedSections.has(group.sectionId) ? 'transform: rotate(-90deg)' : ''"
+              style="transition: transform 0.2s"
+            >
+              mdi-chevron-down
+            </v-icon>
+            <v-icon size="15" color="primary">mdi-folder</v-icon>
+            <span class="text-caption font-weight-bold text-uppercase text-medium-emphasis">
+              {{ group.name }}
+            </span>
+            <span class="text-caption text-disabled">({{ group.meetings.length }})</span>
+          </div>
+
+          <v-row v-if="!collapsedSections.has(group.sectionId)" align="stretch">
+            <v-col
+              v-for="meeting in group.meetings"
+              :key="meeting.id"
+              cols="12"
+              md="6"
+              lg="4"
+              class="d-flex"
+            >
+              <MeetingCard
+                :meeting="meeting"
+                :live-participants="getLiveParticipants(meeting)"
+                :current-user-id="currentUserId"
+                :can-manage="canManageMeeting(meeting)"
+                :sections="sectionsStore.sections"
+                :current-section-id="getMeetingSectionId(meeting)"
+                @regenerate-password="openRegenDialog"
+                @invite="openInviteDialog"
+                @edit="openEditDialog"
+                @delete="openDeleteDialog"
+                @manage-host-schedule="openHostScheduleDialog"
+                @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @toggle-pin="togglePin"
+                @move-to-section="moveToSection"
+              />
+            </v-col>
+          </v-row>
+        </div>
+
+        <!-- Unsectioned private meetings -->
+        <template v-if="unsectionedPrivateMeetings.length > 0">
+          <div class="section-group-header d-flex align-center ga-2 mb-3">
+            <v-icon size="15" color="medium-emphasis">mdi-lock-outline</v-icon>
+            <span class="text-caption font-weight-bold text-uppercase text-medium-emphasis">
+              {{ $t('meetings.private') }}
+            </span>
+            <span class="text-caption text-disabled"
+              >({{ unsectionedPrivateMeetings.length }})</span
+            >
+          </div>
+          <v-row align="stretch" class="mb-6">
+            <v-col
+              v-for="meeting in unsectionedPrivateMeetings"
+              :key="meeting.id"
+              cols="12"
+              md="6"
+              lg="4"
+              class="d-flex"
+            >
+              <MeetingCard
+                :meeting="meeting"
+                :live-participants="getLiveParticipants(meeting)"
+                :current-user-id="currentUserId"
+                :can-manage="canManageMeeting(meeting)"
+                :sections="sectionsStore.sections"
+                :current-section-id="getMeetingSectionId(meeting)"
+                @regenerate-password="openRegenDialog"
+                @invite="openInviteDialog"
+                @edit="openEditDialog"
+                @delete="openDeleteDialog"
+                @manage-host-schedule="openHostScheduleDialog"
+                @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @toggle-pin="togglePin"
+                @move-to-section="moveToSection"
+              />
+            </v-col>
+          </v-row>
+        </template>
+
+        <!-- Unsectioned public meetings -->
+        <template v-if="unsectionedPublicMeetings.length > 0">
+          <div class="section-group-header d-flex align-center ga-2 mb-3">
+            <v-icon size="15" color="medium-emphasis">mdi-earth</v-icon>
+            <span class="text-caption font-weight-bold text-uppercase text-medium-emphasis">
+              {{ $t('meetings.public') }}
+            </span>
+            <span class="text-caption text-disabled">({{ unsectionedPublicMeetings.length }})</span>
+          </div>
+          <v-row align="stretch" class="mb-6">
+            <v-col
+              v-for="meeting in unsectionedPublicMeetings"
+              :key="meeting.id"
+              cols="12"
+              md="6"
+              lg="4"
+              class="d-flex"
+            >
+              <MeetingCard
+                :meeting="meeting"
+                :live-participants="getLiveParticipants(meeting)"
+                :current-user-id="currentUserId"
+                :can-manage="canManageMeeting(meeting)"
+                :sections="sectionsStore.sections"
+                :current-section-id="getMeetingSectionId(meeting)"
+                @regenerate-password="openRegenDialog"
+                @invite="openInviteDialog"
+                @edit="openEditDialog"
+                @delete="openDeleteDialog"
+                @manage-host-schedule="openHostScheduleDialog"
+                @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @toggle-pin="togglePin"
+                @move-to-section="moveToSection"
+              />
+            </v-col>
+          </v-row>
+        </template>
+      </template>
+
+      <!-- No sections — split by private / public -->
+      <template v-else-if="filteredMeetings.length > 0">
+        <!-- Private meetings -->
+        <template v-if="privateMeetings.length > 0">
+          <div class="section-group-header d-flex align-center ga-2 mb-3">
+            <v-icon size="15" color="medium-emphasis">mdi-lock-outline</v-icon>
+            <span class="text-caption font-weight-bold text-uppercase text-medium-emphasis">
+              {{ $t('meetings.private') }}
+            </span>
+            <span class="text-caption text-disabled">({{ privateMeetings.length }})</span>
+          </div>
+          <v-row align="stretch" class="mb-6">
+            <v-col
+              v-for="meeting in privateMeetings"
+              :key="meeting.id"
+              cols="12"
+              md="6"
+              lg="4"
+              class="d-flex"
+            >
+              <MeetingCard
+                :meeting="meeting"
+                :live-participants="getLiveParticipants(meeting)"
+                :current-user-id="currentUserId"
+                :can-manage="canManageMeeting(meeting)"
+                :sections="sectionsStore.sections"
+                :current-section-id="getMeetingSectionId(meeting)"
+                @regenerate-password="openRegenDialog"
+                @invite="openInviteDialog"
+                @edit="openEditDialog"
+                @delete="openDeleteDialog"
+                @manage-host-schedule="openHostScheduleDialog"
+                @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @toggle-pin="togglePin"
+                @move-to-section="moveToSection"
+              />
+            </v-col>
+          </v-row>
+        </template>
+
+        <!-- Public meetings -->
+        <template v-if="publicMeetings.length > 0">
+          <div class="section-group-header d-flex align-center ga-2 mb-3">
+            <v-icon size="15" color="medium-emphasis">mdi-earth</v-icon>
+            <span class="text-caption font-weight-bold text-uppercase text-medium-emphasis">
+              {{ $t('meetings.public') }}
+            </span>
+            <span class="text-caption text-disabled">({{ publicMeetings.length }})</span>
+          </div>
+          <v-row align="stretch">
+            <v-col
+              v-for="meeting in publicMeetings"
+              :key="meeting.id"
+              cols="12"
+              md="6"
+              lg="4"
+              class="d-flex"
+            >
+              <MeetingCard
+                :meeting="meeting"
+                :live-participants="getLiveParticipants(meeting)"
+                :current-user-id="currentUserId"
+                :can-manage="canManageMeeting(meeting)"
+                :sections="sectionsStore.sections"
+                :current-section-id="getMeetingSectionId(meeting)"
+                @regenerate-password="openRegenDialog"
+                @invite="openInviteDialog"
+                @edit="openEditDialog"
+                @delete="openDeleteDialog"
+                @manage-host-schedule="openHostScheduleDialog"
+                @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @toggle-pin="togglePin"
+                @move-to-section="moveToSection"
+              />
+            </v-col>
+          </v-row>
+        </template>
+      </template>
 
       <!-- Empty state -->
       <v-card v-else rounded="xl" elevation="0" border class="pa-12 text-center">
@@ -155,6 +352,12 @@
       :dialog="scheduledParticipantsDialog"
       :meeting-uuid="scheduledParticipantsTargetUuid"
       @close-modal="scheduledParticipantsDialog = false"
+    />
+
+    <!-- Manage Sections Dialog -->
+    <RoomSectionDialogManageSections
+      :dialog="manageSectionsDialog"
+      @close-modal="manageSectionsDialog = false"
     />
 
     <!-- Edit Meeting Dialog -->
@@ -213,6 +416,8 @@ import MeetingInviteService from '@/services/MeetingInviteService'
 import { apiClient } from '@/utils/apiClient'
 import { useMeetingInvitesStore } from '@/stores/meeting-invites'
 import { useMeetingEvents } from '@/composables/useMeetingEvents'
+import { useRoomSectionsStore } from '@/stores/room-sections'
+import RoomSectionDialogManageSections from '@/components/room-sections/DialogManageSections.vue'
 /** END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -223,6 +428,7 @@ definePageMeta({ name: 'meetings.index' })
 const { t } = useI18n()
 const invitesStore = useMeetingInvitesStore()
 const { notifyHostScheduleChanged } = useMeetingEvents()
+const sectionsStore = useRoomSectionsStore()
 
 const isLoading = ref(false)
 const createDialog = ref(false)
@@ -258,6 +464,8 @@ let listSocket: Socket | null = null
 
 const liveUsersByMeeting = ref<Record<number, number[]>>({})
 const meetings = ref<Meeting[]>([])
+const manageSectionsDialog = ref(false)
+const collapsedSections = ref<Set<number>>(new Set())
 /** END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -269,9 +477,70 @@ const statusFilters = computed(() => [
 
 const filteredMeetings = computed(() => {
   if (activeFilter.value === 'all') return meetings.value
-
   return meetings.value.filter((meeting) => meeting.status === activeFilter.value)
 })
+
+/** IDs of all meetings placed in any section. */
+const allSectionedMeetingIds = computed(
+  () =>
+    new Set(
+      sectionsStore.sections.flatMap((section) =>
+        (section.items ?? [])
+          .filter((item) => item.resource_type === 'meeting')
+          .map((item) => item.resource_id),
+      ),
+    ),
+)
+
+/**
+ * Named sections that contain at least one visible meeting (after filter).
+ * Does NOT include a synthetic "unsectioned" group — those meetings appear
+ * in the Private / Public blocks below.
+ */
+const sectionedGroups = computed(() => {
+  const allFiltered = filteredMeetings.value
+  const groups: Array<{ sectionId: number; name: string; meetings: Meeting[] }> = []
+
+  for (const section of sectionsStore.sections) {
+    const sectionMeetingIds = new Set(
+      (section.items ?? [])
+        .filter((item) => item.resource_type === 'meeting')
+        .map((item) => item.resource_id),
+    )
+    const sectionMeetings = allFiltered.filter((meeting) => sectionMeetingIds.has(meeting.id))
+    if (sectionMeetings.length > 0) {
+      groups.push({ sectionId: section.id, name: section.name, meetings: sectionMeetings })
+    }
+  }
+
+  return groups
+})
+
+const hasSections = computed(() => sectionsStore.sections.length > 0)
+
+/** Private meetings not in any section. */
+const unsectionedPrivateMeetings = computed(() =>
+  filteredMeetings.value.filter(
+    (meeting) => meeting.is_private && !allSectionedMeetingIds.value.has(meeting.id),
+  ),
+)
+
+/** Public meetings not in any section. */
+const unsectionedPublicMeetings = computed(() =>
+  filteredMeetings.value.filter(
+    (meeting) => !meeting.is_private && !allSectionedMeetingIds.value.has(meeting.id),
+  ),
+)
+
+/** Private meetings (used in no-sections flat view). */
+const privateMeetings = computed(() =>
+  filteredMeetings.value.filter((meeting) => meeting.is_private),
+)
+
+/** Public meetings (used in no-sections flat view). */
+const publicMeetings = computed(() =>
+  filteredMeetings.value.filter((meeting) => !meeting.is_private),
+)
 /** END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
@@ -407,6 +676,29 @@ function openScheduledParticipantsDialog(uuid: string) {
   scheduledParticipantsDialog.value = true
 }
 
+function toggleSectionCollapse(sectionId: number) {
+  if (collapsedSections.value.has(sectionId)) {
+    collapsedSections.value.delete(sectionId)
+  } else {
+    collapsedSections.value.add(sectionId)
+  }
+}
+
+function getMeetingSectionId(meeting: Meeting): number | null {
+  return sectionsStore.getSectionForResource('meeting', meeting.id)
+}
+
+async function moveToSection(uuid: string, sectionId: number | null) {
+  const meeting = meetings.value.find((item) => item.uuid === uuid)
+  if (!meeting) return
+
+  try {
+    await sectionsStore.moveToSection('meeting', meeting.id, sectionId)
+  } catch (error) {
+    console.error('Failed to move meeting to section:', error)
+  }
+}
+
 async function confirmDelete() {
   isDeleting.value = true
 
@@ -436,7 +728,7 @@ watch(
 
 /** START LIFECYCLE */
 onMounted(async () => {
-  await loadMeetings()
+  await Promise.all([loadMeetings(), sectionsStore.load()])
   loadPendingInvites()
 
   try {
@@ -542,5 +834,20 @@ onUnmounted(() => {
 <style scoped>
 .cursor-pointer {
   cursor: pointer;
+}
+
+.section-group-header {
+  cursor: pointer;
+  user-select: none;
+}
+
+.warning-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(var(--v-theme-error), 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

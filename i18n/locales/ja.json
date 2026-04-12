@@ -139,7 +139,8 @@
     "groups": "チーム",
     "settings": "設定",
     "systemSettings": "システム設定",
-    "meetings": "ミーティング"
+    "meetings": "ミーティング",
+    "translationLogs": "翻訳ログ"
   },
   "auth": {
     "attendanceSystem": "勤怠管理システム",
@@ -1414,5 +1415,47 @@
       "subtitle": "以下の会議に招待されています。各招待に返答してください。",
       "hostedBy": "主催者"
     }
+  },
+  "translationLogs": {
+    "title": "翻訳ログ",
+    "sourceTarget": "翻訳元 → 翻訳先",
+    "inputLength": "入力長",
+    "targetLangs": "翻訳先言語",
+    "status": "ステータス",
+    "cache": "キャッシュ",
+    "tokens": "トークン",
+    "duration": "所要時間",
+    "errorMessage": "エラー内容",
+    "purgeOld": "古いログを削除",
+    "purgeTitle": "翻訳ログの削除",
+    "purgeConfirm": "指定した日数より古い翻訳ログをすべて削除しますか？元に戻せません。",
+    "purgeDays": "保持日数",
+    "statusSuccess": "成功",
+    "statusError": "エラー",
+    "statusPartial": "部分",
+    "stats": {
+      "total": "合計リクエスト",
+      "cacheHitRate": "キャッシュヒット率",
+      "tokensSaved": "節約トークン",
+      "errorRate": "エラー率",
+      "avgDuration": "平均所要時間"
+    },
+    "cacheBreakdown": {
+      "title": "言語別キャッシュ分析",
+      "languagePair": "言語ペア",
+      "requests": "リクエスト",
+      "cacheHitRate": "ヒット率",
+      "avgDuration": "平均所要時間",
+      "tokensSaved": "節約トークン"
+    }
+  },
+  "sections": {
+    "manageSections": "セクション管理",
+    "manageSectionsDesc": "セクションを作成してルームを整理する",
+    "newSectionPlaceholder": "新しいセクション名...",
+    "noSections": "セクションがありません。作成してください。",
+    "moveToSection": "セクションに移動",
+    "removeFromSection": "セクションから削除",
+    "unsectioned": "未分類"
   }
 }

@@ -1,20 +1,19 @@
 <template>
   <v-dialog :model-value="dialog" max-width="640" persistent scrollable>
-    <v-card rounded="xl">
+    <v-card rounded="xl" elevation="2">
       <!-- Header -->
-      <div class="dialog-header px-6 pt-5 pb-4">
-        <div class="d-flex align-center ga-2">
-          <v-icon color="primary">mdi-account-multiple-plus-outline</v-icon>
-          <span class="text-h6 font-weight-bold">{{
-            $t('meetings.scheduledParticipants.title')
-          }}</span>
+      <div class="dialog-header px-6 pt-6 pb-4">
+        <div>
+          <div class="text-h6 font-weight-bold text-primary">
+            {{ $t('meetings.scheduledParticipants.title') }}
+          </div>
         </div>
         <v-btn icon variant="text" size="small" @click="close">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </div>
 
-      <v-card-text class="pt-0">
+      <v-card-text class="px-6 py-0">
         <!-- Add participants -->
         <p class="text-body-2 text-medium-emphasis mb-3">
           {{ $t('meetings.scheduledParticipants.selectUsers') }}
@@ -28,9 +27,10 @@
           item-value="id"
           :placeholder="$t('meetings.invite.searchUsers')"
           :no-data-text="$t('common.noData')"
-          variant="outlined"
+          variant="filled"
           density="comfortable"
           rounded="lg"
+          flat
           hide-details
           multiple
           chips
@@ -40,7 +40,7 @@
           autocomplete="off"
         />
 
-        <div class="d-flex justify-end mt-3">
+        <div class="d-flex justify-end my-3">
           <v-btn
             color="primary"
             variant="elevated"
@@ -58,7 +58,7 @@
       <v-divider />
 
       <!-- Participant list -->
-      <v-card-text class="pt-3">
+      <v-card-text class="px-6 pt-4 pb-0">
         <p class="text-body-2 font-weight-medium mb-2">
           {{ $t('meetings.scheduledParticipants.participantList') }}
         </p>
@@ -128,7 +128,7 @@
       <v-divider />
 
       <!-- Auto-call config -->
-      <v-card-text class="pt-3">
+      <v-card-text class="px-6 pt-4 pb-6">
         <div class="d-flex align-center justify-space-between mb-3">
           <p class="text-body-2 font-weight-medium mb-0">
             {{ $t('meetings.scheduledParticipants.autoCall.title') }}
@@ -148,9 +148,10 @@
               v-model.number="minutesBefore"
               :label="$t('meetings.scheduledParticipants.autoCall.minutesBefore')"
               type="number"
-              variant="outlined"
+              variant="filled"
               density="comfortable"
               rounded="lg"
+              flat
               hide-details
               min="1"
               max="120"
@@ -162,9 +163,10 @@
               v-model.number="retryCount"
               :label="$t('meetings.scheduledParticipants.autoCall.retryCount')"
               type="number"
-              variant="outlined"
+              variant="filled"
               density="comfortable"
               rounded="lg"
+              flat
               hide-details
               min="0"
               max="10"
@@ -176,9 +178,10 @@
               v-model.number="retryInterval"
               :label="$t('meetings.scheduledParticipants.autoCall.retryInterval')"
               type="number"
-              variant="outlined"
+              variant="filled"
               density="comfortable"
               rounded="lg"
+              flat
               hide-details
               min="1"
               max="60"

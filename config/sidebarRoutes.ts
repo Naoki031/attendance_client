@@ -177,6 +177,12 @@ const adminGroups: RouteGroup[] = [
         textKey: 'nav.systemSettings',
         name: 'admin.settings.index',
       },
+      {
+        icon: 'mdi-translate',
+        link: '/management/translation-logs',
+        textKey: 'nav.translationLogs',
+        name: 'admin.translation-logs.index',
+      },
     ],
   },
 ]

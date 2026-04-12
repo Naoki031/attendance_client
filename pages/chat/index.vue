@@ -6,15 +6,26 @@
         <div class="text-h5 font-weight-bold">{{ $t('chat.rooms') }}</div>
         <div class="text-body-2 text-medium-emphasis">{{ $t('chat.roomsDesc') }}</div>
       </div>
-      <v-btn
-        variant="elevated"
-        color="primary"
-        rounded="lg"
-        prepend-icon="mdi-plus"
-        @click="createDialog = true"
-      >
-        {{ $t('chat.createRoom') }}
-      </v-btn>
+      <div class="d-flex ga-2">
+        <v-btn
+          variant="tonal"
+          color="default"
+          rounded="lg"
+          prepend-icon="mdi-folder-multiple-outline"
+          @click="manageSectionsDialog = true"
+        >
+          {{ $t('sections.manageSections') }}
+        </v-btn>
+        <v-btn
+          variant="elevated"
+          color="primary"
+          rounded="lg"
+          prepend-icon="mdi-plus"
+          @click="createDialog = true"
+        >
+          {{ $t('chat.createRoom') }}
+        </v-btn>
+      </div>
     </div>
 
     <!-- Tabs -->
@@ -97,20 +108,190 @@
           </div>
 
           <template v-else>
-            <!-- Channels -->
-            <template v-if="filteredMyChannelRooms.length > 0">
+            <!-- Section-grouped view -->
+            <template v-if="hasSections">
+              <div
+                v-for="group in sectionedRoomGroups"
+                :key="group.sectionId ?? 'unsectioned'"
+                class="mb-4"
+              >
+                <!-- Section header -->
+                <div
+                  class="section-group-header d-flex align-center ga-2 mb-2 cursor-pointer"
+                  @click="group.sectionId !== null && toggleSectionCollapse(group.sectionId)"
+                >
+                  <v-icon
+                    size="14"
+                    color="medium-emphasis"
+                    :style="
+                      group.sectionId !== null && collapsedSections.has(group.sectionId)
+                        ? 'transform: rotate(-90deg)'
+                        : ''
+                    "
+                    style="transition: transform 0.2s"
+                  >
+                    mdi-chevron-down
+                  </v-icon>
+                  <v-icon size="14" :color="group.sectionId ? 'primary' : 'medium-emphasis'">
+                    {{ group.sectionId ? 'mdi-folder' : 'mdi-folder-outline' }}
+                  </v-icon>
+                  <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold">
+                    {{ group.name }}
+                  </span>
+                  <span class="text-caption text-disabled">({{ group.rooms.length }})</span>
+                </div>
+
+                <v-card
+                  v-if="group.sectionId === null || !collapsedSections.has(group.sectionId)"
+                  rounded="xl"
+                  elevation="0"
+                  border
+                  class="overflow-hidden"
+                >
+                  <template v-for="(room, index) in group.rooms" :key="room.id">
+                    <v-divider v-if="index > 0" />
+                    <div
+                      class="room-list-item d-flex align-center ga-3 px-4 py-3"
+                      @click="navigateTo(`/chat/${room.uuid}`)"
+                    >
+                      <!-- Left accent bar -->
+                      <div
+                        v-if="room.type === 'channel'"
+                        :class="[
+                          'room-list-accent',
+                          room.visibility === 'private'
+                            ? 'room-list-accent--private'
+                            : 'room-list-accent--public',
+                        ]"
+                      />
+
+                      <v-avatar
+                        v-if="room.type === 'channel'"
+                        size="36"
+                        rounded="lg"
+                        :color="room.visibility === 'private' ? 'warning' : 'success'"
+                        variant="tonal"
+                        class="flex-shrink-0"
+                      >
+                        <v-icon size="17">mdi-pound</v-icon>
+                      </v-avatar>
+                      <v-avatar
+                        v-else
+                        size="36"
+                        :color="room.direct_user?.avatar ? undefined : 'primary'"
+                        class="flex-shrink-0"
+                      >
+                        <v-img
+                          v-if="room.direct_user?.avatar"
+                          :src="room.direct_user.avatar"
+                          cover
+                        />
+                        <span v-else class="text-body-2 font-weight-bold text-white">
+                          {{ (room.direct_user?.full_name ?? room.name).charAt(0).toUpperCase() }}
+                        </span>
+                      </v-avatar>
+
+                      <div class="flex-grow-1 min-width-0">
+                        <div class="d-flex align-center ga-1 min-width-0">
+                          <span class="text-body-2 font-weight-semibold room-list-name">
+                            {{
+                              room.type === 'direct'
+                                ? (room.direct_user?.full_name ?? room.name)
+                                : room.name
+                            }}
+                          </span>
+                          <v-icon
+                            v-if="room.type === 'channel' && room.visibility === 'private'"
+                            size="11"
+                            color="warning"
+                            class="flex-shrink-0"
+                          >
+                            mdi-lock
+                          </v-icon>
+                        </div>
+                        <div class="text-caption text-disabled room-list-sub">
+                          {{
+                            room.type === 'direct'
+                              ? room.direct_user?.email
+                              : $t('chat.createdBy', { name: room.creator?.full_name })
+                          }}
+                        </div>
+                      </div>
+
+                      <div class="d-flex align-center ga-2 flex-shrink-0">
+                        <v-chip
+                          v-if="getUnreadCount(room.uuid) > 0"
+                          size="x-small"
+                          color="error"
+                          variant="flat"
+                        >
+                          {{ getUnreadCount(room.uuid) }}
+                        </v-chip>
+
+                        <!-- Section move menu -->
+                        <v-menu>
+                          <template #activator="{ props: menuProps }">
+                            <v-btn
+                              :icon="getRoomSectionId(room) ? 'mdi-folder' : 'mdi-folder-outline'"
+                              :color="getRoomSectionId(room) ? 'primary' : undefined"
+                              variant="text"
+                              size="x-small"
+                              v-bind="menuProps"
+                              @click.stop
+                            />
+                          </template>
+                          <v-list density="compact">
+                            <v-list-subheader>{{ $t('sections.moveToSection') }}</v-list-subheader>
+                            <v-list-item
+                              v-for="section in sectionsStore.sections"
+                              :key="section.id"
+                              :prepend-icon="
+                                getRoomSectionId(room) === section.id
+                                  ? 'mdi-folder-check'
+                                  : 'mdi-folder-outline'
+                              "
+                              :title="section.name"
+                              :active="getRoomSectionId(room) === section.id"
+                              color="primary"
+                              @click.stop="
+                                moveRoomToSection(
+                                  room.id,
+                                  getRoomSectionId(room) === section.id ? null : section.id,
+                                )
+                              "
+                            />
+                            <v-divider v-if="getRoomSectionId(room)" class="my-1" />
+                            <v-list-item
+                              v-if="getRoomSectionId(room)"
+                              prepend-icon="mdi-folder-remove-outline"
+                              :title="$t('sections.removeFromSection')"
+                              @click.stop="moveRoomToSection(room.id, null)"
+                            />
+                          </v-list>
+                        </v-menu>
+
+                        <v-icon size="14" color="medium-emphasis">mdi-chevron-right</v-icon>
+                      </div>
+                    </div>
+                  </template>
+                </v-card>
+              </div>
+            </template>
+
+            <!-- Channels (all when no sections; only unsectioned when sections exist) -->
+            <template v-if="displayedChannelRooms.length > 0">
               <div class="section-header mb-2">
                 <v-icon size="14" color="medium-emphasis" class="mr-1">mdi-pound</v-icon>
                 <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold">
                   {{ $t('chat.channels') }}
                 </span>
                 <span class="text-caption text-disabled ml-2">
-                  ({{ filteredMyChannelRooms.length }})
+                  ({{ displayedChannelRooms.length }})
                 </span>
               </div>
 
               <v-card rounded="xl" elevation="0" border class="mb-4 overflow-hidden">
-                <template v-for="(room, index) in filteredMyChannelRooms" :key="room.id">
+                <template v-for="(room, index) in displayedChannelRooms" :key="room.id">
                   <v-divider v-if="index > 0" />
                   <div
                     class="room-list-item d-flex align-center ga-3 px-4 py-3"
@@ -202,6 +383,48 @@
                         </div>
                       </div>
 
+                      <!-- Section move menu (only when sections exist) -->
+                      <v-menu v-if="hasSections">
+                        <template #activator="{ props: menuProps }">
+                          <v-btn
+                            :icon="getRoomSectionId(room) ? 'mdi-folder' : 'mdi-folder-outline'"
+                            :color="getRoomSectionId(room) ? 'primary' : undefined"
+                            variant="text"
+                            size="x-small"
+                            v-bind="menuProps"
+                            @click.stop
+                          />
+                        </template>
+                        <v-list density="compact">
+                          <v-list-subheader>{{ $t('sections.moveToSection') }}</v-list-subheader>
+                          <v-list-item
+                            v-for="section in sectionsStore.sections"
+                            :key="section.id"
+                            :prepend-icon="
+                              getRoomSectionId(room) === section.id
+                                ? 'mdi-folder-check'
+                                : 'mdi-folder-outline'
+                            "
+                            :title="section.name"
+                            :active="getRoomSectionId(room) === section.id"
+                            color="primary"
+                            @click.stop="
+                              moveRoomToSection(
+                                room.id,
+                                getRoomSectionId(room) === section.id ? null : section.id,
+                              )
+                            "
+                          />
+                          <v-divider v-if="getRoomSectionId(room)" class="my-1" />
+                          <v-list-item
+                            v-if="getRoomSectionId(room)"
+                            prepend-icon="mdi-folder-remove-outline"
+                            :title="$t('sections.removeFromSection')"
+                            @click.stop="moveRoomToSection(room.id, null)"
+                          />
+                        </v-list>
+                      </v-menu>
+
                       <v-btn
                         v-if="room.description"
                         size="x-small"
@@ -222,20 +445,20 @@
               </v-card>
             </template>
 
-            <!-- Direct Messages -->
-            <template v-if="filteredMyDirectRooms.length > 0">
+            <!-- Direct Messages (all when no sections; only unsectioned when sections exist) -->
+            <template v-if="displayedDirectRooms.length > 0">
               <div class="section-header mb-2">
                 <v-icon size="14" color="medium-emphasis" class="mr-1">mdi-message-outline</v-icon>
                 <span class="text-caption text-medium-emphasis text-uppercase font-weight-bold">
                   {{ $t('chat.directMessages') }}
                 </span>
                 <span class="text-caption text-disabled ml-2">
-                  ({{ filteredMyDirectRooms.length }})
+                  ({{ displayedDirectRooms.length }})
                 </span>
               </div>
 
               <v-card rounded="xl" elevation="0" border class="overflow-hidden">
-                <template v-for="(room, index) in filteredMyDirectRooms" :key="room.id">
+                <template v-for="(room, index) in displayedDirectRooms" :key="room.id">
                   <v-divider v-if="index > 0" />
                   <div
                     class="room-list-item d-flex align-center ga-3 px-4 py-3"
@@ -271,9 +494,51 @@
                       </div>
                     </div>
 
-                    <v-icon size="14" color="medium-emphasis" class="flex-shrink-0">
-                      mdi-chevron-right
-                    </v-icon>
+                    <div class="d-flex align-center ga-2 flex-shrink-0">
+                      <!-- Section move menu (only when sections exist) -->
+                      <v-menu v-if="hasSections">
+                        <template #activator="{ props: menuProps }">
+                          <v-btn
+                            :icon="getRoomSectionId(room) ? 'mdi-folder' : 'mdi-folder-outline'"
+                            :color="getRoomSectionId(room) ? 'primary' : undefined"
+                            variant="text"
+                            size="x-small"
+                            v-bind="menuProps"
+                            @click.stop
+                          />
+                        </template>
+                        <v-list density="compact">
+                          <v-list-subheader>{{ $t('sections.moveToSection') }}</v-list-subheader>
+                          <v-list-item
+                            v-for="section in sectionsStore.sections"
+                            :key="section.id"
+                            :prepend-icon="
+                              getRoomSectionId(room) === section.id
+                                ? 'mdi-folder-check'
+                                : 'mdi-folder-outline'
+                            "
+                            :title="section.name"
+                            :active="getRoomSectionId(room) === section.id"
+                            color="primary"
+                            @click.stop="
+                              moveRoomToSection(
+                                room.id,
+                                getRoomSectionId(room) === section.id ? null : section.id,
+                              )
+                            "
+                          />
+                          <v-divider v-if="getRoomSectionId(room)" class="my-1" />
+                          <v-list-item
+                            v-if="getRoomSectionId(room)"
+                            prepend-icon="mdi-folder-remove-outline"
+                            :title="$t('sections.removeFromSection')"
+                            @click.stop="moveRoomToSection(room.id, null)"
+                          />
+                        </v-list>
+                      </v-menu>
+
+                      <v-icon size="14" color="medium-emphasis">mdi-chevron-right</v-icon>
+                    </div>
                   </div>
                 </template>
               </v-card>
@@ -414,6 +679,12 @@
       @close-modal="createDialog = false"
     />
 
+    <!-- Manage Sections Dialog -->
+    <RoomSectionDialogManageSections
+      :dialog="manageSectionsDialog"
+      @close-modal="manageSectionsDialog = false"
+    />
+
     <!-- Room description dialog -->
     <v-dialog v-model="descriptionDialog" max-width="480">
       <v-card rounded="xl">
@@ -452,6 +723,8 @@ import DialogCreateChatRoom from '@/components/chat/DialogCreateChatRoom.vue'
 import ChatRoomService from '@/services/ChatRoomService'
 import { useChatUnread } from '@/composables/useChatUnread'
 import type { ChatRoomModel } from '@/interfaces/models/ChatRoomModel'
+import { useRoomSectionsStore } from '@/stores/room-sections'
+import RoomSectionDialogManageSections from '@/components/room-sections/DialogManageSections.vue'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -463,6 +736,7 @@ definePageMeta({
 
 /** START DEFINE STATE */
 const userStore = useUserStore()
+const sectionsStore = useRoomSectionsStore()
 const myRooms = ref<Array<ChatRoomModel>>([])
 const publicRooms = ref<Array<ChatRoomModel>>([])
 const isLoading = ref(false)
@@ -470,9 +744,11 @@ const activeTab = ref<'mine' | 'discover'>('mine')
 const mySearch = ref('')
 const discoverSearch = ref('')
 const createDialog = ref(false)
+const manageSectionsDialog = ref(false)
 const joiningRoomId = ref<number | null>(null)
 const descriptionDialog = ref(false)
 const selectedDescriptionRoom = ref<ChatRoomModel | null>(null)
+const collapsedSections = ref<Set<number>>(new Set())
 const { unreadCounts, fetchUnreadCounts } = useChatUnread()
 /* END DEFINE STATE */
 
@@ -516,6 +792,64 @@ const filteredDiscoverableRooms = computed(() => {
   if (!query) return discoverableRooms.value
   return discoverableRooms.value.filter((room) => room.name?.toLowerCase().includes(query))
 })
+
+/** IDs of all chat rooms that are placed in any section. */
+const allSectionedRoomIds = computed(
+  () =>
+    new Set(
+      sectionsStore.sections.flatMap((section) =>
+        (section.items ?? [])
+          .filter((item) => item.resource_type === 'chat_room')
+          .map((item) => item.resource_id),
+      ),
+    ),
+)
+
+/**
+ * Named sections that contain at least one visible room (after search filter).
+ * Does NOT include an "unsectioned" fallback group — those rooms appear in the
+ * Channels / Direct Messages blocks below.
+ */
+const sectionedRoomGroups = computed(() => {
+  const allFiltered = [...filteredMyChannelRooms.value, ...filteredMyDirectRooms.value]
+  const groups: Array<{ sectionId: number; name: string; rooms: ChatRoomModel[] }> = []
+
+  for (const section of sectionsStore.sections) {
+    const sectionRoomIds = new Set(
+      (section.items ?? [])
+        .filter((item) => item.resource_type === 'chat_room')
+        .map((item) => item.resource_id),
+    )
+    const sectionRooms = allFiltered.filter((room) => sectionRoomIds.has(room.id))
+    if (sectionRooms.length > 0) {
+      groups.push({ sectionId: section.id, name: section.name, rooms: sectionRooms })
+    }
+  }
+
+  return groups
+})
+
+/** Channels not placed in any section (shown below named sections). */
+const unsectionedChannelRooms = computed(() =>
+  filteredMyChannelRooms.value.filter((room) => !allSectionedRoomIds.value.has(room.id)),
+)
+
+/** Direct messages not placed in any section (shown below named sections). */
+const unsectionedDirectRooms = computed(() =>
+  filteredMyDirectRooms.value.filter((room) => !allSectionedRoomIds.value.has(room.id)),
+)
+
+/** Channels to display: all when no sections, only unsectioned when sections exist. */
+const displayedChannelRooms = computed(() =>
+  hasSections.value ? unsectionedChannelRooms.value : filteredMyChannelRooms.value,
+)
+
+/** Direct messages to display: all when no sections, only unsectioned when sections exist. */
+const displayedDirectRooms = computed(() =>
+  hasSections.value ? unsectionedDirectRooms.value : filteredMyDirectRooms.value,
+)
+
+const hasSections = computed(() => sectionsStore.sections.length > 0)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
@@ -547,6 +881,26 @@ function stripMarkdown(text: string): string {
     .trim()
 }
 
+function toggleSectionCollapse(sectionId: number) {
+  if (collapsedSections.value.has(sectionId)) {
+    collapsedSections.value.delete(sectionId)
+  } else {
+    collapsedSections.value.add(sectionId)
+  }
+}
+
+function getRoomSectionId(room: ChatRoomModel): number | null {
+  return sectionsStore.getSectionForResource('chat_room', room.id)
+}
+
+async function moveRoomToSection(roomId: number, sectionId: number | null) {
+  try {
+    await sectionsStore.moveToSection('chat_room', roomId, sectionId)
+  } catch (error) {
+    console.error('Failed to move chat room to section:', error)
+  }
+}
+
 const fetchRooms = async () => {
   if (isLoading.value) return
 
@@ -556,6 +910,7 @@ const fetchRooms = async () => {
       ChatRoomService.getMyRooms(),
       ChatRoomService.getPublicRooms(),
       fetchUnreadCounts(),
+      sectionsStore.load(),
     ])
     myRooms.value = myRoomsResult
     publicRooms.value = publicRoomsResult
@@ -740,6 +1095,12 @@ onMounted(() => {
   font-size: 9px;
   font-weight: 700;
   color: var(--color-muted);
+}
+
+/* ── Section group header ─────────────────────────────────── */
+.section-group-header {
+  cursor: pointer;
+  user-select: none;
 }
 
 /* ── Empty state ──────────────────────────────────────────── */
