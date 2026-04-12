@@ -162,7 +162,7 @@
           size="48"
           @click="emit('open-invite')"
         ></v-btn>
-        <span class="control-bar__label">{{ $t('meetings.invite.title') }}</span>
+        <span class="control-bar__label">{{ $t('meetings.invite.label') }}</span>
       </div>
 
       <div class="control-bar__item">
@@ -194,7 +194,7 @@
           </span>
         </div>
         <span class="control-bar__label" :class="showChatPanel ? 'control-bar__label--on' : ''">
-          {{ $t('meetings.chat.title') }}
+          {{ $t('meetings.chat.label') }}
         </span>
       </div>
     </div>

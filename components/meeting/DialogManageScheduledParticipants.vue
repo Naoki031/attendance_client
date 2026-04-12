@@ -185,6 +185,16 @@
               @blur="saveAutoCallConfig"
             />
           </v-col>
+          <v-col cols="12">
+            <v-checkbox
+              v-model="skipWeekends"
+              :label="$t('meetings.scheduledParticipants.autoCall.skipWeekends')"
+              density="compact"
+              hide-details
+              color="primary"
+              @update:model-value="saveAutoCallConfig"
+            />
+          </v-col>
         </v-row>
       </v-card-text>
     </v-card>
@@ -235,6 +245,7 @@ const autoCallEnabled = ref(true)
 const minutesBefore = ref(5)
 const retryCount = ref(0)
 const retryInterval = ref(2)
+const skipWeekends = ref(false)
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const scheduledParticipantsStore = useScheduledParticipantsStore()
@@ -269,6 +280,7 @@ async function loadAutoCallConfig() {
       minutesBefore.value = config.minutes_before
       retryCount.value = config.retry_count
       retryInterval.value = config.retry_interval_minutes
+      skipWeekends.value = config.skip_weekends
     }
   } catch {
     // Config not set yet — keep defaults
@@ -331,6 +343,7 @@ async function saveAutoCallConfig() {
       minutes_before: minutesBefore.value,
       retry_count: retryCount.value,
       retry_interval_minutes: retryInterval.value,
+      skip_weekends: skipWeekends.value,
     })
   } catch (error) {
     console.error('Failed to save auto-call config:', error)
@@ -377,6 +390,20 @@ watch(
     if (participant) {
       participant.status = update.status as MeetingScheduledParticipantModel['status']
     }
+  },
+)
+
+// Sync auto-call config when another user updates it while this dialog is open
+watch(
+  () => scheduledParticipantsStore.lastAutoCallConfigUpdate,
+  (update) => {
+    if (!update || update.meetingUuid !== props.meetingUuid || !props.dialog) return
+    const config = update.config
+    autoCallEnabled.value = config.is_enabled
+    minutesBefore.value = config.minutes_before
+    retryCount.value = config.retry_count
+    retryInterval.value = config.retry_interval_minutes
+    skipWeekends.value = config.skip_weekends
   },
 )
 /* END DEFINE WATCHER */

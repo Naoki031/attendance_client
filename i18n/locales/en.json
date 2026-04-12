@@ -1338,11 +1338,13 @@
     "createdBy": "Created by",
     "chat": {
       "title": "Meeting Chat",
+      "label": "Chat",
       "empty": "No messages yet. Start the conversation!",
       "placeholder": "Message meeting..."
     },
     "invite": {
       "title": "Invite Guests",
+      "label": "Invite",
       "selectUsers": "Select users to invite",
       "searchUsers": "Search users...",
       "send": "Send Invites",
@@ -1385,7 +1387,8 @@
         "title": "Auto-call Settings",
         "minutesBefore": "Minutes before",
         "retryCount": "Retry count",
-        "retryInterval": "Retry interval (min)"
+        "retryInterval": "Retry interval (min)",
+        "skipWeekends": "Skip weekends (Sat & Sun)"
       }
     },
     "rsvp": {

@@ -1338,11 +1338,13 @@
     "createdBy": "Tạo bởi",
     "chat": {
       "title": "Chat cuộc họp",
+      "label": "Chat",
       "empty": "Chưa có tin nhắn. Hãy bắt đầu cuộc trò chuyện!",
       "placeholder": "Nhắn tin trong cuộc họp..."
     },
     "invite": {
       "title": "Mời khách",
+      "label": "Mời",
       "selectUsers": "Chọn người dùng để mời",
       "searchUsers": "Tìm người dùng...",
       "send": "Gửi lời mời",
@@ -1385,7 +1387,8 @@
         "title": "Cài đặt gọi tự động",
         "minutesBefore": "Phút trước cuộc họp",
         "retryCount": "Số lần gọi lại",
-        "retryInterval": "Khoảng cách gọi lại (phút)"
+        "retryInterval": "Khoảng cách gọi lại (phút)",
+        "skipWeekends": "Bỏ qua cuối tuần (T7 & CN)"
       }
     },
     "rsvp": {

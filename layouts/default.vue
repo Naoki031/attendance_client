@@ -42,6 +42,7 @@ import { useAppNotifications } from '@/composables/useAppNotifications'
 import type { EmployeeRequestModel } from '@/interfaces/models/EmployeeRequestModel'
 import MeetingScheduledParticipantService from '@/services/MeetingScheduledParticipantService'
 import type { MeetingScheduledParticipantModel } from '@/interfaces/models/MeetingScheduledParticipantModel'
+import type { MeetingAutoCallConfigModel } from '@/interfaces/models/MeetingAutoCallConfigModel'
 import { useScheduledParticipantsStore } from '@/stores/scheduled-participants'
 /* END IMPORT */
 
@@ -170,6 +171,14 @@ onMounted(() => {
         'scheduled_rsvp_updated',
         (data: { meetingUuid: string; userId: number; status: string }) => {
           scheduledParticipantsStore.notifyRsvpUpdate(data)
+        },
+      )
+
+      // Sync auto-call config changes to all open manage-participants dialogs
+      meetingSocket.on(
+        'auto_call_config_updated',
+        (data: { meetingUuid: string; config: MeetingAutoCallConfigModel }) => {
+          scheduledParticipantsStore.notifyAutoCallConfigUpdate(data)
         },
       )
     }

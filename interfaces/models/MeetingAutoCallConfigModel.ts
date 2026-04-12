@@ -5,6 +5,7 @@ export interface MeetingAutoCallConfigModel {
   retry_count: number
   retry_interval_minutes: number
   is_enabled: boolean
+  skip_weekends: boolean
   created_at?: string
   updated_at?: string
 }

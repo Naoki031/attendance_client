@@ -14,7 +14,7 @@
         </div>
       </template>
       <template v-else>
-        <v-avatar size="30" color="surface-variant" rounded="lg">
+        <v-avatar size="30" rounded="lg" class="no-host-avatar">
           <v-icon size="16" color="medium-emphasis">mdi-account-question-outline</v-icon>
         </v-avatar>
         <div class="min-width-0">
@@ -219,5 +219,9 @@ onMounted(() => {
 
 .schedule-trigger:hover {
   color: rgb(var(--v-theme-primary));
+}
+
+.no-host-avatar {
+  background-color: rgba(var(--v-theme-on-surface), 0.08) !important;
 }
 </style>
