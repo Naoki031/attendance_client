@@ -1388,7 +1388,8 @@
         "minutesBefore": "Minutes before",
         "retryCount": "Retry count",
         "retryInterval": "Retry interval (min)",
-        "skipWeekends": "Skip weekends (Sat & Sun)"
+        "skipWeekends": "Skip weekends (Sat & Sun)",
+        "retryWindowError": "Retry window ({total} min) must be less than 'Call before' ({before} min). Reduce retry count or interval."
       }
     },
     "rsvp": {

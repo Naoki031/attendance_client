@@ -212,6 +212,7 @@ import MeetingService from '@/services/MeetingService'
 import MeetingInviteService from '@/services/MeetingInviteService'
 import { apiClient } from '@/utils/apiClient'
 import { useMeetingInvitesStore } from '@/stores/meeting-invites'
+import { useMeetingEvents } from '@/composables/useMeetingEvents'
 /** END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -221,6 +222,7 @@ definePageMeta({ name: 'meetings.index' })
 /** START DEFINE STATE */
 const { t } = useI18n()
 const invitesStore = useMeetingInvitesStore()
+const { notifyHostScheduleChanged } = useMeetingEvents()
 
 const isLoading = ref(false)
 const createDialog = ref(false)
@@ -509,6 +511,23 @@ onMounted(async () => {
         }
       },
     )
+
+    listSocket.on('meeting_created', (meeting: Meeting) => {
+      if (!meetings.value.some((item) => item.uuid === meeting.uuid)) {
+        meetings.value.unshift(meeting)
+      }
+    })
+
+    listSocket.on('meeting_updated', (updated: Meeting) => {
+      const index = meetings.value.findIndex((item) => item.id === updated.id)
+      if (index !== -1) {
+        meetings.value[index] = { ...meetings.value[index], ...updated }
+      }
+    })
+
+    listSocket.on('host_schedule_changed', (data: { meetingUuid: string }) => {
+      notifyHostScheduleChanged(data.meetingUuid)
+    })
   }
 })
 

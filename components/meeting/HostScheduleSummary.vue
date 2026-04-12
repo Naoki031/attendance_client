@@ -73,6 +73,7 @@ import type {
   MeetingHostSchedule,
   HostScheduleType,
 } from '@/interfaces/models/MeetingHostScheduleModel'
+import { useMeetingEvents } from '@/composables/useMeetingEvents'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -85,6 +86,7 @@ const props = defineProps<{
 
 /** START DEFINE STATE */
 const { locale } = useI18n()
+const { hostScheduleChangedUuid } = useMeetingEvents()
 const schedules = ref<MeetingHostSchedule[]>([])
 const todayHostId = ref<number | null>(null)
 const hasScheduleToday = ref(false)
@@ -198,6 +200,12 @@ async function load() {
   }
 }
 /** END DEFINE METHOD */
+
+/** START DEFINE WATCHER */
+watch(hostScheduleChangedUuid, (uuid) => {
+  if (uuid === props.meetingUuid) load()
+})
+/** END DEFINE WATCHER */
 
 /** START LIFECYCLE */
 onMounted(() => {

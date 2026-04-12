@@ -195,6 +195,11 @@
               @update:model-value="saveAutoCallConfig"
             />
           </v-col>
+          <v-col v-if="retryWindowError" cols="12">
+            <v-alert type="error" variant="tonal" density="compact" rounded="lg">
+              {{ retryWindowError }}
+            </v-alert>
+          </v-col>
         </v-row>
       </v-card-text>
     </v-card>
@@ -231,6 +236,7 @@ const emit = defineEmits<{
 /* END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
+const { t } = useI18n()
 type UserOption = { id: number; display_name: string; email: string; avatar?: string }
 
 const participants = ref<MeetingScheduledParticipantModel[]>([])
@@ -250,6 +256,22 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 const scheduledParticipantsStore = useScheduledParticipantsStore()
 /* END DEFINE STATE */
+
+/** START DEFINE COMPUTED */
+const retryWindowError = computed<string | null>(() => {
+  if (retryCount.value === 0) return null
+  const totalRetryMinutes = retryCount.value * retryInterval.value
+
+  if (totalRetryMinutes > minutesBefore.value) {
+    return t('meetings.scheduledParticipants.autoCall.retryWindowError', {
+      total: totalRetryMinutes,
+      before: minutesBefore.value,
+    })
+  }
+
+  return null
+})
+/** END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
 function statusColor(status: string): string {
@@ -337,6 +359,8 @@ async function removeParticipant(userId: number) {
 }
 
 async function saveAutoCallConfig() {
+  if (retryWindowError.value) return
+
   try {
     await MeetingScheduledParticipantService.upsertAutoCallConfig(props.meetingUuid, {
       is_enabled: autoCallEnabled.value,

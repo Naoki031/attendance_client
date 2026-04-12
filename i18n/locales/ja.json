@@ -1388,7 +1388,8 @@
         "minutesBefore": "開始前（分）",
         "retryCount": "再試行回数",
         "retryInterval": "再試行間隔（分）",
-        "skipWeekends": "週末をスキップ（土・日）"
+        "skipWeekends": "週末をスキップ（土・日）",
+        "retryWindowError": "再試行時間の合計（{total}分）は「前に呼び出す」（{before}分）より短くする必要があります。回数または間隔を減らしてください。"
       }
     },
     "rsvp": {

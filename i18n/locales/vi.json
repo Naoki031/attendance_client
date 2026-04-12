@@ -1388,7 +1388,8 @@
         "minutesBefore": "Phút trước cuộc họp",
         "retryCount": "Số lần gọi lại",
         "retryInterval": "Khoảng cách gọi lại (phút)",
-        "skipWeekends": "Bỏ qua cuối tuần (T7 & CN)"
+        "skipWeekends": "Bỏ qua cuối tuần (T7 & CN)",
+        "retryWindowError": "Tổng thời gian gọi lại ({total} phút) phải nhỏ hơn 'Gọi trước' ({before} phút). Giảm số lần hoặc khoảng cách gọi lại."
       }
     },
     "rsvp": {
