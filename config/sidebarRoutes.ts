@@ -183,6 +183,12 @@ const adminGroups: RouteGroup[] = [
         textKey: 'nav.translationLogs',
         name: 'admin.translation-logs.index',
       },
+      {
+        icon: 'mdi-alert-circle-outline',
+        link: '/management/error-logs',
+        textKey: 'nav.errorLogs',
+        name: 'admin.error-logs.index',
+      },
     ],
   },
 ]

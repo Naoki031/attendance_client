@@ -140,7 +140,8 @@
     "settings": "Settings",
     "systemSettings": "System Settings",
     "meetings": "Meetings",
-    "translationLogs": "Translation Logs"
+    "translationLogs": "Translation Logs",
+    "errorLogs": "Error Logs"
   },
   "auth": {
     "attendanceSystem": "Attendance System",
@@ -1457,5 +1458,47 @@
     "moveToSection": "Move to section",
     "removeFromSection": "Remove from section",
     "unsectioned": "Unsectioned"
+  },
+  "errorLogs": {
+    "title": "Error Logs",
+    "description": "View and manage system errors",
+    "level": "Level",
+    "message": "Message",
+    "path": "Path",
+    "method": "Method",
+    "statusCode": "Status Code",
+    "user": "User",
+    "resolved": "Resolved",
+    "unresolved": "Unresolved",
+    "markResolved": "Mark Resolved",
+    "markResolvedConfirm": "Mark this error as resolved?",
+    "resolveSelected": "Resolve Selected",
+    "resolveSelectedConfirm": "Mark {count} selected errors as resolved?",
+    "detail": "Error Detail",
+    "stackTrace": "Stack Trace",
+    "requestBody": "Request Body",
+    "requestQuery": "Query Parameters",
+    "requestHeaders": "Request Headers",
+    "ipAddress": "IP Address",
+    "userAgent": "User Agent",
+    "occurredAt": "Occurred At",
+    "resolvedBy": "Resolved By",
+    "resolvedAt": "Resolved At",
+    "noStackTrace": "No stack trace available",
+    "noRequestBody": "No request body",
+    "purgeOld": "Purge Old Logs",
+    "purgeTitle": "Purge Error Logs",
+    "purgeConfirm": "Delete all error logs older than the specified number of days? This action cannot be undone.",
+    "purgeDays": "Days to keep",
+    "searchPlaceholder": "Search message or path...",
+    "stats": {
+      "total": "Total Errors",
+      "unresolved": "Unresolved",
+      "thisWeek": "This Week",
+      "fatal": "Fatal"
+    },
+    "levelError": "Error",
+    "levelWarn": "Warning",
+    "levelFatal": "Fatal"
   }
 }

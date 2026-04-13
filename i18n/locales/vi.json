@@ -140,7 +140,8 @@
     "settings": "Cài đặt",
     "systemSettings": "Cài đặt hệ thống",
     "meetings": "Cuộc họp",
-    "translationLogs": "Nhật ký dịch thuật"
+    "translationLogs": "Nhật ký dịch thuật",
+    "errorLogs": "Nhật ký lỗi"
   },
   "auth": {
     "attendanceSystem": "Hệ thống Chấm công",
@@ -1457,5 +1458,47 @@
     "moveToSection": "Chuyển vào section",
     "removeFromSection": "Bỏ khỏi section",
     "unsectioned": "Chưa phân loại"
+  },
+  "errorLogs": {
+    "title": "Nhật ký lỗi",
+    "description": "Xem và quản lý lỗi hệ thống",
+    "level": "Mức độ",
+    "message": "Thông điệp",
+    "path": "Đường dẫn",
+    "method": "Phương thức",
+    "statusCode": "Mã trạng thái",
+    "user": "Người dùng",
+    "resolved": "Đã giải quyết",
+    "unresolved": "Chưa giải quyết",
+    "markResolved": "Đánh dấu đã giải quyết",
+    "markResolvedConfirm": "Đánh dấu lỗi này đã được giải quyết?",
+    "resolveSelected": "Giải quyết các mục đã chọn",
+    "resolveSelectedConfirm": "Đánh dấu {count} lỗi đã chọn là đã giải quyết?",
+    "detail": "Chi tiết lỗi",
+    "stackTrace": "Vết ngăn xếp",
+    "requestBody": "Nội dung yêu cầu",
+    "requestQuery": "Tham số truy vấn",
+    "requestHeaders": "Tiêu đề yêu cầu",
+    "ipAddress": "Địa chỉ IP",
+    "userAgent": "User Agent",
+    "occurredAt": "Xảy ra lúc",
+    "resolvedBy": "Giải quyết bởi",
+    "resolvedAt": "Giải quyết lúc",
+    "noStackTrace": "Không có vết ngăn xếp",
+    "noRequestBody": "Không có nội dung yêu cầu",
+    "purgeOld": "Xóa log cũ",
+    "purgeTitle": "Xóa nhật ký lỗi",
+    "purgeConfirm": "Xóa tất cả nhật ký lỗi cũ hơn số ngày đã chỉ định? Hành động này không thể hoàn tác.",
+    "purgeDays": "Số ngày giữ lại",
+    "searchPlaceholder": "Tìm thông điệp hoặc đường dẫn...",
+    "stats": {
+      "total": "Tổng số lỗi",
+      "unresolved": "Chưa giải quyết",
+      "thisWeek": "Tuần này",
+      "fatal": "Nghiêm trọng"
+    },
+    "levelError": "Lỗi",
+    "levelWarn": "Cảnh báo",
+    "levelFatal": "Nghiêm trọng"
   }
 }

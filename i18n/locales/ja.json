@@ -140,7 +140,8 @@
     "settings": "設定",
     "systemSettings": "システム設定",
     "meetings": "ミーティング",
-    "translationLogs": "翻訳ログ"
+    "translationLogs": "翻訳ログ",
+    "errorLogs": "エラーログ"
   },
   "auth": {
     "attendanceSystem": "勤怠管理システム",
@@ -1457,5 +1458,47 @@
     "moveToSection": "セクションに移動",
     "removeFromSection": "セクションから削除",
     "unsectioned": "未分類"
+  },
+  "errorLogs": {
+    "title": "エラーログ",
+    "description": "システムエラーの確認と管理",
+    "level": "レベル",
+    "message": "メッセージ",
+    "path": "パス",
+    "method": "メソッド",
+    "statusCode": "ステータスコード",
+    "user": "ユーザー",
+    "resolved": "解決済み",
+    "unresolved": "未解決",
+    "markResolved": "解決済みにする",
+    "markResolvedConfirm": "このエラーを解決済みにしますか？",
+    "resolveSelected": "選択を解決済みにする",
+    "resolveSelectedConfirm": "選択した{count}件のエラーを解決済みにしますか？",
+    "detail": "エラー詳細",
+    "stackTrace": "スタックトレース",
+    "requestBody": "リクエストボディ",
+    "requestQuery": "クエリパラメータ",
+    "requestHeaders": "リクエストヘッダー",
+    "ipAddress": "IPアドレス",
+    "userAgent": "ユーザーエージェント",
+    "occurredAt": "発生日時",
+    "resolvedBy": "解決者",
+    "resolvedAt": "解決日時",
+    "noStackTrace": "スタックトレースなし",
+    "noRequestBody": "リクエストボディなし",
+    "purgeOld": "古いログを削除",
+    "purgeTitle": "エラーログの削除",
+    "purgeConfirm": "指定した日数より古いエラーログをすべて削除しますか？この操作は元に戻せません。",
+    "purgeDays": "保持日数",
+    "searchPlaceholder": "メッセージまたはパスを検索...",
+    "stats": {
+      "total": "エラー総数",
+      "unresolved": "未解決",
+      "thisWeek": "今週",
+      "fatal": "致命的"
+    },
+    "levelError": "エラー",
+    "levelWarn": "警告",
+    "levelFatal": "致命的"
   }
 }
