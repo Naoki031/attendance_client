@@ -246,6 +246,12 @@
       >
         <v-icon icon="mdi-crown" size="14" color="amber"></v-icon>
       </div>
+      <div
+        v-if="coHostUserIds && localUserId !== undefined && coHostUserIds.has(localUserId)"
+        class="video-tile__cohost-badge"
+      >
+        <v-icon icon="mdi-account-star" size="14" color="teal"></v-icon>
+      </div>
       <div class="video-tile__label">
         <v-icon
           v-if="localParticipant && activeSpeakerIdentities.includes(localParticipant.identity)"
@@ -260,6 +266,12 @@
         >
           <v-icon icon="mdi-crown" size="10"></v-icon>
           HOST
+        </span>
+        <span
+          v-if="coHostUserIds && localUserId !== undefined && coHostUserIds.has(localUserId)"
+          class="video-tile__cohost-chip"
+        >
+          {{ $t('meetings.coHost.badge') }}
         </span>
       </div>
       <div class="audio-bar">
@@ -322,6 +334,12 @@
       >
         <v-icon icon="mdi-crown" size="14" color="amber"></v-icon>
       </div>
+      <div
+        v-if="coHostUserIds && coHostUserIds.has(Number(participant.identity))"
+        class="video-tile__cohost-badge"
+      >
+        <v-icon icon="mdi-account-star" size="14" color="teal"></v-icon>
+      </div>
       <div class="video-tile__label">
         <v-icon
           v-if="activeSpeakerIdentities.includes(participant.identity)"
@@ -340,6 +358,12 @@
         >
           <v-icon icon="mdi-crown" size="10"></v-icon>
           HOST
+        </span>
+        <span
+          v-if="coHostUserIds && coHostUserIds.has(Number(participant.identity))"
+          class="video-tile__cohost-chip"
+        >
+          {{ $t('meetings.coHost.badge') }}
         </span>
       </div>
       <div class="audio-bar">
@@ -394,6 +418,8 @@ const props = defineProps<{
   hostUserId?: number | null
   /** userId of the local user — used to check if local tile is the host */
   localUserId?: number
+  /** Set of co-host user IDs — shown with a co-host badge */
+  coHostUserIds?: Set<number>
 }>()
 
 const emit = defineEmits<{
@@ -1047,6 +1073,36 @@ defineExpose({ toggleFullscreen })
   background: rgba(255, 179, 0, 0.25);
   color: #ffd54f;
   border: 1px solid rgba(255, 179, 0, 0.5);
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.video-tile__cohost-badge {
+  position: absolute;
+  top: 8px;
+  left: 36px;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.video-tile__cohost-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(0, 150, 136, 0.25);
+  color: #80cbc4;
+  border: 1px solid rgba(0, 150, 136, 0.5);
   border-radius: 4px;
   font-size: 9px;
   font-weight: 700;

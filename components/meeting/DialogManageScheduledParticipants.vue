@@ -13,8 +13,8 @@
         </v-btn>
       </div>
 
-      <v-card-text class="px-6 py-0">
-        <!-- Add participants -->
+      <v-card-text v-if="!isCoHost" class="px-6 py-0">
+        <!-- Add participants — host only -->
         <p class="text-body-2 text-medium-emphasis mb-3">
           {{ $t('meetings.scheduledParticipants.selectUsers') }}
         </p>
@@ -55,7 +55,7 @@
         </div>
       </v-card-text>
 
-      <v-divider />
+      <v-divider v-if="!isCoHost" />
 
       <!-- Participant list -->
       <v-card-text class="px-6 pt-4 pb-0">
@@ -110,6 +110,7 @@
                   {{ $t(`meetings.scheduledParticipants.status.${participant.status}`) }}
                 </v-chip>
                 <v-btn
+                  v-if="!isCoHost"
                   size="x-small"
                   variant="tonal"
                   color="error"
@@ -230,6 +231,11 @@ const props = defineProps({
   meetingUuid: {
     type: String,
     required: true,
+  },
+  isCoHost: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 })
 

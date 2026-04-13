@@ -1,3 +1,9 @@
+export interface CoHostUser {
+  user_id: number
+  full_name: string
+  avatar: string | null
+}
+
 export interface MeetingParticipantUser {
   id: number
   full_name: string
@@ -7,7 +13,7 @@ export interface MeetingParticipantUser {
 export interface MeetingParticipant {
   id: number
   user_id: number
-  role: 'host' | 'participant'
+  role: 'host' | 'co_host' | 'participant'
   left_at?: string | null
   user?: MeetingParticipantUser
 }
@@ -28,6 +34,7 @@ export interface Meeting {
   schedule_day_of_week?: number
   schedule_interval_weeks?: number
   is_pinned?: boolean
+  is_co_host?: boolean
   meeting_companies?: Array<{
     id: number
     company_id: number

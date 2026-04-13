@@ -1,5 +1,5 @@
 import { apiClient } from '@/utils/apiClient'
-import type { Meeting } from '@/interfaces/models/MeetingModel'
+import type { CoHostUser, Meeting } from '@/interfaces/models/MeetingModel'
 import type { UserModel } from '@/interfaces/models/UserModel'
 
 export default class MeetingService {
@@ -48,5 +48,17 @@ export default class MeetingService {
 
   public static async unpin(uuid: string): Promise<void> {
     await apiClient.delete<undefined>(`meetings/${uuid}/pin`)
+  }
+
+  public static async getCoHosts(uuid: string): Promise<CoHostUser[]> {
+    return apiClient.get<CoHostUser[]>(`/meetings/${uuid}/co-hosts`)
+  }
+
+  public static async addCoHost(uuid: string, userId: number): Promise<void> {
+    await apiClient.post<undefined>(`/meetings/${uuid}/co-hosts`, { user_id: userId })
+  }
+
+  public static async removeCoHost(uuid: string, userId: number): Promise<void> {
+    await apiClient.delete<undefined>(`/meetings/${uuid}/co-hosts/${userId}`)
   }
 }

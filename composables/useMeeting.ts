@@ -122,6 +122,17 @@ export function useMeeting(
   // Resolved from schedule on first join; can be changed by transfer_host.
   const currentHostId = ref<number | null>(null)
 
+  // Co-host user IDs — ephemeral set maintained by the gateway per session
+  const coHostUserIds = ref<Set<number>>(new Set())
+
+  // Computed checks for the local user
+  const isCoHost = computed(() => localUserId !== null && coHostUserIds.value.has(localUserId))
+  const isHost = computed(() => {
+    if (localUserId === null) return false
+    return currentHostId.value === localUserId
+  })
+  const isHostOrCoHost = computed(() => isHost.value || isCoHost.value)
+
   // Last invite activity event from the gateway (invite sent or result received)
   const lastInviteEvent = ref<{
     type: 'sent' | 'result'
@@ -221,6 +232,7 @@ export function useMeeting(
         participants: MeetingParticipantInfo[]
         speakerStates?: Record<number, boolean>
         hostUserId?: number | null
+        coHostUserIds?: number[]
       }) => {
         socketParticipants.value = data.participants
 
@@ -238,6 +250,11 @@ export function useMeeting(
         // Sync runtime host (may already be set if we are the first to join)
         if (data.hostUserId != null) {
           currentHostId.value = data.hostUserId
+        }
+
+        // Hydrate co-host user IDs from server state
+        if (data.coHostUserIds) {
+          coHostUserIds.value = new Set(data.coHostUserIds)
         }
       },
     )
@@ -377,6 +394,20 @@ export function useMeeting(
       currentHostId.value = data.hostUserId
     })
 
+    // Co-host promoted/demoted — update the ephemeral set
+    socket.on(
+      'co_host_promoted',
+      (data: { meetingId: number; userId: number; userName: string }) => {
+        coHostUserIds.value = new Set([...coHostUserIds.value, data.userId])
+      },
+    )
+
+    socket.on('co_host_demoted', (data: { meetingId: number; userId: number }) => {
+      const next = new Set(coHostUserIds.value)
+      next.delete(data.userId)
+      coHostUserIds.value = next
+    })
+
     // Host has ended the meeting for everyone
     socket.on('meeting_ended', () => {
       onMeetingEnded?.()
@@ -481,6 +512,28 @@ export function useMeeting(
     socket.emit('transfer_host', {
       meetingId: meetingId.value,
       toUserId,
+    })
+  }
+
+  /**
+   * Promotes a participant to co-host. Only the runtime host can promote.
+   */
+  function promoteCoHost(targetUserId: number) {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('promote_co_host', {
+      meetingId: meetingId.value,
+      targetUserId,
+    })
+  }
+
+  /**
+   * Demotes a co-host back to participant. Only the runtime host can demote.
+   */
+  function demoteCoHost(targetUserId: number) {
+    if (!socket?.connected || localUserId === null) return
+    socket.emit('demote_co_host', {
+      meetingId: meetingId.value,
+      targetUserId,
     })
   }
 
@@ -1142,6 +1195,7 @@ export function useMeeting(
     markers.value = []
     votes.value = []
     currentHostId.value = null
+    coHostUserIds.value = new Set()
 
     if (markerPurgeInterval !== null) {
       clearInterval(markerPurgeInterval)
@@ -1193,7 +1247,13 @@ export function useMeeting(
     getParticipantColor,
     endMeeting,
     currentHostId,
+    coHostUserIds,
+    isCoHost,
+    isHost,
+    isHostOrCoHost,
     transferHost,
+    promoteCoHost,
+    demoteCoHost,
     votes,
     showVotePanel,
     createVote,

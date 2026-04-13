@@ -121,12 +121,19 @@
               @click="$emit('manage-host-schedule', meeting.uuid)"
             />
             <v-list-item
-              v-if="meeting.is_private"
+              v-if="!meeting.is_co_host"
+              prepend-icon="mdi-account-star-outline"
+              :title="$t('meetings.coHost.manageTitle')"
+              @click="$emit('manage-co-hosts', meeting.uuid)"
+            />
+            <v-list-item
+              v-if="meeting.is_private && !meeting.is_co_host"
               prepend-icon="mdi-lock-reset"
               :title="$t('meetings.regeneratePassword')"
               @click="$emit('regenerate-password', meeting.uuid)"
             />
             <v-list-item
+              v-if="!meeting.is_co_host"
               prepend-icon="mdi-delete-outline"
               :title="$t('meetings.deleteMeeting')"
               :disabled="meeting.status === 'active'"
@@ -263,6 +270,7 @@
           {{ $t('meetings.scheduledParticipants.manageTitle') }}
         </v-tooltip>
       </v-btn>
+
       <v-btn
         v-if="canManage"
         size="small"
@@ -363,6 +371,7 @@ defineEmits<{
   'regenerate-password': [uuid: string]
   'manage-host-schedule': [uuid: string]
   'manage-scheduled-participants': [uuid: string]
+  'manage-co-hosts': [uuid: string]
   'toggle-pin': [uuid: string]
   invite: [uuid: string]
   edit: [uuid: string]

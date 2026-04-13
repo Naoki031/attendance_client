@@ -78,7 +78,8 @@
     "lightMode": "Light mode",
     "darkMode": "Dark mode",
     "unknown": "Unknown",
-    "showLess": "Show less"
+    "showLess": "Show less",
+    "createdAt": "Created At"
   },
   "weekDays": {
     "mon": "Mon",
@@ -1329,6 +1330,14 @@
       "swapConfirmBody": "These two hosts will exchange their scheduled dates.",
       "swapConfirmButton": "Swap"
     },
+    "coHost": {
+      "label": "Co-Host",
+      "badge": "CO-HOST",
+      "manageTitle": "Manage Co-Hosts",
+      "manageDescription": "Promote participants to co-host so they can invite and end the meeting",
+      "promote": "Promote",
+      "demote": "Remove"
+    },
     "pin": {
       "pin": "Pin",
       "unpin": "Unpin",
@@ -1415,6 +1424,12 @@
       "title": "Pending Meeting Invitations",
       "subtitle": "You have been invited to the following meetings. Please respond to each invitation.",
       "hostedBy": "Hosted by"
+    },
+    "coHost": {
+      "manageTitle": "Manage Co-Hosts",
+      "add": "Add Co-Host",
+      "noCoHosts": "No co-hosts yet",
+      "selectUser": "Search and add a co-host"
     }
   },
   "translationLogs": {

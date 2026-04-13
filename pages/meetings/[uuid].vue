@@ -248,6 +248,7 @@
               :participant-color-map="participantColorMap"
               :host-user-id="currentHostId"
               :local-user-id="localUserId"
+              :co-host-user-ids="coHostUserIds"
               @cursor-move="sendCursorMove($event.x, $event.y)"
               @cursor-hide="sendCursorHide"
               @marker-place="sendScreenMarker($event.x, $event.y)"
@@ -302,6 +303,7 @@
           :has-any-screen-share="isScreenSharing || hasRemoteScreenShare"
           :is-fullscreen="isFullscreen"
           :is-host="isHost"
+          :is-host-or-co-host="isHostOrCoHost"
           @toggle-mic="toggleMic"
           @toggle-camera="toggleCamera"
           @toggle-speaker="toggleSpeaker"
@@ -314,6 +316,7 @@
           @open-settings="settingsDialog = true"
           @open-invite="inviteDialog = true"
           @transfer-host="transferHostDialog = true"
+          @manage-co-host="coHostDialog = true"
           @end-meeting="handleEndMeeting"
           @leave="leaveMeeting"
         />
@@ -348,7 +351,7 @@
         @close-modal="inviteDialog = false"
       />
 
-      <!-- Transfer Host dialog -->
+      <!-- Transfer Host / Manage Co-Host dialog -->
       <v-dialog v-model="transferHostDialog" max-width="400" persistent>
         <v-card rounded="xl">
           <v-card-title class="pa-5 pb-3 d-flex align-center ga-2">
@@ -382,6 +385,63 @@
             <v-btn variant="text" @click="transferHostDialog = false">{{
               $t('common.cancel')
             }}</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
+      <!-- Manage Co-Host dialog (host only) -->
+      <v-dialog v-model="coHostDialog" max-width="400" persistent>
+        <v-card rounded="xl">
+          <v-card-title class="pa-5 pb-3 d-flex align-center ga-2">
+            <v-icon color="teal">mdi-account-star-outline</v-icon>
+            {{ $t('meetings.coHost.manageTitle') }}
+          </v-card-title>
+          <v-card-text class="pt-0 text-body-2 text-medium-emphasis">
+            {{ $t('meetings.coHost.manageDescription') }}
+          </v-card-text>
+          <v-card-text class="pt-0">
+            <v-list density="compact" rounded="lg">
+              <v-list-item
+                v-for="participant in coHostManageableParticipants"
+                :key="participant.userId"
+                rounded="lg"
+              >
+                <template #prepend>
+                  <v-avatar size="32" color="primary" variant="tonal" class="mr-2">
+                    <span class="text-caption font-weight-bold">
+                      {{ participant.username.charAt(0).toUpperCase() }}
+                    </span>
+                  </v-avatar>
+                </template>
+                <v-list-item-title>
+                  {{ participant.username }}
+                </v-list-item-title>
+                <template #append>
+                  <v-btn
+                    v-if="coHostUserIds.has(participant.userId)"
+                    size="x-small"
+                    variant="tonal"
+                    color="error"
+                    @click="handleDemoteCoHost(participant.userId)"
+                  >
+                    {{ $t('meetings.coHost.demote') }}
+                  </v-btn>
+                  <v-btn
+                    v-else
+                    size="x-small"
+                    variant="tonal"
+                    color="teal"
+                    @click="handlePromoteCoHost(participant.userId)"
+                  >
+                    {{ $t('meetings.coHost.promote') }}
+                  </v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+          <v-card-actions class="pa-4 pt-0">
+            <v-spacer />
+            <v-btn variant="text" @click="coHostDialog = false">{{ $t('common.close') }}</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -553,6 +613,7 @@ const inviteDialog = ref(false)
 const inviteDialogReference = ref<{ refresh: () => void } | null>(null)
 const endMeetingDialog = ref(false)
 const transferHostDialog = ref(false)
+const coHostDialog = ref(false)
 const hostChangedSnackbar = ref(false)
 const hostChangedMessage = ref('')
 const voteDialog = ref(false)
@@ -608,7 +669,13 @@ const {
   getParticipantColor,
   endMeeting,
   currentHostId,
+  coHostUserIds,
+  isCoHost: _isCoHost,
+  isHost: isComposableHost,
+  isHostOrCoHost,
   transferHost,
+  promoteCoHost,
+  demoteCoHost,
   votes,
   showVotePanel,
   createVote,
@@ -622,14 +689,23 @@ const {
 
 // isHost: true when local user is the current runtime host (resolved from schedule or transfer).
 // Falls back to permanent owner (meetingHostId) before the first session starts (currentHostId null).
+// Also uses the composable's socket-based isHost check.
 const isHost = computed(() => {
   if (localUserId.value === 0) return false
-  if (currentHostId.value !== null) return localUserId.value === currentHostId.value
+  if (currentHostId.value !== null) return isComposableHost.value
   return localUserId.value === meetingHostId.value
 })
 
-// Participants available to receive host (everyone except the current host)
+// Participants available to receive host (everyone except the current host and co-hosts)
 const transferableParticipants = computed(() =>
+  socketParticipants.value.filter(
+    (participant) =>
+      participant.userId !== localUserId.value && !coHostUserIds.value.has(participant.userId),
+  ),
+)
+
+// Participants visible in the co-host management dialog (everyone except the host)
+const coHostManageableParticipants = computed(() =>
   socketParticipants.value.filter((participant) => participant.userId !== localUserId.value),
 )
 
@@ -959,6 +1035,14 @@ function confirmEndMeeting() {
 function confirmTransferHost(toUserId: number) {
   transferHostDialog.value = false
   transferHost(toUserId)
+}
+
+function handlePromoteCoHost(targetUserId: number) {
+  promoteCoHost(targetUserId)
+}
+
+function handleDemoteCoHost(targetUserId: number) {
+  demoteCoHost(targetUserId)
 }
 
 function handleToggleFullscreen() {

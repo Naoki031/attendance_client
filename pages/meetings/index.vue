@@ -143,6 +143,7 @@
                 @delete="openDeleteDialog"
                 @manage-host-schedule="openHostScheduleDialog"
                 @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @manage-co-hosts="openCoHostsDialog"
                 @toggle-pin="togglePin"
                 @move-to-section="moveToSection"
               />
@@ -183,6 +184,7 @@
                 @delete="openDeleteDialog"
                 @manage-host-schedule="openHostScheduleDialog"
                 @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @manage-co-hosts="openCoHostsDialog"
                 @toggle-pin="togglePin"
                 @move-to-section="moveToSection"
               />
@@ -221,6 +223,7 @@
                 @delete="openDeleteDialog"
                 @manage-host-schedule="openHostScheduleDialog"
                 @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @manage-co-hosts="openCoHostsDialog"
                 @toggle-pin="togglePin"
                 @move-to-section="moveToSection"
               />
@@ -262,6 +265,7 @@
                 @delete="openDeleteDialog"
                 @manage-host-schedule="openHostScheduleDialog"
                 @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @manage-co-hosts="openCoHostsDialog"
                 @toggle-pin="togglePin"
                 @move-to-section="moveToSection"
               />
@@ -300,6 +304,7 @@
                 @delete="openDeleteDialog"
                 @manage-host-schedule="openHostScheduleDialog"
                 @manage-scheduled-participants="openScheduledParticipantsDialog"
+                @manage-co-hosts="openCoHostsDialog"
                 @toggle-pin="togglePin"
                 @move-to-section="moveToSection"
               />
@@ -351,7 +356,15 @@
     <MeetingDialogManageScheduledParticipants
       :dialog="scheduledParticipantsDialog"
       :meeting-uuid="scheduledParticipantsTargetUuid"
+      :is-co-host="scheduledParticipantsTargetIsCoHost"
       @close-modal="scheduledParticipantsDialog = false"
+    />
+
+    <!-- Manage Co-Hosts Dialog -->
+    <MeetingDialogManageCoHosts
+      :dialog="coHostsDialog"
+      :meeting-uuid="coHostsTargetUuid"
+      @close-modal="coHostsDialog = false"
     />
 
     <!-- Manage Sections Dialog -->
@@ -364,6 +377,7 @@
     <MeetingDialogEditMeeting
       v-model="editDialog"
       :meeting="editTargetMeeting"
+      :is-co-host="editTargetMeeting?.is_co_host ?? false"
       @saved="onMeetingUpdated"
     />
 
@@ -451,6 +465,10 @@ const hostScheduleTargetMeeting = ref<Meeting | null>(null)
 
 const scheduledParticipantsDialog = ref(false)
 const scheduledParticipantsTargetUuid = ref('')
+const scheduledParticipantsTargetIsCoHost = ref(false)
+
+const coHostsDialog = ref(false)
+const coHostsTargetUuid = ref('')
 
 const inviteDialog = ref(false)
 const inviteTargetUuid = ref('')
@@ -593,6 +611,7 @@ function isPrivilegedRole(roles: string[]): boolean {
 
 function canManageMeeting(meeting: Meeting): boolean {
   if (meeting.host_id === currentUserId.value) return true
+  if (meeting.is_co_host) return true
   return isPrivilegedRole(currentUserRoles.value)
 }
 
@@ -673,7 +692,14 @@ function openHostScheduleDialog(uuid: string) {
 
 function openScheduledParticipantsDialog(uuid: string) {
   scheduledParticipantsTargetUuid.value = uuid
+  scheduledParticipantsTargetIsCoHost.value =
+    meetings.value.find((item) => item.uuid === uuid)?.is_co_host ?? false
   scheduledParticipantsDialog.value = true
+}
+
+function openCoHostsDialog(uuid: string) {
+  coHostsTargetUuid.value = uuid
+  coHostsDialog.value = true
 }
 
 function toggleSectionCollapse(sectionId: number) {

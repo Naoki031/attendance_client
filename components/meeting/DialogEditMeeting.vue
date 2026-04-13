@@ -18,57 +18,60 @@
         <CommonScrollableContent max-height="70vh" class="px-6 py-0">
           <v-container class="pa-0">
             <v-row>
-              <!-- ── MEETING INFO ── -->
-              <v-col cols="12">
-                <div class="section-label">
-                  {{ $t('meetings.sectionMeetingInfo').toUpperCase() }}
-                </div>
-              </v-col>
+              <!-- ── MEETING INFO — hidden for co-hosts ── -->
+              <template v-if="!isCoHost">
+                <v-col cols="12">
+                  <div class="section-label">
+                    {{ $t('meetings.sectionMeetingInfo').toUpperCase() }}
+                  </div>
+                </v-col>
 
-              <!-- Title -->
-              <v-col cols="12">
-                <div class="field-label">
-                  {{ $t('meetings.meetingTitle').toUpperCase() }} <span class="text-error">*</span>
-                </div>
-                <v-text-field
-                  v-model="form.title"
-                  variant="filled"
-                  rounded="lg"
-                  flat
-                  density="comfortable"
-                  :error-messages="formErrors.title"
-                  required
-                  autocomplete="off"
-                />
-              </v-col>
+                <!-- Title -->
+                <v-col cols="12">
+                  <div class="field-label">
+                    {{ $t('meetings.meetingTitle').toUpperCase() }}
+                    <span class="text-error">*</span>
+                  </div>
+                  <v-text-field
+                    v-model="form.title"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
+                    :error-messages="formErrors.title"
+                    required
+                    autocomplete="off"
+                  />
+                </v-col>
 
-              <!-- ── COMPANIES ── -->
-              <v-col cols="12">
-                <div class="section-label">{{ $t('meetings.companies').toUpperCase() }}</div>
-              </v-col>
+                <!-- ── COMPANIES ── -->
+                <v-col cols="12">
+                  <div class="section-label">{{ $t('meetings.companies').toUpperCase() }}</div>
+                </v-col>
 
-              <v-col cols="12">
-                <div class="field-label">
-                  {{ $t('meetings.companies').toUpperCase() }} <span class="text-error">*</span>
-                </div>
-                <v-autocomplete
-                  v-model="form.company_ids"
-                  :items="companies"
-                  item-title="name"
-                  item-value="id"
-                  multiple
-                  chips
-                  closable-chips
-                  variant="filled"
-                  rounded="lg"
-                  flat
-                  density="comfortable"
-                  :hint="$t('meetings.companiesHint')"
-                  persistent-hint
-                  :loading="isLoadingCompanies"
-                  :error-messages="formErrors.company_ids"
-                />
-              </v-col>
+                <v-col cols="12">
+                  <div class="field-label">
+                    {{ $t('meetings.companies').toUpperCase() }} <span class="text-error">*</span>
+                  </div>
+                  <v-autocomplete
+                    v-model="form.company_ids"
+                    :items="companies"
+                    item-title="name"
+                    item-value="id"
+                    multiple
+                    chips
+                    closable-chips
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
+                    :hint="$t('meetings.companiesHint')"
+                    persistent-hint
+                    :loading="isLoadingCompanies"
+                    :error-messages="formErrors.company_ids"
+                  />
+                </v-col>
+              </template>
 
               <!-- ── SCHEDULE ── -->
               <v-col cols="12">
@@ -180,79 +183,84 @@
                 </v-col>
               </template>
 
-              <!-- ── PRIVACY ── -->
-              <v-col cols="12">
-                <div class="section-label">{{ $t('meetings.privacySection').toUpperCase() }}</div>
-              </v-col>
+              <!-- ── PRIVACY + DESCRIPTION — hidden for co-hosts ── -->
+              <template v-if="!isCoHost">
+                <!-- ── PRIVACY ── -->
+                <v-col cols="12">
+                  <div class="section-label">{{ $t('meetings.privacySection').toUpperCase() }}</div>
+                </v-col>
 
-              <v-col cols="12">
-                <div class="d-flex ga-3">
-                  <div
-                    class="privacy-option flex-1-1"
-                    :class="{ 'privacy-option--active privacy-option--public': !form.is_private }"
-                    @click="onPrivateToggle(false)"
-                  >
-                    <v-icon size="22" class="mb-1">mdi-lock-open-outline</v-icon>
-                    <div class="text-body-2 font-weight-medium">{{ $t('meetings.public') }}</div>
-                  </div>
-                  <div
-                    class="privacy-option flex-1-1"
-                    :class="{ 'privacy-option--active privacy-option--private': form.is_private }"
-                    @click="onPrivateToggle(true)"
-                  >
-                    <v-icon size="22" class="mb-1">mdi-lock-outline</v-icon>
-                    <div class="text-body-2 font-weight-medium">{{ $t('meetings.private') }}</div>
-                  </div>
-                </div>
-                <div class="text-caption text-medium-emphasis mt-1 px-1">
-                  {{ form.is_private ? $t('meetings.privateHint') : $t('meetings.publicHint') }}
-                </div>
-
-                <!-- Password field -->
-                <div v-if="form.is_private" class="mt-3">
-                  <div class="field-label">{{ $t('meetings.meetingPassword').toUpperCase() }}</div>
-                  <div
-                    class="password-box d-flex align-center justify-space-between pa-3 rounded-lg mt-2"
-                  >
-                    <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.2em">
-                      {{ form.password }}
-                    </span>
-                    <div class="d-flex ga-1">
-                      <v-btn
-                        icon="mdi-refresh"
-                        variant="text"
-                        size="small"
-                        :title="$t('meetings.regeneratePassword')"
-                        @click="form.password = generateRandomPassword()"
-                      />
-                      <v-btn
-                        :icon="passwordCopied ? 'mdi-check' : 'mdi-content-copy'"
-                        :color="passwordCopied ? 'success' : 'default'"
-                        variant="text"
-                        size="small"
-                        @click="copyPassword"
-                      />
+                <v-col cols="12">
+                  <div class="d-flex ga-3">
+                    <div
+                      class="privacy-option flex-1-1"
+                      :class="{ 'privacy-option--active privacy-option--public': !form.is_private }"
+                      @click="onPrivateToggle(false)"
+                    >
+                      <v-icon size="22" class="mb-1">mdi-lock-open-outline</v-icon>
+                      <div class="text-body-2 font-weight-medium">{{ $t('meetings.public') }}</div>
+                    </div>
+                    <div
+                      class="privacy-option flex-1-1"
+                      :class="{ 'privacy-option--active privacy-option--private': form.is_private }"
+                      @click="onPrivateToggle(true)"
+                    >
+                      <v-icon size="22" class="mb-1">mdi-lock-outline</v-icon>
+                      <div class="text-body-2 font-weight-medium">{{ $t('meetings.private') }}</div>
                     </div>
                   </div>
-                </div>
-              </v-col>
+                  <div class="text-caption text-medium-emphasis mt-1 px-1">
+                    {{ form.is_private ? $t('meetings.privateHint') : $t('meetings.publicHint') }}
+                  </div>
 
-              <!-- ── DESCRIPTION (optional, at bottom) ── -->
-              <v-col cols="12">
-                <div class="section-label">{{ $t('common.description').toUpperCase() }}</div>
-              </v-col>
+                  <!-- Password field -->
+                  <div v-if="form.is_private" class="mt-3">
+                    <div class="field-label">
+                      {{ $t('meetings.meetingPassword').toUpperCase() }}
+                    </div>
+                    <div
+                      class="password-box d-flex align-center justify-space-between pa-3 rounded-lg mt-2"
+                    >
+                      <span class="text-body-1 font-weight-bold" style="letter-spacing: 0.2em">
+                        {{ form.password }}
+                      </span>
+                      <div class="d-flex ga-1">
+                        <v-btn
+                          icon="mdi-refresh"
+                          variant="text"
+                          size="small"
+                          :title="$t('meetings.regeneratePassword')"
+                          @click="form.password = generateRandomPassword()"
+                        />
+                        <v-btn
+                          :icon="passwordCopied ? 'mdi-check' : 'mdi-content-copy'"
+                          :color="passwordCopied ? 'success' : 'default'"
+                          variant="text"
+                          size="small"
+                          @click="copyPassword"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </v-col>
 
-              <v-col cols="12">
-                <v-textarea
-                  v-model="form.description"
-                  variant="filled"
-                  rounded="lg"
-                  flat
-                  density="comfortable"
-                  rows="2"
-                  autocomplete="off"
-                />
-              </v-col>
+                <!-- ── DESCRIPTION (optional, at bottom) ── -->
+                <v-col cols="12">
+                  <div class="section-label">{{ $t('common.description').toUpperCase() }}</div>
+                </v-col>
+
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="form.description"
+                    variant="filled"
+                    rounded="lg"
+                    flat
+                    density="comfortable"
+                    rows="2"
+                    autocomplete="off"
+                  />
+                </v-col>
+              </template>
             </v-row>
           </v-container>
         </CommonScrollableContent>
@@ -291,6 +299,11 @@ const props = defineProps({
     type: Object as PropType<Meeting | null>,
     required: false,
     default: null,
+  },
+  isCoHost: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 })
 
@@ -413,12 +426,14 @@ function close() {
 async function confirm() {
   const errors: Record<string, string> = {}
 
-  if (!form.value.title.trim()) {
-    errors.title = String(t('validation.required', { field: t('meetings.meetingTitle') }))
-  }
+  if (!props.isCoHost) {
+    if (!form.value.title.trim()) {
+      errors.title = String(t('validation.required', { field: t('meetings.meetingTitle') }))
+    }
 
-  if (form.value.company_ids.length === 0) {
-    errors.company_ids = String(t('validation.required', { field: t('meetings.companies') }))
+    if (form.value.company_ids.length === 0) {
+      errors.company_ids = String(t('validation.required', { field: t('meetings.companies') }))
+    }
   }
 
   if (Object.keys(errors).length > 0) {
@@ -431,14 +446,17 @@ async function confirm() {
   formErrors.value = {}
 
   try {
-    const payload: Record<string, unknown> = {
-      title: form.value.title,
-      description: form.value.description || undefined,
-      meeting_type: form.value.meeting_type,
-      is_private: form.value.is_private,
-      password: form.value.is_private ? form.value.password : undefined,
-      company_ids: form.value.company_ids.length > 0 ? form.value.company_ids : undefined,
-    }
+    // Co-hosts may only update schedule/time fields — omit all other fields from the payload
+    const payload: Record<string, unknown> = props.isCoHost
+      ? { meeting_type: form.value.meeting_type }
+      : {
+          title: form.value.title,
+          description: form.value.description || undefined,
+          meeting_type: form.value.meeting_type,
+          is_private: form.value.is_private,
+          password: form.value.is_private ? form.value.password : undefined,
+          company_ids: form.value.company_ids.length > 0 ? form.value.company_ids : undefined,
+        }
 
     if (form.value.meeting_type === 'one_time') {
       // Convert local datetime string to UTC ISO before sending — server (Docker UTC) would misparse local time

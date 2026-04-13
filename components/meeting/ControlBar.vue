@@ -153,7 +153,7 @@
       </div>
       -->
 
-      <div v-if="isHost" class="control-bar__item">
+      <div v-if="isHostOrCoHost" class="control-bar__item">
         <v-btn
           icon="mdi-email-plus-outline"
           color="white"
@@ -215,7 +215,7 @@
         <span class="control-bar__label">{{ $t('meetings.controls.settings') }}</span>
       </div>
 
-      <!-- Transfer Host — only shown to the current runtime host -->
+      <!-- Transfer Host — only shown to the current runtime host (NOT co-host) -->
       <div v-if="isHost" class="control-bar__item">
         <v-btn
           icon="mdi-crown-outline"
@@ -230,8 +230,23 @@
         }}</span>
       </div>
 
-      <!-- End Meeting — only shown to the host -->
+      <!-- Manage Co-Host — only shown to the host -->
       <div v-if="isHost" class="control-bar__item">
+        <v-btn
+          icon="mdi-account-star-outline"
+          color="teal"
+          variant="flat"
+          rounded="xl"
+          size="48"
+          @click="emit('manage-co-host')"
+        ></v-btn>
+        <span class="control-bar__label" style="color: rgb(var(--v-theme-info))">{{
+          $t('meetings.coHost.label')
+        }}</span>
+      </div>
+
+      <!-- End Meeting — shown to host and co-host -->
+      <div v-if="isHostOrCoHost" class="control-bar__item">
         <v-btn
           icon="mdi-phone-remove"
           color="error"
@@ -280,6 +295,7 @@ defineProps<{
   hasAnyScreenShare: boolean
   isFullscreen: boolean
   isHost: boolean
+  isHostOrCoHost: boolean
 }>()
 
 const emit = defineEmits<{
@@ -295,6 +311,7 @@ const emit = defineEmits<{
   'open-settings': []
   'open-invite': []
   'transfer-host': []
+  'manage-co-host': []
   'end-meeting': []
   leave: []
 }>()

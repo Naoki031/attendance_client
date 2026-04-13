@@ -78,7 +78,8 @@
     "lightMode": "ライトモード",
     "darkMode": "ダークモード",
     "unknown": "不明",
-    "showLess": "折りたたむ"
+    "showLess": "折りたたむ",
+    "createdAt": "作成日時"
   },
   "weekDays": {
     "mon": "月",
@@ -1329,6 +1330,14 @@
       "swapConfirmBody": "この2人のホストは互いの担当日を交換します。",
       "swapConfirmButton": "入れ替え"
     },
+    "coHost": {
+      "label": "共同ホスト",
+      "badge": "共同",
+      "manageTitle": "共同ホストの管理",
+      "manageDescription": "参加者を共同ホストに昇格して、招待や会議の終了を許可します",
+      "promote": "昇格",
+      "demote": "解除"
+    },
     "pin": {
       "pin": "ピン留め",
       "unpin": "ピン解除",
@@ -1415,6 +1424,12 @@
       "title": "保留中の会議招待",
       "subtitle": "以下の会議に招待されています。各招待に返答してください。",
       "hostedBy": "主催者"
+    },
+    "coHost": {
+      "manageTitle": "共同ホストを管理",
+      "add": "共同ホストを追加",
+      "noCoHosts": "共同ホストはまだいません",
+      "selectUser": "共同ホストを検索して追加"
     }
   },
   "translationLogs": {

@@ -78,7 +78,8 @@
     "lightMode": "Giao diện sáng",
     "darkMode": "Giao diện tối",
     "unknown": "Không rõ",
-    "showLess": "Rút gọn"
+    "showLess": "Rút gọn",
+    "createdAt": "Ngày tạo"
   },
   "weekDays": {
     "mon": "T2",
@@ -1329,6 +1330,14 @@
       "swapConfirmBody": "Hai người này sẽ đổi lịch host cho nhau vào hai ngày tương ứng.",
       "swapConfirmButton": "Hoán đổi"
     },
+    "coHost": {
+      "label": "Đồng chủ trì",
+      "badge": "ĐỒNG CT",
+      "manageTitle": "Quản lý đồng chủ trì",
+      "manageDescription": "Cấp quyền đồng chủ trì để mời người tham gia và kết thúc cuộc họp",
+      "promote": "Cấp quyền",
+      "demote": "Thu hồi"
+    },
     "pin": {
       "pin": "Ghim",
       "unpin": "Bỏ ghim",
@@ -1415,6 +1424,12 @@
       "title": "Lời mời họp đang chờ",
       "subtitle": "Bạn được mời tham gia các cuộc họp sau. Vui lòng phản hồi từng lời mời.",
       "hostedBy": "Host"
+    },
+    "coHost": {
+      "manageTitle": "Quản Lý Đồng Chủ Trì",
+      "add": "Thêm Đồng Chủ Trì",
+      "noCoHosts": "Chưa có đồng chủ trì",
+      "selectUser": "Tìm kiếm để thêm đồng chủ trì"
     }
   },
   "translationLogs": {
