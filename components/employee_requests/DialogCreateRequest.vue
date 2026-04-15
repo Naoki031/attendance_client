@@ -750,6 +750,7 @@ const resetForm = () => {
 }
 
 const confirm = async () => {
+  if (isSaving.value) return
   submitted.value = true
   if (!isFormValid.value) return
   isSaving.value = true

@@ -142,7 +142,8 @@
     "systemSettings": "システム設定",
     "meetings": "ミーティング",
     "translationLogs": "翻訳ログ",
-    "errorLogs": "エラーログ"
+    "errorLogs": "エラーログ",
+    "emailTemplates": "メールテンプレート"
   },
   "auth": {
     "attendanceSystem": "勤怠管理システム",
@@ -1336,7 +1337,10 @@
       "manageTitle": "共同ホストの管理",
       "manageDescription": "参加者を共同ホストに昇格して、招待や会議の終了を許可します",
       "promote": "昇格",
-      "demote": "解除"
+      "demote": "解除",
+      "add": "共同ホストを追加",
+      "noCoHosts": "共同ホストはまだいません",
+      "selectUser": "共同ホストを検索して追加"
     },
     "pin": {
       "pin": "ピン留め",
@@ -1380,7 +1384,8 @@
       "resultJoined": "{name}がミーティングに参加しました",
       "resultDeclined": "{name}が招待を辞退しました",
       "resultMissed": "{name}が着信に応答しませんでした",
-      "missedCall": "不在着信"
+      "missedCall": "不在着信",
+      "sendFailed": "招待の送信に失敗しました。権限がない可能性があります。"
     },
     "scheduledParticipants": {
       "title": "予定参加者の管理",
@@ -1424,12 +1429,6 @@
       "title": "保留中の会議招待",
       "subtitle": "以下の会議に招待されています。各招待に返答してください。",
       "hostedBy": "主催者"
-    },
-    "coHost": {
-      "manageTitle": "共同ホストを管理",
-      "add": "共同ホストを追加",
-      "noCoHosts": "共同ホストはまだいません",
-      "selectUser": "共同ホストを検索して追加"
     }
   },
   "translationLogs": {
@@ -1515,5 +1514,40 @@
     "levelError": "エラー",
     "levelWarn": "警告",
     "levelFatal": "致命的"
+  },
+  "emailTemplates": {
+    "title": "メールテンプレート",
+    "pageDescription": "自動通知のメールテンプレートを管理",
+    "createTemplate": "新規テンプレート",
+    "editTemplate": "テンプレート編集",
+    "deleteTemplate": "テンプレート削除",
+    "key": "テンプレートキー",
+    "keyHint": "コードで使用する一意の識別子（例：meeting_invite_rsvp）",
+    "keyLocked": "テンプレートキーは作成後に変更できません",
+    "subject": "メール件名",
+    "descriptionLabel": "説明",
+    "bodyHtml": "メール本文",
+    "bodyPlaceholder": "ここにメールテンプレートを作成...",
+    "type": "タイプ",
+    "system": "システム",
+    "custom": "カスタム",
+    "insertVariable": "変数",
+    "noVariables": "先に上の変数を追加してください",
+    "insertLink": "リンクを挿入",
+    "linkUrl": "URL",
+    "insertImage": "画像を挿入",
+    "imageUrl": "画像URL",
+    "company": "企業",
+    "companyHint": "すべての企業で利用可能なグローバルテンプレートの場合は空のままにしてください",
+    "globalTemplate": "グローバル（全企業）",
+    "variableDescriptions": "このテンプレートで使用可能な変数",
+    "clickToInsert": "変数をクリックしてメール本文に挿入",
+    "samplePreview": "プレビュー例",
+    "loadSample": "サンプルを読み込む",
+    "filterCompany": "企業",
+    "filterKey": "テンプレートキー",
+    "saveFailed": "メールテンプレートの保存に失敗しました",
+    "loadKeysFailed": "テンプレートキーの読み込みに失敗しました",
+    "loadCompaniesFailed": "企業リストの読み込みに失敗しました"
   }
 }

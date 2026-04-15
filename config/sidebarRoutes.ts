@@ -189,6 +189,12 @@ const adminGroups: RouteGroup[] = [
         textKey: 'nav.errorLogs',
         name: 'admin.error-logs.index',
       },
+      {
+        icon: 'mdi-email-edit-outline',
+        link: '/management/email-templates',
+        textKey: 'nav.emailTemplates',
+        name: 'admin.email-templates.index',
+      },
     ],
   },
 ]

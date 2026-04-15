@@ -142,7 +142,8 @@
     "systemSettings": "System Settings",
     "meetings": "Meetings",
     "translationLogs": "Translation Logs",
-    "errorLogs": "Error Logs"
+    "errorLogs": "Error Logs",
+    "emailTemplates": "Email Templates"
   },
   "auth": {
     "attendanceSystem": "Attendance System",
@@ -1336,7 +1337,10 @@
       "manageTitle": "Manage Co-Hosts",
       "manageDescription": "Promote participants to co-host so they can invite and end the meeting",
       "promote": "Promote",
-      "demote": "Remove"
+      "demote": "Remove",
+      "add": "Add Co-Host",
+      "noCoHosts": "No co-hosts yet",
+      "selectUser": "Search and add a co-host"
     },
     "pin": {
       "pin": "Pin",
@@ -1380,7 +1384,8 @@
       "resultJoined": "{name} joined the meeting",
       "resultDeclined": "{name} declined the invite",
       "resultMissed": "{name} missed the call",
-      "missedCall": "Missed call"
+      "missedCall": "Missed call",
+      "sendFailed": "Failed to send invites. You may not have permission."
     },
     "scheduledParticipants": {
       "title": "Manage Scheduled Participants",
@@ -1424,12 +1429,6 @@
       "title": "Pending Meeting Invitations",
       "subtitle": "You have been invited to the following meetings. Please respond to each invitation.",
       "hostedBy": "Hosted by"
-    },
-    "coHost": {
-      "manageTitle": "Manage Co-Hosts",
-      "add": "Add Co-Host",
-      "noCoHosts": "No co-hosts yet",
-      "selectUser": "Search and add a co-host"
     }
   },
   "translationLogs": {
@@ -1515,5 +1514,40 @@
     "levelError": "Error",
     "levelWarn": "Warning",
     "levelFatal": "Fatal"
+  },
+  "emailTemplates": {
+    "title": "Email Templates",
+    "pageDescription": "Manage email templates for automated notifications",
+    "createTemplate": "New Template",
+    "editTemplate": "Edit Template",
+    "deleteTemplate": "Delete Template",
+    "key": "Template Key",
+    "keyHint": "Unique identifier used in code (e.g. meeting_invite_rsvp)",
+    "keyLocked": "Template key cannot be changed after creation",
+    "subject": "Email Subject",
+    "descriptionLabel": "Description",
+    "bodyHtml": "Email Body",
+    "bodyPlaceholder": "Write your email template here...",
+    "type": "Type",
+    "system": "System",
+    "custom": "Custom",
+    "insertVariable": "Variable",
+    "noVariables": "Add variables above first",
+    "insertLink": "Insert Link",
+    "linkUrl": "URL",
+    "insertImage": "Insert Image",
+    "imageUrl": "Image URL",
+    "company": "Company",
+    "companyHint": "Leave empty for a global template available to all companies",
+    "globalTemplate": "Global (All companies)",
+    "variableDescriptions": "Available variables for this template",
+    "clickToInsert": "Click a variable to insert it into the email body",
+    "samplePreview": "Sample Preview",
+    "loadSample": "Load Sample",
+    "filterCompany": "Company",
+    "filterKey": "Template Key",
+    "saveFailed": "Failed to save email template",
+    "loadKeysFailed": "Failed to load template keys",
+    "loadCompaniesFailed": "Failed to load companies"
   }
 }

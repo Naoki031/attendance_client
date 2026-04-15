@@ -132,6 +132,7 @@
 import type { MeetingInviteModel } from '@/interfaces/models/MeetingInviteModel'
 import MeetingInviteService from '@/services/MeetingInviteService'
 import UserService from '@/services/UserService'
+import { useAppNotifications } from '@/composables/useAppNotifications'
 /* END IMPORT */
 
 /** START DEFINE PROPS */
@@ -154,6 +155,9 @@ const emit = defineEmits<{
 /* END DEFINE EMITS */
 
 /** START DEFINE STATE */
+const { t } = useI18n()
+const { push: pushNotification } = useAppNotifications()
+
 type UserOption = { id: number; display_name: string; email: string; avatar?: string }
 
 const invites = ref<MeetingInviteModel[]>([])
@@ -212,6 +216,12 @@ async function sendInvites() {
     userSearch.value = ''
   } catch (error) {
     console.error('Failed to send invites:', error)
+    pushNotification({
+      icon: 'mdi-alert-circle-outline',
+      iconColor: 'error',
+      title: t('meetings.invite.sendFailed'),
+      timeout: 4000,
+    })
   } finally {
     isSending.value = false
   }

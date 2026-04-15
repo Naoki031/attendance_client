@@ -142,7 +142,8 @@
     "systemSettings": "Cài đặt hệ thống",
     "meetings": "Cuộc họp",
     "translationLogs": "Nhật ký dịch thuật",
-    "errorLogs": "Nhật ký lỗi"
+    "errorLogs": "Nhật ký lỗi",
+    "emailTemplates": "Mẫu Email"
   },
   "auth": {
     "attendanceSystem": "Hệ thống Chấm công",
@@ -1336,7 +1337,10 @@
       "manageTitle": "Quản lý đồng chủ trì",
       "manageDescription": "Cấp quyền đồng chủ trì để mời người tham gia và kết thúc cuộc họp",
       "promote": "Cấp quyền",
-      "demote": "Thu hồi"
+      "demote": "Thu hồi",
+      "add": "Thêm đồng chủ trì",
+      "noCoHosts": "Chưa có đồng chủ trì",
+      "selectUser": "Tìm kiếm để thêm đồng chủ trì"
     },
     "pin": {
       "pin": "Ghim",
@@ -1380,7 +1384,8 @@
       "resultJoined": "{name} đã tham gia cuộc họp",
       "resultDeclined": "{name} đã từ chối lời mời",
       "resultMissed": "{name} bỏ lỡ cuộc gọi",
-      "missedCall": "Cuộc gọi nhỡ"
+      "missedCall": "Cuộc gọi nhỡ",
+      "sendFailed": "Gửi lời mời thất bại. Bạn có thể không có quyền."
     },
     "scheduledParticipants": {
       "title": "Quản lý người tham dự",
@@ -1424,12 +1429,6 @@
       "title": "Lời mời họp đang chờ",
       "subtitle": "Bạn được mời tham gia các cuộc họp sau. Vui lòng phản hồi từng lời mời.",
       "hostedBy": "Host"
-    },
-    "coHost": {
-      "manageTitle": "Quản Lý Đồng Chủ Trì",
-      "add": "Thêm Đồng Chủ Trì",
-      "noCoHosts": "Chưa có đồng chủ trì",
-      "selectUser": "Tìm kiếm để thêm đồng chủ trì"
     }
   },
   "translationLogs": {
@@ -1515,5 +1514,40 @@
     "levelError": "Lỗi",
     "levelWarn": "Cảnh báo",
     "levelFatal": "Nghiêm trọng"
+  },
+  "emailTemplates": {
+    "title": "Mẫu Email",
+    "pageDescription": "Quản lý mẫu email cho các thông báo tự động",
+    "createTemplate": "Tạo mẫu mới",
+    "editTemplate": "Chỉnh sửa mẫu",
+    "deleteTemplate": "Xóa mẫu",
+    "key": "Khóa mẫu",
+    "keyHint": "Định danh duy nhất sử dụng trong code (vd: meeting_invite_rsvp)",
+    "keyLocked": "Khóa mẫu không thể thay đổi sau khi tạo",
+    "subject": "Tiêu đề email",
+    "descriptionLabel": "Mô tả",
+    "bodyHtml": "Nội dung email",
+    "bodyPlaceholder": "Viết mẫu email tại đây...",
+    "type": "Loại",
+    "system": "Hệ thống",
+    "custom": "Tùy chỉnh",
+    "insertVariable": "Biến số",
+    "noVariables": "Thêm biến số ở trên trước",
+    "insertLink": "Chèn liên kết",
+    "linkUrl": "URL",
+    "insertImage": "Chèn hình ảnh",
+    "imageUrl": "URL hình ảnh",
+    "company": "Công ty",
+    "companyHint": "Để trống nếu muốn template dùng chung cho mọi công ty",
+    "globalTemplate": "Toàn cục (Mọi công ty)",
+    "variableDescriptions": "Các biến có sẵn cho template này",
+    "clickToInsert": "Nhấn vào biến để chèn vào nội dung email",
+    "samplePreview": "Xem trước mẫu",
+    "loadSample": "Tải mẫu",
+    "filterCompany": "Công ty",
+    "filterKey": "Khóa mẫu",
+    "saveFailed": "Lưu mẫu email thất bại",
+    "loadKeysFailed": "Tải danh sách khóa mẫu thất bại",
+    "loadCompaniesFailed": "Tải danh sách công ty thất bại"
   }
 }
