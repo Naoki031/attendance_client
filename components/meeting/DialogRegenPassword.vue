@@ -16,6 +16,15 @@
           <p class="text-body-2 text-medium-emphasis">
             {{ $t('meetings.regeneratePasswordConfirm') }}
           </p>
+          <v-alert
+            v-if="fetchError"
+            type="error"
+            density="compact"
+            class="mt-3"
+            style="font-size: 12px"
+          >
+            {{ fetchError }}
+          </v-alert>
         </v-card-text>
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
@@ -92,8 +101,11 @@ const emit = defineEmits<{
 /** END DEFINE PROPERTY AND EMITS */
 
 /** START DEFINE STATE */
+const { t } = useI18n()
+
 const step = ref<'confirm' | 'done'>('confirm')
 const isRegenerating = ref(false)
+const fetchError = ref('')
 const password = ref('')
 const copied = ref(false)
 /** END DEFINE STATE */
@@ -102,6 +114,7 @@ const copied = ref(false)
 function close() {
   step.value = 'confirm'
   password.value = ''
+  fetchError.value = ''
   copied.value = false
   emit('update:modelValue', false)
 }
@@ -117,10 +130,13 @@ async function copyPassword() {
 async function fetchNewPassword() {
   if (!props.meetingUuid) return
   isRegenerating.value = true
+  fetchError.value = ''
   try {
     const result = await MeetingService.generatePassword(props.meetingUuid)
     password.value = result.plain_password
     step.value = 'done'
+  } catch {
+    fetchError.value = t('meetings.regeneratePasswordFailed')
   } finally {
     isRegenerating.value = false
   }
@@ -134,6 +150,7 @@ watch(
     if (isOpen) {
       step.value = 'confirm'
       password.value = ''
+      fetchError.value = ''
       copied.value = false
     }
   },

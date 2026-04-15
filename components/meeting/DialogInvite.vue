@@ -177,8 +177,13 @@ async function loadInvites() {
   try {
     isLoadingInvites.value = true
     invites.value = await MeetingInviteService.getInvites(props.meetingUuid)
-  } catch (error) {
-    console.error('Failed to load invites:', error)
+  } catch {
+    pushNotification({
+      icon: 'mdi-alert-circle-outline',
+      iconColor: 'error',
+      title: t('meetings.invite.loadFailed'),
+      timeout: 4000,
+    })
   } finally {
     isLoadingInvites.value = false
   }
@@ -198,8 +203,13 @@ async function searchUsers(query: string) {
       email: user.email,
       avatar: user.avatar,
     }))
-  } catch (error) {
-    console.error('Failed to search users:', error)
+  } catch {
+    pushNotification({
+      icon: 'mdi-alert-circle-outline',
+      iconColor: 'error',
+      title: t('meetings.invite.searchFailed'),
+      timeout: 4000,
+    })
   } finally {
     isSearchingUsers.value = false
   }
@@ -237,8 +247,13 @@ async function recallInvite(invite: MeetingInviteModel) {
       const index = invites.value.findIndex((item) => item.user_id === invite.user_id)
       if (index !== -1) invites.value[index] = updatedInvite
     }
-  } catch (error) {
-    console.error('Failed to recall invite:', error)
+  } catch {
+    pushNotification({
+      icon: 'mdi-alert-circle-outline',
+      iconColor: 'error',
+      title: t('meetings.invite.recallFailed'),
+      timeout: 4000,
+    })
   } finally {
     isRecalling.value[invite.user_id] = false
   }
@@ -249,8 +264,13 @@ async function confirmCancel(userId: number) {
   try {
     await MeetingInviteService.cancelInvite(props.meetingUuid, userId)
     invites.value = invites.value.filter((invite) => invite.user_id !== userId)
-  } catch (error) {
-    console.error('Failed to cancel invite:', error)
+  } catch {
+    pushNotification({
+      icon: 'mdi-alert-circle-outline',
+      iconColor: 'error',
+      title: t('meetings.invite.cancelFailed'),
+      timeout: 4000,
+    })
   } finally {
     isCancelling.value[userId] = false
   }

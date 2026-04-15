@@ -1,7 +1,7 @@
 import moment from 'moment'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
-import { Room, RoomEvent, Track, VideoPresets } from 'livekit-client'
+import { Room, RoomEvent, ParticipantEvent, Track, VideoPresets } from 'livekit-client'
 import type {
   Participant,
   RemoteParticipant,
@@ -88,6 +88,10 @@ export function useMeeting(
   // which are not reactive and can return stale values after track mute/unmute events.
   const remoteMicStates = ref<Record<string, boolean>>({})
 
+  // Whether each remote participant has an active ScreenShareAudio track (system audio capture).
+  // Keyed by participant identity — updated on TrackSubscribed/TrackUnsubscribed.
+  const remoteScreenAudioStates = ref<Record<string, boolean>>({})
+
   // Speaker state per remote participant: true = speaker on, false = speaker off
   // Keyed by String(userId) — broadcast via socket speaker_state event
   const remoteSpeakerStates = ref<Record<string, boolean>>({})
@@ -157,6 +161,10 @@ export function useMeeting(
   // Currently selected speaker output device ID (empty = browser default)
   let activeSpeakerDeviceId = ''
 
+  // Whether speakers were auto-muted when system screen audio started (to prevent echo).
+  // Restored to true when screen audio ends.
+  let autoMutedSpeakerForScreenAudio = false
+
   // Audio recording state
   let mediaRecorder: MediaRecorder | null = null
   let audioStream: MediaStream | null = null
@@ -224,6 +232,11 @@ export function useMeeting(
 
     socket.on('disconnect', () => {
       isConnected.value = false
+    })
+
+    // Notify UI when Socket.IO fails to connect (expired JWT, server unreachable).
+    socket.on('connect_error', () => {
+      onSocketErrorInternal()
     })
 
     socket.on(
@@ -583,8 +596,11 @@ export function useMeeting(
 
     livekitRoom.on(RoomEvent.ParticipantDisconnected, (participant: RemoteParticipant) => {
       remoteParticipants.value = [...livekitRoom.remoteParticipants.values()].map(markRaw)
-      const { [participant.identity]: _removed, ...remaining } = remoteMicStates.value
-      remoteMicStates.value = remaining
+      const { [participant.identity]: _removedMic, ...remainingMic } = remoteMicStates.value
+      remoteMicStates.value = remainingMic
+      const { [participant.identity]: _removedScreenAudio, ...remainingScreenAudio } =
+        remoteScreenAudioStates.value
+      remoteScreenAudioStates.value = remainingScreenAudio
     })
 
     livekitRoom.on(
@@ -597,6 +613,13 @@ export function useMeeting(
           remoteScreenShareTracks.value = {
             ...remoteScreenShareTracks.value,
             [participant.identity]: markRaw(track),
+          }
+        }
+
+        if (track.source === Track.Source.ScreenShareAudio) {
+          remoteScreenAudioStates.value = {
+            ...remoteScreenAudioStates.value,
+            [participant.identity]: true,
           }
         }
 
@@ -647,6 +670,21 @@ export function useMeeting(
       },
     )
 
+    // TrackUnpublished fires when a remote participant stops sharing (before or without
+    // TrackUnsubscribed). Removing from remoteScreenShareTracks here ensures the map is
+    // always clean — critical when the same participant re-shares immediately after stopping,
+    // because a stale entry blocks the new track from registering correctly.
+    livekitRoom.on(
+      RoomEvent.TrackUnpublished,
+      (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
+        if (publication.source !== Track.Source.ScreenShare) return
+        const { [participant.identity]: _removed, ...remaining } = remoteScreenShareTracks.value
+        remoteScreenShareTracks.value = remaining
+        hasRemoteScreenShare.value = Object.keys(remaining).length > 0
+        remoteParticipants.value = [...livekitRoom.remoteParticipants.values()].map(markRaw)
+      },
+    )
+
     livekitRoom.on(
       RoomEvent.TrackUnsubscribed,
       (track: RemoteTrack, _publication: TrackPublication, participant: RemoteParticipant) => {
@@ -656,6 +694,11 @@ export function useMeeting(
           const { [participant.identity]: _removed, ...remaining } = remoteScreenShareTracks.value
           remoteScreenShareTracks.value = remaining
           hasRemoteScreenShare.value = Object.keys(remoteScreenShareTracks.value).length > 0
+        }
+
+        if (track.source === Track.Source.ScreenShareAudio) {
+          const { [participant.identity]: _removed, ...remaining } = remoteScreenAudioStates.value
+          remoteScreenAudioStates.value = remaining
         }
 
         // Clean up audio elements when track ends
@@ -691,12 +734,39 @@ export function useMeeting(
       },
     )
 
-    livekitRoom.on(RoomEvent.LocalTrackPublished, (_publication) => {
+    livekitRoom.on(RoomEvent.LocalTrackPublished, (publication) => {
       // triggerRef: notify Vue watchers that localParticipant's internal state changed
       // (a track was published/unpublished). Cannot use re-assign because markRaw(obj) === obj
       // → Vue sees same reference → skips watcher notification.
       triggerRef(localParticipant)
 
+      if (publication.source === Track.Source.ScreenShareAudio) {
+        screenAudioActive.value = true
+
+        // Check whether this is system audio (monitor/window) or tab-only audio (browser).
+        // Tab audio only captures that tab's output — no feedback loop.
+        // System audio captures the OS mixer, including meeting participants' voices through
+        // speakers → creates a feedback/echo loop. Fix: auto-mute speakers for system audio.
+        const screenVideoPub = livekitRoom.localParticipant.getTrackPublication(
+          Track.Source.ScreenShare,
+        )
+        const videoTrack = screenVideoPub?.track?.mediaStreamTrack
+        const displaySurface = (
+          videoTrack?.getSettings() as MediaTrackSettings & { displaySurface?: string }
+        )?.displaySurface
+
+        if (displaySurface !== 'browser' && isSpeakerEnabled.value) {
+          // System audio (monitor/window): mute speakers to break the feedback loop.
+          // Store the flag so we can restore speakers when screen share ends.
+          autoMutedSpeakerForScreenAudio = true
+          isSpeakerEnabled.value = false
+          remoteAudioElements.forEach((audioElement) => {
+            audioElement.muted = true
+          })
+        }
+
+        onScreenAudioEchoRiskInternal()
+      }
       // ScreenShareAudio is intentionally ignored for subtitles — only mic voice is transcribed
     })
 
@@ -708,6 +778,17 @@ export function useMeeting(
 
       if (publication.source === Track.Source.ScreenShare) {
         isScreenSharing.value = false
+      }
+      if (publication.source === Track.Source.ScreenShareAudio) {
+        screenAudioActive.value = false
+        // Restore speakers that were auto-muted to prevent echo during system audio sharing.
+        if (autoMutedSpeakerForScreenAudio) {
+          autoMutedSpeakerForScreenAudio = false
+          isSpeakerEnabled.value = true
+          remoteAudioElements.forEach((audioElement) => {
+            audioElement.muted = false
+          })
+        }
       }
     })
 
@@ -723,9 +804,45 @@ export function useMeeting(
       speakerAudioLevels.value = levels
     })
 
+    // Belt-and-suspenders: if the room disconnects unexpectedly while screen sharing,
+    // stop the MediaStreamTrack explicitly so the OS screen recording lock is released.
+    // Without this, macOS keeps the lock active until Chrome is restarted.
+    livekitRoom.on(RoomEvent.Disconnected, () => {
+      if (isScreenSharing.value) {
+        const screenPub = livekitRoom.localParticipant.getTrackPublication(Track.Source.ScreenShare)
+        const capturedTrack = screenPub?.track?.mediaStreamTrack
+        if (capturedTrack && capturedTrack.readyState !== 'ended') {
+          capturedTrack.stop()
+        }
+        isScreenSharing.value = false
+      }
+      onRoomDisconnectedInternal()
+    })
+
+    // Notify UI when LiveKit is attempting to restore a lost signal connection.
+    livekitRoom.on(RoomEvent.Reconnecting, () => {
+      onRoomReconnectingInternal()
+    })
+
+    // Notify UI when LiveKit successfully restores the signal connection.
+    livekitRoom.on(RoomEvent.Reconnected, () => {
+      onRoomReconnectedInternal()
+    })
+
     await livekitRoom.connect(livekitUrl, token)
     localParticipant.value = markRaw(livekitRoom.localParticipant)
     remoteParticipants.value = [...livekitRoom.remoteParticipants.values()].map(markRaw)
+
+    // Notify UI when the OS or browser blocks mic/camera/screen access.
+    // LiveKit emits MediaDevicesError on LocalParticipant whenever setMicrophoneEnabled,
+    // setCameraEnabled, or setScreenShareEnabled fails with a permission error.
+    // kind: 'audioinput' = mic, 'videoinput' = camera, undefined = screen share
+    livekitRoom.localParticipant.on(
+      ParticipantEvent.MediaDevicesError,
+      (_error: Error, kind: MediaDeviceKind | undefined) => {
+        onMediaDevicePermissionError(kind)
+      },
+    )
   }
 
   /**
@@ -736,14 +853,20 @@ export function useMeeting(
   async function toggleMic() {
     if (!room.value) return
     const enabled = !isMicEnabled.value
-    isMicEnabled.value = enabled
+    isMicEnabled.value = enabled // optimistic update
 
-    if (!enabled) {
-      stopAudioCapture()
-      await room.value.localParticipant.setMicrophoneEnabled(false)
-    } else {
-      await room.value.localParticipant.setMicrophoneEnabled(true)
-      startVADFromLiveKitTrack()
+    try {
+      if (!enabled) {
+        stopAudioCapture()
+        await room.value.localParticipant.setMicrophoneEnabled(false)
+      } else {
+        await room.value.localParticipant.setMicrophoneEnabled(true)
+        startVADFromLiveKitTrack()
+      }
+    } catch {
+      // Revert optimistic update — mic state stays at previous value
+      // LiveKit also emits ParticipantEvent.MediaDevicesError → UI shows permission guidance
+      isMicEnabled.value = !enabled
     }
   }
 
@@ -783,7 +906,11 @@ export function useMeeting(
     const micPub = room.value.localParticipant.getTrackPublication(Track.Source.Microphone)
     const mediaTrack = micPub?.track?.mediaStreamTrack
     if (mediaTrack) {
-      await mediaTrack.applyConstraints({ noiseSuppression: isNoiseSuppressed.value })
+      try {
+        await mediaTrack.applyConstraints({ noiseSuppression: isNoiseSuppressed.value })
+      } catch {
+        // Some browsers do not support the noiseSuppression constraint — ignore silently
+      }
     }
   }
 
@@ -805,18 +932,27 @@ export function useMeeting(
   async function toggleCamera() {
     if (!room.value) return
     const enabled = !isCameraEnabled.value
-    await room.value.localParticipant.setCameraEnabled(enabled)
-    isCameraEnabled.value = enabled
+    try {
+      await room.value.localParticipant.setCameraEnabled(enabled)
+      isCameraEnabled.value = enabled
+    } catch {
+      // State not updated — camera stays at previous value
+      // LiveKit emits ParticipantEvent.MediaDevicesError → UI shows permission guidance
+    }
   }
 
   async function switchMicDevice(deviceId: string) {
     if (!room.value) return
-    // LiveKit switches the capture device without re-publishing — maintains the existing track
-    await room.value.switchActiveDevice('audioinput', deviceId)
-    // Restart VAD with the new track (switchActiveDevice replaces the underlying MediaStreamTrack)
-    if (isMicEnabled.value) {
-      stopAudioCapture()
-      startVADFromLiveKitTrack()
+    try {
+      // LiveKit switches the capture device without re-publishing — maintains the existing track
+      await room.value.switchActiveDevice('audioinput', deviceId)
+      // Restart VAD with the new track (switchActiveDevice replaces the underlying MediaStreamTrack)
+      if (isMicEnabled.value) {
+        stopAudioCapture()
+        startVADFromLiveKitTrack()
+      }
+    } catch {
+      onSwitchDeviceErrorCallback()
     }
   }
 
@@ -863,9 +999,13 @@ export function useMeeting(
         },
         screenSharePublishOptions,
       )
-    } catch {
-      // NotAllowedError: user dismissed the picker or macOS Screen Recording permission is denied.
-      // Any other error: constraint rejection or LiveKit negotiation failure.
+    } catch (error) {
+      // NotAllowedError: user dismissed the picker — silent return, no feedback needed.
+      // Any other error: macOS permission denied, H264 negotiation failure, etc.
+      // Notify the UI so the user knows why it failed instead of seeing "nothing happens".
+      if (error instanceof Error && error.name !== 'NotAllowedError') {
+        onScreenShareError(error)
+      }
       return
     }
 
@@ -897,7 +1037,11 @@ export function useMeeting(
       detectBlackFrames(mediaStreamTrack)
     }
 
-    isScreenSharing.value = true
+    // Guard against race: if LocalTrackUnpublished fired during the await above (server reject),
+    // the publication is already gone — don't set isScreenSharing to true in that case.
+    if (room.value?.localParticipant.getTrackPublication(Track.Source.ScreenShare)?.track) {
+      isScreenSharing.value = true
+    }
     // Audio capture switch is handled by LocalTrackPublished event above
   }
 
@@ -929,7 +1073,8 @@ export function useMeeting(
             let darkPixels = 0
 
             for (let index = 0; index < data.length; index += 4) {
-              const brightness = data[index] + data[index + 1] + data[index + 2]
+              const brightness =
+                (data[index] ?? 0) + (data[index + 1] ?? 0) + (data[index + 2] ?? 0)
               if (brightness < 30) darkPixels++
             }
 
@@ -958,9 +1103,101 @@ export function useMeeting(
     blackScreenCallbacks.push(callback)
   }
 
+  const screenShareErrorCallbacks: Array<(error: Error) => void> = []
+
+  function onScreenShareError(error: Error) {
+    for (const callback of screenShareErrorCallbacks) callback(error)
+  }
+
+  function onScreenShareFailed(callback: (error: Error) => void) {
+    screenShareErrorCallbacks.push(callback)
+  }
+
+  // Fired when the OS/browser denies mic, camera, or screen access during the meeting.
+  // kind: 'audioinput' = mic blocked, 'videoinput' = camera blocked, undefined = screen share blocked
+  const mediaDeviceErrorCallbacks: Array<(kind: MediaDeviceKind | undefined) => void> = []
+
+  function onMediaDevicePermissionError(kind: MediaDeviceKind | undefined) {
+    for (const callback of mediaDeviceErrorCallbacks) callback(kind)
+  }
+
+  function onMediaDeviceError(callback: (kind: MediaDeviceKind | undefined) => void) {
+    mediaDeviceErrorCallbacks.push(callback)
+  }
+
+  // Fired when the LiveKit room disconnects unexpectedly (network loss, server restart).
+  const roomDisconnectedCallbacks: Array<() => void> = []
+  function onRoomDisconnectedInternal() {
+    for (const callback of roomDisconnectedCallbacks) callback()
+  }
+  function onRoomDisconnected(callback: () => void) {
+    roomDisconnectedCallbacks.push(callback)
+  }
+
+  // Fired when LiveKit starts reconnecting after a temporary signal loss.
+  const roomReconnectingCallbacks: Array<() => void> = []
+  function onRoomReconnectingInternal() {
+    for (const callback of roomReconnectingCallbacks) callback()
+  }
+  function onRoomReconnecting(callback: () => void) {
+    roomReconnectingCallbacks.push(callback)
+  }
+
+  // Fired when LiveKit successfully reconnects after a signal loss.
+  const roomReconnectedCallbacks: Array<() => void> = []
+  function onRoomReconnectedInternal() {
+    for (const callback of roomReconnectedCallbacks) callback()
+  }
+  function onRoomReconnected(callback: () => void) {
+    roomReconnectedCallbacks.push(callback)
+  }
+
+  // Fired when Socket.IO connection fails (JWT expired, server unreachable).
+  const socketErrorCallbacks: Array<() => void> = []
+  function onSocketErrorInternal() {
+    for (const callback of socketErrorCallbacks) callback()
+  }
+  function onSocketError(callback: () => void) {
+    socketErrorCallbacks.push(callback)
+  }
+
+  // Fired when the local user starts sharing screen audio — warns about echo risk from speakers.
+  const screenAudioEchoRiskCallbacks: Array<() => void> = []
+  function onScreenAudioEchoRiskInternal() {
+    for (const callback of screenAudioEchoRiskCallbacks) callback()
+  }
+  function onScreenAudioEchoRisk(callback: () => void) {
+    screenAudioEchoRiskCallbacks.push(callback)
+  }
+
+  // Fired when switching mic device fails (device disconnected, permission revoked).
+  const switchDeviceErrorCallbacks: Array<() => void> = []
+  function onSwitchDeviceErrorCallback() {
+    for (const callback of switchDeviceErrorCallbacks) callback()
+  }
+  function onSwitchDeviceError(callback: () => void) {
+    switchDeviceErrorCallbacks.push(callback)
+  }
+
   async function stopScreenShare() {
     if (!room.value) return
+
+    // Capture the track reference before unpublishing — publication is removed after the call.
+    // "Entire Screen" and "Window" sources hold an OS-level screen recording lock (macOS).
+    // The lock is only released when the underlying MediaStreamTrack receives stop().
+    // setScreenShareEnabled(false) unpublishes the track from the room but does not guarantee
+    // stop() is called across all LiveKit SDK versions and browser combinations.
+    const screenPub = room.value.localParticipant.getTrackPublication(Track.Source.ScreenShare)
+    const capturedTrack = screenPub?.track?.mediaStreamTrack
+
     await room.value.localParticipant.setScreenShareEnabled(false)
+
+    // Explicitly release the OS capture session so subsequent getDisplayMedia() calls work
+    // without requiring a browser or machine restart.
+    if (capturedTrack && capturedTrack.readyState !== 'ended') {
+      capturedTrack.stop()
+    }
+
     isScreenSharing.value = false
     // Audio restore is handled by LocalTrackUnpublished event above
   }
@@ -1179,6 +1416,19 @@ export function useMeeting(
     }
 
     if (room.value) {
+      // Explicitly stop the screen share track before disconnecting.
+      // If the user leaves the meeting while still sharing, room.disconnect() may not
+      // call stop() on the screen capture MediaStreamTrack — the OS screen recording lock
+      // (macOS) stays active and subsequent getDisplayMedia() calls fail until browser restart.
+      // This only affects "Entire Screen" and "Window" sources (OS-level capture sessions).
+      if (isScreenSharing.value) {
+        const screenPub = room.value.localParticipant.getTrackPublication(Track.Source.ScreenShare)
+        const capturedTrack = screenPub?.track?.mediaStreamTrack
+        if (capturedTrack && capturedTrack.readyState !== 'ended') {
+          capturedTrack.stop()
+        }
+      }
+
       room.value.disconnect()
       room.value = null
     }
@@ -1217,6 +1467,7 @@ export function useMeeting(
     activeSpeakerIdentities,
     speakerAudioLevels,
     remoteMicStates,
+    remoteScreenAudioStates,
     remoteSpeakerStates,
     isNoiseSuppressed,
     isMicEnabled,
@@ -1235,6 +1486,14 @@ export function useMeeting(
     switchMicDevice,
     setRemoteSpeakerDevice,
     onBlackScreenDetected,
+    onScreenShareFailed,
+    onScreenAudioEchoRisk,
+    onMediaDeviceError,
+    onRoomDisconnected,
+    onRoomReconnecting,
+    onRoomReconnected,
+    onSocketError,
+    onSwitchDeviceError,
     attachTrackToElement,
     disconnect,
     cursors,

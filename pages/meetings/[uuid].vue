@@ -3,7 +3,11 @@
     <v-theme-provider theme="sandstone-dark" style="display: contents">
       <!-- Loading state while fetching meeting data -->
       <div v-if="step === 'loading'" class="meeting-room__loading">
-        <v-progress-circular indeterminate color="primary" size="48" />
+        <template v-if="loadError">
+          <v-icon icon="mdi-alert-circle-outline" size="48" color="error" class="mb-3" />
+          <p class="text-body-2 text-medium-emphasis">{{ loadError }}</p>
+        </template>
+        <v-progress-circular v-else indeterminate color="primary" size="48" />
       </div>
 
       <!-- Password screen (private meeting, non-host) -->
@@ -179,6 +183,19 @@
           </div>
 
           <v-alert
+            v-if="previewPermissionError"
+            type="warning"
+            density="compact"
+            class="mb-3"
+            style="font-size: 12px"
+            closable
+            @click:close="previewPermissionError = ''"
+          >
+            <v-icon class="mr-1">mdi-shield-lock-outline</v-icon>
+            {{ previewPermissionError }}
+          </v-alert>
+
+          <v-alert
             v-if="joinError"
             type="error"
             density="compact"
@@ -239,6 +256,8 @@
               :active-speaker-identities="activeSpeakerIdentities"
               :speaker-audio-levels="speakerAudioLevels"
               :remote-mic-states="remoteMicStates"
+              :remote-screen-audio-states="remoteScreenAudioStates"
+              :screen-audio-active="screenAudioActive"
               :remote-speaker-states="remoteSpeakerStates"
               :participant-avatar-map="participantAvatarMap"
               :participant-name-map="participantNameMap"
@@ -545,6 +564,132 @@
           <v-btn variant="text" @click="screenShareWarning = ''">{{ $t('common.close') }}</v-btn>
         </template>
       </v-snackbar>
+
+      <!-- Screen share start failure (non-cancellation errors) -->
+      <v-snackbar
+        :model-value="!!screenShareErrorMessage"
+        color="error"
+        location="top"
+        :timeout="-1"
+        min-width="360"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon>mdi-monitor-off</v-icon>
+          <span>{{ screenShareErrorMessage }}</span>
+        </div>
+        <template #actions>
+          <v-btn variant="text" @click="screenShareErrorMessage = ''">{{
+            $t('common.close')
+          }}</v-btn>
+        </template>
+      </v-snackbar>
+
+      <!-- Mic / camera permission denied during the meeting -->
+      <v-snackbar
+        :model-value="!!devicePermissionMessage"
+        color="warning"
+        location="top"
+        :timeout="-1"
+        min-width="360"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon>mdi-shield-lock-outline</v-icon>
+          <span>{{ devicePermissionMessage }}</span>
+        </div>
+        <template #actions>
+          <v-btn variant="text" @click="devicePermissionMessage = ''">{{
+            $t('common.close')
+          }}</v-btn>
+        </template>
+      </v-snackbar>
+
+      <!-- LiveKit reconnecting banner (persistent until resolved) -->
+      <v-snackbar
+        :model-value="isReconnecting"
+        color="warning"
+        location="top"
+        :timeout="-1"
+        min-width="360"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-progress-circular indeterminate size="16" width="2" color="white" />
+          <span>{{ $t('meetings.reconnecting') }}</span>
+        </div>
+      </v-snackbar>
+
+      <!-- LiveKit unexpected disconnect -->
+      <v-snackbar
+        :model-value="!!roomDisconnectedMessage"
+        color="error"
+        location="top"
+        :timeout="-1"
+        min-width="360"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon>mdi-wifi-off</v-icon>
+          <span>{{ roomDisconnectedMessage }}</span>
+        </div>
+        <template #actions>
+          <v-btn variant="text" @click="roomDisconnectedMessage = ''">{{
+            $t('common.close')
+          }}</v-btn>
+        </template>
+      </v-snackbar>
+
+      <!-- Socket.IO connection failure -->
+      <v-snackbar
+        :model-value="!!socketErrorMessage"
+        color="error"
+        location="top"
+        :timeout="-1"
+        min-width="360"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon>mdi-connection</v-icon>
+          <span>{{ socketErrorMessage }}</span>
+        </div>
+        <template #actions>
+          <v-btn variant="text" @click="socketErrorMessage = ''">{{ $t('common.close') }}</v-btn>
+        </template>
+      </v-snackbar>
+
+      <!-- Screen audio echo risk warning -->
+      <v-snackbar
+        :model-value="!!screenAudioEchoWarning"
+        color="warning"
+        location="top"
+        :timeout="12000"
+        min-width="320"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon>mdi-volume-alert</v-icon>
+          <span>{{ screenAudioEchoWarning }}</span>
+        </div>
+        <template #actions>
+          <v-btn variant="text" @click="screenAudioEchoWarning = ''">{{
+            $t('common.close')
+          }}</v-btn>
+        </template>
+      </v-snackbar>
+
+      <!-- Mic device switch failure -->
+      <v-snackbar
+        :model-value="!!switchDeviceErrorMessage"
+        color="warning"
+        location="top"
+        :timeout="6000"
+        min-width="280"
+      >
+        <div class="d-flex align-center ga-2">
+          <v-icon>mdi-microphone-off</v-icon>
+          <span>{{ switchDeviceErrorMessage }}</span>
+        </div>
+        <template #actions>
+          <v-btn variant="text" @click="switchDeviceErrorMessage = ''">{{
+            $t('common.close')
+          }}</v-btn>
+        </template>
+      </v-snackbar>
     </v-theme-provider>
   </div>
 </template>
@@ -567,6 +712,7 @@ const { t } = useI18n()
 const meetingUuid = ref(route.params.uuid as string)
 
 const step = ref<'loading' | 'password' | 'prejoin' | 'joining' | 'meeting'>('loading')
+const loadError = ref('')
 const isJoining = ref(false)
 const joinError = ref('')
 const meetingTitle = ref('')
@@ -600,6 +746,7 @@ const localAvatar = ref('')
 const previewVideoReference = ref<HTMLVideoElement | null>(null)
 const previewMicOn = ref(false)
 const previewCameraOn = ref(false)
+const previewPermissionError = ref('')
 const previewSpeakerOn = ref(true)
 let previewStream: MediaStream | null = null
 
@@ -641,11 +788,13 @@ const {
   activeSpeakerIdentities,
   speakerAudioLevels,
   remoteMicStates,
+  remoteScreenAudioStates,
   remoteSpeakerStates,
   isNoiseSuppressed,
   isMicEnabled,
   isCameraEnabled,
   isScreenSharing,
+  screenAudioActive,
   isSpeakerEnabled,
   subtitles: _subtitles,
   connect,
@@ -659,6 +808,14 @@ const {
   switchMicDevice,
   setRemoteSpeakerDevice,
   onBlackScreenDetected,
+  onScreenShareFailed,
+  onScreenAudioEchoRisk,
+  onMediaDeviceError,
+  onRoomDisconnected,
+  onRoomReconnecting,
+  onRoomReconnected,
+  onSocketError,
+  onSwitchDeviceError,
   disconnect,
   cursors,
   markers,
@@ -771,6 +928,26 @@ watch(remoteParticipants, (participants) => {
   }
 })
 
+// Socket participant list is the authoritative name source — the socket gateway always
+// fetches full_name from DB. Use it to fill in names that the LiveKit token may have
+// missed (e.g. participants whose JWT predates the full_name payload field).
+watch(
+  socketParticipants,
+  (participants) => {
+    const updates: Record<string, string> = {}
+    for (const participant of participants) {
+      const key = String(participant.userId)
+      if (!participantNameMap.value[key] && participant.username) {
+        updates[key] = participant.username
+      }
+    }
+    if (Object.keys(updates).length > 0) {
+      participantNameMap.value = { ...participantNameMap.value, ...updates }
+    }
+  },
+  { deep: true },
+)
+
 // Show a brief toast whenever an invite is sent or responded to in this meeting room
 // Also refresh the invite dialog so the host sees updated RSVP status immediately
 watch(lastInviteEvent, (event) => {
@@ -802,6 +979,77 @@ onBlackScreenDetected(() => {
   setTimeout(() => {
     screenShareWarning.value = ''
   }, 12000)
+})
+
+// Show an error snackbar when screen share fails for a non-cancellation reason
+// (e.g. OverconstrainedError still fired, H264 negotiation failure, unexpected LiveKit error)
+const screenShareErrorMessage = ref('')
+onScreenShareFailed(() => {
+  screenShareErrorMessage.value = t('meetings.screenShareFailed')
+  setTimeout(() => {
+    screenShareErrorMessage.value = ''
+  }, 10000)
+})
+
+// Show a permission guidance snackbar when the OS/browser blocks mic or camera access
+// during the meeting (e.g. user revokes permission in System Preferences mid-meeting)
+const devicePermissionMessage = ref('')
+onMediaDeviceError((kind) => {
+  if (kind === 'audioinput') {
+    devicePermissionMessage.value = t('meetings.permissionDenied.mic')
+  } else if (kind === 'videoinput') {
+    devicePermissionMessage.value = t('meetings.permissionDenied.camera')
+  } else {
+    devicePermissionMessage.value = t('meetings.permissionDenied.device')
+  }
+  setTimeout(() => {
+    devicePermissionMessage.value = ''
+  }, 12000)
+})
+
+// Show a persistent banner when LiveKit is reconnecting after signal loss
+const isReconnecting = ref(false)
+onRoomReconnecting(() => {
+  isReconnecting.value = true
+})
+onRoomReconnected(() => {
+  isReconnecting.value = false
+})
+
+// Show a snackbar when LiveKit disconnects unexpectedly (not triggered by leaveMeeting)
+const roomDisconnectedMessage = ref('')
+onRoomDisconnected(() => {
+  if (step.value === 'meeting') {
+    roomDisconnectedMessage.value = t('meetings.connectionLost')
+  }
+})
+
+// Show a snackbar when Socket.IO fails to connect
+const socketErrorMessage = ref('')
+onSocketError(() => {
+  socketErrorMessage.value = t('meetings.socketConnectionFailed')
+  setTimeout(() => {
+    socketErrorMessage.value = ''
+  }, 10000)
+})
+
+// Warn user when they start sharing screen audio: meeting audio playing through speakers
+// gets captured by the screen audio track and sent back to participants as echo.
+const screenAudioEchoWarning = ref('')
+onScreenAudioEchoRisk(() => {
+  screenAudioEchoWarning.value = t('meetings.screenAudioEchoWarning')
+  setTimeout(() => {
+    screenAudioEchoWarning.value = ''
+  }, 12000)
+})
+
+// Show a snackbar when switching mic device fails
+const switchDeviceErrorMessage = ref('')
+onSwitchDeviceError(() => {
+  switchDeviceErrorMessage.value = t('meetings.switchDeviceFailed')
+  setTimeout(() => {
+    switchDeviceErrorMessage.value = ''
+  }, 6000)
 })
 
 // START DEFINE METHOD
@@ -856,10 +1104,10 @@ async function enumerateDevices() {
         label: device.label || `${t('meetings.speaker')} ${index + 1}`,
       }))
     if (!selectedMicId.value && micDevices.value.length > 0) {
-      selectedMicId.value = micDevices.value[0].deviceId
+      selectedMicId.value = micDevices.value[0]?.deviceId ?? ''
     }
     if (!selectedSpeakerId.value && speakerDevices.value.length > 0) {
-      selectedSpeakerId.value = speakerDevices.value[0].deviceId
+      selectedSpeakerId.value = speakerDevices.value[0]?.deviceId ?? ''
     }
   } catch {
     // Permission denied — device list stays empty, dropdowns hidden
@@ -878,8 +1126,12 @@ async function startPreviewMic(deviceId?: string) {
     micStream.getAudioTracks().forEach((track) => previewStream!.addTrack(track))
     startMicLevelDetection(micStream)
     previewMicOn.value = true
-  } catch {
+    previewPermissionError.value = ''
+  } catch (error) {
     previewMicOn.value = false
+    if (error instanceof Error && error.name === 'NotAllowedError') {
+      previewPermissionError.value = t('meetings.permissionDenied.mic')
+    }
   }
 }
 
@@ -913,8 +1165,11 @@ async function togglePreviewCamera() {
       camStream.getVideoTracks().forEach((track) => previewStream!.addTrack(track))
       if (previewVideoReference.value) previewVideoReference.value.srcObject = previewStream
       previewCameraOn.value = true
-    } catch {
-      // Camera permission denied
+      previewPermissionError.value = ''
+    } catch (error) {
+      if (error instanceof Error && error.name === 'NotAllowedError') {
+        previewPermissionError.value = t('meetings.permissionDenied.camera')
+      }
     }
   }
 }
@@ -996,7 +1251,12 @@ async function confirmJoin() {
 
     step.value = 'meeting'
   } catch (error) {
-    joinError.value = error instanceof Error ? error.message : String(error)
+    if (error instanceof Error && error.name === 'NotAllowedError') {
+      // Browser blocked mic/camera during join — show guidance instead of raw error
+      joinError.value = t('meetings.permissionDenied.joinBlocked')
+    } else {
+      joinError.value = error instanceof Error ? error.message : String(error)
+    }
     step.value = 'prejoin'
     isJoining.value = false
   }
@@ -1128,8 +1388,11 @@ onMounted(async () => {
       step.value = 'prejoin'
       enumerateDevices()
     }
-  } catch {
-    navigateTo('/meetings')
+  } catch (error) {
+    // Show the error message on the loading screen briefly before redirecting
+    loadError.value =
+      error instanceof Error && error.message ? error.message : t('meetings.loadFailed')
+    setTimeout(() => navigateTo('/meetings'), 3000)
   }
 })
 

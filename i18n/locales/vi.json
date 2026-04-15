@@ -1193,6 +1193,7 @@
     "wrongPassword": "Mật khẩu không đúng. Vui lòng thử lại.",
     "regeneratePassword": "Tạo mật khẩu mới",
     "regeneratePasswordConfirm": "Mật khẩu hiện tại sẽ bị vô hiệu hóa và tạo mật khẩu mới. Người tham gia sẽ cần mật khẩu mới để vào phòng.",
+    "regeneratePasswordFailed": "Không thể tạo mật khẩu mới. Vui lòng thử lại.",
     "deleteMeeting": "Xóa cuộc họp",
     "deleteConfirm": "Bạn có chắc muốn xóa cuộc họp này? Hành động này không thể hoàn tác.",
     "deleteFailedActive": "Không thể xóa cuộc họp đang có người tham gia. Vui lòng đợi cho đến khi tất cả đã rời phòng.",
@@ -1201,6 +1202,21 @@
     "privacySection": "Quyền riêng tư",
     "meetingPassword": "Mật khẩu",
     "screenRecordingPermission": "Người khác có thể thấy màn hình đen. Trên macOS, vào System Preferences → Privacy & Security → Screen Recording và bật quyền cho Chrome.",
+    "screenShareFailed": "Không thể bắt đầu chia sẻ màn hình. Nếu lỗi tiếp tục, hãy khởi động lại trình duyệt và thử lại.",
+    "permissionDenied": {
+      "mic": "Trình duyệt đã chặn quyền truy cập micro. Vào cài đặt trình duyệt → Quyền và cho phép micro cho trang này.",
+      "camera": "Trình duyệt đã chặn quyền truy cập camera. Vào cài đặt trình duyệt → Quyền và cho phép camera cho trang này.",
+      "device": "Trình duyệt đã chặn quyền truy cập thiết bị. Kiểm tra cài đặt quyền trình duyệt cho trang này.",
+      "joinBlocked": "Trình duyệt đã chặn quyền truy cập micro hoặc camera. Vui lòng cấp quyền trong trình duyệt và thử tham gia lại."
+    },
+    "loadFailed": "Không thể tải thông tin phòng họp. Đang chuyển hướng...",
+    "connectionLost": "Kết nối tới phòng họp bị gián đoạn. Vui lòng tham gia lại.",
+    "reconnecting": "Kết nối không ổn định — đang kết nối lại...",
+    "socketConnectionFailed": "Không thể kết nối tới máy chủ họp. Kiểm tra mạng và thử lại.",
+    "switchDeviceFailed": "Không thể chuyển đổi microphone. Vui lòng thử lại hoặc chọn thiết bị khác.",
+    "screenAudioOn": "Audio: Bật",
+    "screenAudioOff": "Audio: Tắt",
+    "screenAudioEchoWarning": "Đã tắt loa để tránh tiếng vang khi chia sẻ âm thanh hệ thống. Loa sẽ tự bật lại khi bạn dừng chia sẻ.",
     "status": {
       "scheduled": "Đã lên lịch",
       "active": "Đang diễn ra",
@@ -1385,7 +1401,11 @@
       "resultDeclined": "{name} đã từ chối lời mời",
       "resultMissed": "{name} bỏ lỡ cuộc gọi",
       "missedCall": "Cuộc gọi nhỡ",
-      "sendFailed": "Gửi lời mời thất bại. Bạn có thể không có quyền."
+      "sendFailed": "Gửi lời mời thất bại. Bạn có thể không có quyền.",
+      "loadFailed": "Không thể tải danh sách lời mời. Vui lòng đóng và mở lại hộp thoại.",
+      "searchFailed": "Tìm kiếm người dùng thất bại. Vui lòng thử lại.",
+      "recallFailed": "Không thể gửi lại lời mời. Vui lòng thử lại.",
+      "cancelFailed": "Không thể hủy lời mời. Vui lòng thử lại."
     },
     "scheduledParticipants": {
       "title": "Quản lý người tham dự",

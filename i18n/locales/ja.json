@@ -1193,6 +1193,7 @@
     "wrongPassword": "パスワードが正しくありません。もう一度お試しください。",
     "regeneratePassword": "新しいパスワードを生成",
     "regeneratePasswordConfirm": "現在のパスワードが無効になり、新しいパスワードが生成されます。参加者は新しいパスワードが必要です。",
+    "regeneratePasswordFailed": "新しいパスワードの生成に失敗しました。もう一度お試しください。",
     "deleteMeeting": "会議を削除",
     "deleteConfirm": "この会議を削除してもよろしいですか？この操作は元に戻せません。",
     "deleteFailedActive": "アクティブな会議は削除できません。参加者が全員退出するまでお待ちください。",
@@ -1201,6 +1202,21 @@
     "privacySection": "プライバシー",
     "meetingPassword": "パスワード",
     "screenRecordingPermission": "相手に黒い画面が表示される場合があります。macOSでは、システム環境設定 → プライバシーとセキュリティ → 画面収録 でChromeの権限を有効にしてください。",
+    "screenShareFailed": "画面共有を開始できませんでした。問題が続く場合は、ブラウザを再起動してもう一度お試しください。",
+    "permissionDenied": {
+      "mic": "マイクへのアクセスがブロックされました。ブラウザの設定 → 権限 でこのサイトのマイクを許可してください。",
+      "camera": "カメラへのアクセスがブロックされました。ブラウザの設定 → 権限 でこのサイトのカメラを許可してください。",
+      "device": "デバイスへのアクセスがブロックされました。このサイトのブラウザ権限を確認してください。",
+      "joinBlocked": "マイクまたはカメラへのアクセスがブロックされました。ブラウザで権限を許可してから再度参加してください。"
+    },
+    "loadFailed": "会議情報を読み込めませんでした。リダイレクト中...",
+    "connectionLost": "会議室への接続が切断されました。再参加してください。",
+    "reconnecting": "接続が不安定です — 再接続中...",
+    "socketConnectionFailed": "会議サーバーに接続できませんでした。ネットワークを確認して再試行してください。",
+    "switchDeviceFailed": "マイクを切り替えられませんでした。もう一度試すか、別のデバイスを選択してください。",
+    "screenAudioOn": "音声: オン",
+    "screenAudioOff": "音声: オフ",
+    "screenAudioEchoWarning": "システム音声共有中のエコーを防ぐためスピーカーをミュートしました。共有終了時に自動的に解除されます。",
     "status": {
       "scheduled": "予定済み",
       "active": "開催中",
@@ -1385,7 +1401,11 @@
       "resultDeclined": "{name}が招待を辞退しました",
       "resultMissed": "{name}が着信に応答しませんでした",
       "missedCall": "不在着信",
-      "sendFailed": "招待の送信に失敗しました。権限がない可能性があります。"
+      "sendFailed": "招待の送信に失敗しました。権限がない可能性があります。",
+      "loadFailed": "招待リストの読み込みに失敗しました。ダイアログを閉じて再度開いてください。",
+      "searchFailed": "ユーザー検索に失敗しました。もう一度お試しください。",
+      "recallFailed": "招待の再送信に失敗しました。もう一度お試しください。",
+      "cancelFailed": "招待のキャンセルに失敗しました。もう一度お試しください。"
     },
     "scheduledParticipants": {
       "title": "予定参加者の管理",

@@ -25,6 +25,28 @@
             <v-icon icon="mdi-monitor-share" size="12" class="mr-1"></v-icon>
             {{ $t('meetings.you') }} ({{ $t('meetings.controls.shareOn') }})
           </div>
+          <!-- Screen audio badge — shows whether system audio is being captured during screen share -->
+          <v-tooltip
+            :text="screenAudioActive ? $t('meetings.screenAudioOn') : $t('meetings.screenAudioOff')"
+            location="top"
+          >
+            <template #activator="{ props: tooltipProps }">
+              <div
+                v-bind="tooltipProps"
+                class="screen-share-audio-badge"
+                :class="
+                  screenAudioActive
+                    ? 'screen-share-audio-badge--on'
+                    : 'screen-share-audio-badge--off'
+                "
+              >
+                <v-icon
+                  :icon="screenAudioActive ? 'mdi-volume-high' : 'mdi-volume-off'"
+                  size="16"
+                ></v-icon>
+              </div>
+            </template>
+          </v-tooltip>
         </div>
 
         <!-- Remote screen shares (only the focused one is rendered at full size) -->
@@ -59,6 +81,36 @@
               }}
               ({{ $t('meetings.controls.shareOn') }})
             </div>
+            <!-- Screen audio badge — shows whether system audio is captured during remote screen share -->
+            <v-tooltip
+              :text="
+                (remoteScreenAudioStates[participant.identity] ?? false)
+                  ? $t('meetings.screenAudioOn')
+                  : $t('meetings.screenAudioOff')
+              "
+              location="top"
+            >
+              <template #activator="{ props: tooltipProps }">
+                <div
+                  v-bind="tooltipProps"
+                  class="screen-share-audio-badge"
+                  :class="
+                    (remoteScreenAudioStates[participant.identity] ?? false)
+                      ? 'screen-share-audio-badge--on'
+                      : 'screen-share-audio-badge--off'
+                  "
+                >
+                  <v-icon
+                    :icon="
+                      (remoteScreenAudioStates[participant.identity] ?? false)
+                        ? 'mdi-volume-high'
+                        : 'mdi-volume-off'
+                    "
+                    size="16"
+                  ></v-icon>
+                </div>
+              </template>
+            </v-tooltip>
           </div>
         </template>
 
@@ -400,6 +452,10 @@ const props = defineProps<{
   activeSpeakerIdentities: string[]
   speakerAudioLevels: Record<string, number>
   remoteMicStates: Record<string, boolean>
+  /** Whether each remote participant has an active ScreenShareAudio track (system audio capture) */
+  remoteScreenAudioStates: Record<string, boolean>
+  /** Whether the local user's screen share includes system audio */
+  screenAudioActive: boolean
   /** Map of String(userId) → avatar URL for all meeting participants */
   participantAvatarMap: Record<string, string>
   /** Map of String(userId) → full name — reliable fallback when LiveKit participant.name is empty */
@@ -447,6 +503,10 @@ const focusedScreenIdentity = ref<string | null>(null)
 
 // rAF handle for canvas mirror loop
 let screenMirrorFrame: number | null = null
+// Stores mounted remote screen share video elements keyed by participant identity.
+// Used by the focusedScreenIdentity watcher to re-attach when tracks change while
+// the same participant remains focused (reconnect / track replacement scenarios).
+const remoteScreenShareElements = new Map<string, HTMLVideoElement>()
 // END DEFINE STATE
 
 // START DEFINE COMPUTED
@@ -589,7 +649,13 @@ function attachRemoteCamera(element: HTMLVideoElement | null, participant: Remot
 }
 
 function attachRemoteScreenShare(element: HTMLVideoElement | null, participant: RemoteParticipant) {
-  if (!element) return
+  if (!element) {
+    // Element unmounted — clean up the stored reference
+    remoteScreenShareElements.delete(participant.identity)
+    return
+  }
+  // Store the element so the focusedScreenIdentity watcher can re-attach on track replacement
+  remoteScreenShareElements.set(participant.identity, element)
   if (element.srcObject) return
   // Use the pre-resolved track from the reactive map instead of reading markRaw participant
   // to avoid timing races between TrackSubscribed and Vue re-render.
@@ -683,9 +749,11 @@ watch(hasAnyScreenShare, async (active) => {
   await nextTick()
   if (props.isCameraEnabled && props.localParticipant) tryAttachLocalCamera(0)
   if (props.isScreenSharing && props.localParticipant) tryAttachLocalScreenShare(0)
-  // Remote screen share <audio> elements are only in the DOM when hasAnyScreenShare is true.
-  // Clear the map when leaving presentation mode so stale refs don't accumulate.
-  if (!active) screenAudioElements.clear()
+  // Clear element maps when leaving presentation mode so stale refs don't accumulate.
+  if (!active) {
+    screenAudioElements.clear()
+    remoteScreenShareElements.clear()
+  }
 })
 
 // Auto-focus: select which screen share to display in the main area.
@@ -712,11 +780,51 @@ watch(
   { immediate: true },
 )
 
-// Re-attach remote screen share tracks when focus changes (DOM video elements are recreated)
-watch(focusedScreenIdentity, async () => {
+// Re-attach tracks when focus changes (DOM elements are recreated by v-if on each switch).
+// - Local screen share: element uses named ref, so must be explicitly re-attached via watcher.
+// - Remote screen share: element uses function ref (:ref callback) which fires on mount,
+//   but we also re-attach here as a safety net for cases where the element was already
+//   mounted before the track arrived (race condition or reconnect scenario).
+watch(focusedScreenIdentity, async (identity) => {
   await nextTick()
   if (props.isScreenSharing && props.localParticipant) tryAttachLocalScreenShare(0)
+
+  // Re-attach the focused remote screen share if the element is already mounted
+  if (identity && identity !== 'local') {
+    const element = remoteScreenShareElements.get(identity)
+    const track = props.remoteScreenShareTracks[identity]
+    if (element && track && !element.srcObject) {
+      track.attach(element)
+      element.play().catch(() => {})
+    }
+  }
 })
+
+// Re-attach the focused remote screen share when its track is replaced in the map.
+// This handles the reconnect / session-restart scenario: the participant stays focused
+// and the video element remains in the DOM, but LiveKit assigns a new track object —
+// the :ref callback does NOT fire again because the element was already mounted.
+watch(
+  () => props.remoteScreenShareTracks,
+  (tracks) => {
+    if (!focusedScreenIdentity.value || focusedScreenIdentity.value === 'local') return
+    const identity = focusedScreenIdentity.value
+    const element = remoteScreenShareElements.get(identity)
+    const track = tracks[identity]
+    if (!element || !track) return
+    // Re-attach if the video has no stream or all its video tracks have ended.
+    // This covers the reconnect scenario where LiveKit replaces the track object
+    // but the element stays in the DOM (v-if didn't change, :ref did not re-fire).
+    const existingStream = element.srcObject as MediaStream | null
+    const videoTracks = existingStream?.getVideoTracks() ?? []
+    const streamIsLive = videoTracks.some((videoTrack) => videoTrack.readyState === 'live')
+    if (!streamIsLive) {
+      element.srcObject = null
+      track.attach(element)
+      element.play().catch(() => {})
+    }
+  },
+)
 // END DEFINE WATCHER
 
 // START LIFECYCLE
@@ -799,6 +907,13 @@ defineExpose({ toggleFullscreen })
   position: relative;
   flex: 1;
   min-width: 0;
+  /* min-height: 0 overrides flex's default min-height: auto.
+   * Without this, the browser uses the <video> element's intrinsic size (e.g. 1080px, 1440px)
+   * as the minimum height once the video loads metadata, preventing presentation-main from
+   * shrinking to accommodate the screen-share-strip. The strip is then pushed outside
+   * presentation-area's bounds and clipped by meeting-room__video's overflow: hidden.
+   * This is why the selector buttons disappear after the video has fully loaded. */
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -816,11 +931,19 @@ defineExpose({ toggleFullscreen })
   width: 100%;
   height: 100%;
   aspect-ratio: unset;
+  /* min-height: 0 prevents the tile from enforcing the video's intrinsic height
+   * as a minimum. Propagates the flex shrink constraint down to the video element. */
+  min-height: 0;
 }
 
 .presentation-main .video-tile__video {
   object-fit: contain;
   background: var(--vg-screen-bg);
+  /* min-height: 0 prevents the <video> element's intrinsic height (the captured
+   * screen resolution, e.g. 1080px / 1440px) from leaking up as min-content size.
+   * Without this, flex layout cannot shrink the chain below the video's natural height,
+   * pushing the screen-share-strip selector out of view once video metadata loads. */
+  min-height: 0;
 }
 
 /* Fullscreen toggle button — hidden by default, revealed on hover */
@@ -1126,5 +1249,30 @@ defineExpose({ toggleFullscreen })
   height: 100%;
   background: var(--vg-speaking);
   transition: width 0.08s ease-out;
+}
+
+/* ── Screen share audio status badge ── */
+.screen-share-audio-badge {
+  position: absolute;
+  bottom: 32px; /* sits just above the label bar */
+  right: 8px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: default;
+}
+
+.screen-share-audio-badge--on {
+  background: rgba(76, 175, 80, 0.9);
+  color: #fff;
+}
+
+.screen-share-audio-badge--off {
+  background: rgba(244, 67, 54, 0.85);
+  color: #fff;
 }
 </style>
