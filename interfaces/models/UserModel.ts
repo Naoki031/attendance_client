@@ -22,6 +22,7 @@ export interface UserModel {
   contract_expired_date?: string
   contract_type?: string
   contract_count?: number
+  contract_expiry_reminder_days?: number
   annual_leave_hours?: number | null
   remaining_leave_hours?: number | null
   slack_id?: string

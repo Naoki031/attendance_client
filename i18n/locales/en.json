@@ -79,7 +79,8 @@
     "darkMode": "Dark mode",
     "unknown": "Unknown",
     "showLess": "Show less",
-    "createdAt": "Created At"
+    "createdAt": "Created At",
+    "saved": "Saved"
   },
   "weekDays": {
     "mon": "Mon",
@@ -195,6 +196,7 @@
     "notificationSubmitted": "{name} has submitted a {type} request",
     "notificationApproved": "Your {type} request has been approved",
     "notificationRejected": "Your {type} request has been rejected",
+    "notificationContractExpiry": "{name}'s contract expires in {days} day(s)",
     "pendingLabel": "Pending"
   },
   "requestType": {
@@ -435,7 +437,29 @@
     "saveFailed": "Failed to save user",
     "loadRolesFailed": "Failed to load roles",
     "loadCompaniesFailed": "Failed to load companies",
-    "loadDepartmentsFailed": "Failed to load departments"
+    "loadDepartmentsFailed": "Failed to load departments",
+    "sectionContracts": "Contract History",
+    "noContracts": "No contracts on record",
+    "addContract": "Add Contract",
+    "contractType": "Contract Type",
+    "contractTypeProbation": "Probation",
+    "contractTypeFixedTerm": "Fixed Term",
+    "contractTypeIndefinite": "Indefinite",
+    "contractSignedDate": "Signed Date",
+    "contractExpiredDate": "Expiry Date",
+    "contractExpiredDateHint": "Leave empty for indefinite contracts",
+    "contractNotes": "Notes",
+    "deleteContract": "Delete Contract",
+    "deleteContractConfirm": "Delete contract #{number} ({type})? This cannot be undone.",
+    "loadContractsFailed": "Failed to load contracts",
+    "saveContractFailed": "Failed to save contract",
+    "deleteContractFailed": "Failed to delete contract",
+    "editContract": "Edit Contract",
+    "updateContractFailed": "Failed to update contract",
+    "contractExpiryReminderDays": "Expiry Reminder (days)",
+    "contractExpiryReminderDaysHint": "Send notification {days} days before contract expires",
+    "sectionLeave": "Leave & Contract",
+    "loadUserFailed": "Failed to load user"
   },
   "companies": {
     "title": "Companies",

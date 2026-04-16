@@ -170,33 +170,29 @@
               <template #prepend>
                 <v-icon size="16" color="medium-emphasis" class="mr-3">mdi-file-sign</v-icon>
               </template>
-              <v-list-item-subtitle>{{ $t('profile.contractType') }}</v-list-item-subtitle>
-              <v-list-item-title>{{ user?.contract_type ?? '—' }}</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <template #prepend>
-                <v-icon size="16" color="medium-emphasis" class="mr-3"
-                  >mdi-calendar-check-outline</v-icon
-                >
-              </template>
-              <v-list-item-subtitle>{{ $t('profile.contractSignedDate') }}</v-list-item-subtitle>
-              <v-list-item-title>{{ formatDate(user?.contract_signed_date) }}</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <template #prepend>
-                <v-icon size="16" color="medium-emphasis" class="mr-3"
-                  >mdi-calendar-remove-outline</v-icon
-                >
-              </template>
-              <v-list-item-subtitle>{{ $t('profile.contractExpiredDate') }}</v-list-item-subtitle>
-              <v-list-item-title>{{ formatDate(user?.contract_expired_date) }}</v-list-item-title>
-            </v-list-item>
-            <v-list-item>
-              <template #prepend>
-                <v-icon size="16" color="medium-emphasis" class="mr-3">mdi-counter</v-icon>
-              </template>
-              <v-list-item-subtitle>{{ $t('profile.contractCount') }}</v-list-item-subtitle>
-              <v-list-item-title>{{ user?.contract_count ?? '—' }}</v-list-item-title>
+              <v-list-item-subtitle>{{ $t('profile.contract') }}</v-list-item-subtitle>
+              <v-list-item-title>
+                <template v-if="user?.contract_type">
+                  <v-chip
+                    size="x-small"
+                    :color="contractTypeColor(user.contract_type)"
+                    variant="tonal"
+                    class="mr-1"
+                  >
+                    {{ contractTypeLabel(user.contract_type) }}
+                  </v-chip>
+                  <span class="text-caption text-medium-emphasis">
+                    #{{ user.contract_count }}
+                    <template v-if="user.contract_signed_date">
+                      · {{ formatDate(user.contract_signed_date) }}
+                      <template v-if="user.contract_expired_date">
+                        → {{ formatDate(user.contract_expired_date) }}
+                      </template>
+                    </template>
+                  </span>
+                </template>
+                <span v-else>—</span>
+              </v-list-item-title>
             </v-list-item>
             <v-list-item>
               <template #prepend>
@@ -395,6 +391,20 @@ const loadAttendanceLogs = async () => {
 const formatDate = (value?: string | null): string => {
   if (!value) return '—'
   return value.substring(0, 10)
+}
+
+const contractTypeLabel = (type?: string | null): string => {
+  if (type === 'probation') return t('users.contractTypeProbation')
+  if (type === 'fixed_term') return t('users.contractTypeFixedTerm')
+  if (type === 'indefinite') return t('users.contractTypeIndefinite')
+  return type ?? '—'
+}
+
+const contractTypeColor = (type?: string | null): string => {
+  if (type === 'probation') return 'warning'
+  if (type === 'fixed_term') return 'info'
+  if (type === 'indefinite') return 'success'
+  return 'default'
 }
 
 const handleBugReportConfirm = () => {

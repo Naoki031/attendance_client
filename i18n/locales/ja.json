@@ -79,7 +79,8 @@
     "darkMode": "ダークモード",
     "unknown": "不明",
     "showLess": "折りたたむ",
-    "createdAt": "作成日時"
+    "createdAt": "作成日時",
+    "saved": "保存しました"
   },
   "weekDays": {
     "mon": "月",
@@ -195,6 +196,7 @@
     "notificationSubmitted": "{name}が{type}申請を提出しました",
     "notificationApproved": "あなたの{type}申請が承認されました",
     "notificationRejected": "あなたの{type}申請が却下されました",
+    "notificationContractExpiry": "{name} の契約があと {days} 日で終了します",
     "pendingLabel": "承認待ち"
   },
   "requestType": {
@@ -435,7 +437,29 @@
     "saveFailed": "従業員情報の保存に失敗しました",
     "loadRolesFailed": "ロール一覧の読み込みに失敗しました",
     "loadCompaniesFailed": "会社一覧の読み込みに失敗しました",
-    "loadDepartmentsFailed": "部署一覧の読み込みに失敗しました"
+    "loadDepartmentsFailed": "部署一覧の読み込みに失敗しました",
+    "sectionContracts": "契約履歴",
+    "noContracts": "契約記録がありません",
+    "addContract": "契約を追加",
+    "contractType": "契約種別",
+    "contractTypeProbation": "試用期間",
+    "contractTypeFixedTerm": "有期契約",
+    "contractTypeIndefinite": "無期限",
+    "contractSignedDate": "締結日",
+    "contractExpiredDate": "満了日",
+    "contractExpiredDateHint": "無期限の場合は空欄にしてください",
+    "contractNotes": "備考",
+    "deleteContract": "契約を削除",
+    "deleteContractConfirm": "契約 #{number}（{type}）を削除しますか？この操作は元に戻せません。",
+    "loadContractsFailed": "契約一覧の読み込みに失敗しました",
+    "saveContractFailed": "契約の保存に失敗しました",
+    "deleteContractFailed": "契約の削除に失敗しました",
+    "editContract": "契約を編集",
+    "updateContractFailed": "契約の更新に失敗しました",
+    "contractExpiryReminderDays": "期限リマインダー（日数）",
+    "contractExpiryReminderDaysHint": "契約満了の {days} 日前に通知を送信",
+    "sectionLeave": "休暇・契約",
+    "loadUserFailed": "ユーザーの読み込みに失敗しました"
   },
   "companies": {
     "title": "会社",

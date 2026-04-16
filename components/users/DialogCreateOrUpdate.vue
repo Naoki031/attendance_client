@@ -357,38 +357,9 @@
               ></v-textarea>
             </v-col>
 
-            <!-- Contract section -->
+            <!-- ── LEAVE & CONTRACT ── -->
             <v-col cols="12">
-              <div class="section-label">{{ $t('users.sectionContract').toUpperCase() }}</div>
-            </v-col>
-
-            <!-- Contract Type -->
-            <v-col cols="12" md="6">
-              <div class="field-label">{{ $t('profile.contractType').toUpperCase() }}</div>
-              <v-text-field
-                v-model="contract_type"
-                variant="filled"
-                rounded="lg"
-                flat
-                density="comfortable"
-                :error-messages="errors.contract_type"
-                autocomplete="off"
-              ></v-text-field>
-            </v-col>
-
-            <!-- Contract Count -->
-            <v-col cols="12" md="6">
-              <div class="field-label">{{ $t('profile.contractCount').toUpperCase() }}</div>
-              <v-text-field
-                v-model="contract_count"
-                variant="filled"
-                rounded="lg"
-                flat
-                density="comfortable"
-                type="number"
-                :error-messages="errors.contract_count"
-                autocomplete="off"
-              ></v-text-field>
+              <div class="section-label">{{ $t('users.sectionLeave').toUpperCase() }}</div>
             </v-col>
 
             <!-- Annual Leave Hours -->
@@ -419,68 +390,6 @@
                 :error-messages="errors.remaining_leave_hours"
                 autocomplete="off"
               ></v-text-field>
-            </v-col>
-
-            <!-- Contract Signed Date -->
-            <v-col cols="12" md="6">
-              <div class="field-label">{{ $t('profile.contractSignedDate').toUpperCase() }}</div>
-              <v-menu v-model="menuContractSignedDate" :close-on-content-click="false">
-                <template #activator="{ props: menuProps }">
-                  <v-text-field
-                    v-bind="menuProps"
-                    :model-value="contract_signed_date"
-                    variant="filled"
-                    rounded="lg"
-                    flat
-                    density="comfortable"
-                    prepend-inner-icon="mdi-calendar-edit"
-                    :error-messages="errors.contract_signed_date"
-                    readonly
-                    autocomplete="off"
-                  />
-                </template>
-                <v-date-picker
-                  :model-value="toPickerDate(contract_signed_date)"
-                  hide-header
-                  @update:model-value="
-                    (selectedDate: Date) => {
-                      contract_signed_date = formatDate(selectedDate)
-                      menuContractSignedDate = false
-                    }
-                  "
-                />
-              </v-menu>
-            </v-col>
-
-            <!-- Contract Expired Date -->
-            <v-col cols="12" md="6">
-              <div class="field-label">{{ $t('profile.contractExpiredDate').toUpperCase() }}</div>
-              <v-menu v-model="menuContractExpiredDate" :close-on-content-click="false">
-                <template #activator="{ props: menuProps }">
-                  <v-text-field
-                    v-bind="menuProps"
-                    :model-value="contract_expired_date"
-                    variant="filled"
-                    rounded="lg"
-                    flat
-                    density="comfortable"
-                    prepend-inner-icon="mdi-calendar-remove"
-                    :error-messages="errors.contract_expired_date"
-                    readonly
-                    autocomplete="off"
-                  />
-                </template>
-                <v-date-picker
-                  :model-value="toPickerDate(contract_expired_date)"
-                  hide-header
-                  @update:model-value="
-                    (selectedDate: Date) => {
-                      contract_expired_date = formatDate(selectedDate)
-                      menuContractExpiredDate = false
-                    }
-                  "
-                />
-              </v-menu>
             </v-col>
 
             <!-- Password section -->
@@ -600,10 +509,6 @@ const form: UserFormType = {
   permission_group_ids: [],
   date_of_birth: null,
   join_date: null,
-  contract_signed_date: null,
-  contract_expired_date: null,
-  contract_type: null,
-  contract_count: null,
   annual_leave_hours: null,
   remaining_leave_hours: null,
   slack_id: null,
@@ -654,10 +559,6 @@ const schema = computed(() =>
       .required(),
     date_of_birth: Yup.string().nullable(),
     join_date: Yup.string().nullable(),
-    contract_signed_date: Yup.string().nullable(),
-    contract_expired_date: Yup.string().nullable(),
-    contract_type: Yup.string().nullable(),
-    contract_count: Yup.number().nullable(),
     annual_leave_hours: Yup.number().nullable(),
     remaining_leave_hours: Yup.number().nullable(),
     slack_id: Yup.string().nullable(),
@@ -695,10 +596,6 @@ const { value: is_active } = useField<boolean>('is_active')
 const { value: permission_group_ids } = useField<number[]>('permission_group_ids')
 const { value: date_of_birth } = useField<string | null>('date_of_birth')
 const { value: join_date } = useField<string | null>('join_date')
-const { value: contract_signed_date } = useField<string | null>('contract_signed_date')
-const { value: contract_expired_date } = useField<string | null>('contract_expired_date')
-const { value: contract_type } = useField<string | null>('contract_type')
-const { value: contract_count } = useField<number | null>('contract_count')
 const { value: annual_leave_hours } = useField<number | null>('annual_leave_hours')
 const { value: remaining_leave_hours } = useField<number | null>('remaining_leave_hours')
 const { value: slack_id } = useField<string | null>('slack_id')
@@ -721,8 +618,7 @@ const companyError = ref('')
 const departmentError = ref('')
 const menuDateOfBirth = ref(false)
 const menuJoinDate = ref(false)
-const menuContractSignedDate = ref(false)
-const menuContractExpiredDate = ref(false)
+
 /* END DEFINE STATE */
 
 /** START DEFINE HELPERS */
@@ -749,6 +645,7 @@ const formatDate = (date: Date | null | undefined): string | null => {
 
 const title = computed(() => (props.item ? t('users.editEmployee') : t('users.newEmployee')))
 const maxWidth = computed(() => '800px')
+
 const defaultRoleId = computed<number | null>(() => {
   const role = availableRoles.value.find((group) => group.name.toLowerCase() === 'user')
   return role?.id ?? null
@@ -939,10 +836,6 @@ watch(
           permission_group_ids: item.permission_group_ids ?? [],
           date_of_birth: toDateOnly(item.date_of_birth),
           join_date: toDateOnly(item.join_date),
-          contract_signed_date: toDateOnly(item.contract_signed_date),
-          contract_expired_date: toDateOnly(item.contract_expired_date),
-          contract_type: item.contract_type ?? null,
-          contract_count: item.contract_count ?? null,
           annual_leave_hours: item.annual_leave_hours ?? null,
           remaining_leave_hours: item.remaining_leave_hours ?? null,
           slack_id: item.slack_id ?? null,

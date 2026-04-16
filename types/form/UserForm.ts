@@ -12,10 +12,6 @@ export type UserFormType = {
   permission_group_ids: number[] | null
   date_of_birth: string | null
   join_date: string | null
-  contract_signed_date: string | null
-  contract_expired_date: string | null
-  contract_type: string | null
-  contract_count: number | null
   annual_leave_hours: number | null
   remaining_leave_hours: number | null
   slack_id: string | null

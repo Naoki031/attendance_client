@@ -251,6 +251,34 @@ useSocketEvent<EmployeeRequestModel>('request:updated', (request) => {
   }
 })
 
+// Notify company admins when an employee's contract is about to expire
+useSocketEvent<{
+  userId: number
+  employeeName: string
+  contractType: string
+  expiredDate: string
+  daysRemaining: number
+}>('contract:expiry_reminder', (data) => {
+  if (!userStore.isAdmin) return
+
+  push({
+    icon: 'mdi-file-alert-outline',
+    iconColor: 'warning',
+    title: t('home.notificationContractExpiry', {
+      name: data.employeeName,
+      days: data.daysRemaining,
+    }),
+    timeout: 8000,
+    actions: [
+      {
+        label: t('common.view'),
+        handler: () => router.push(`/management/users/${data.userId}`),
+        dismissOnClick: true,
+      },
+    ],
+  })
+})
+
 onUnmounted(() => {
   meetingSocket?.emit('unsubscribe_meetings_list')
   meetingSocket?.disconnect()

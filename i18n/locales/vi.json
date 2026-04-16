@@ -79,7 +79,8 @@
     "darkMode": "Giao diện tối",
     "unknown": "Không rõ",
     "showLess": "Rút gọn",
-    "createdAt": "Ngày tạo"
+    "createdAt": "Ngày tạo",
+    "saved": "Đã lưu"
   },
   "weekDays": {
     "mon": "T2",
@@ -195,6 +196,7 @@
     "notificationSubmitted": "{name} đã gửi yêu cầu {type}",
     "notificationApproved": "Yêu cầu {type} của bạn đã được duyệt",
     "notificationRejected": "Yêu cầu {type} của bạn đã bị từ chối",
+    "notificationContractExpiry": "Hợp đồng của {name} còn {days} ngày hết hạn",
     "pendingLabel": "Chờ duyệt"
   },
   "requestType": {
@@ -435,7 +437,29 @@
     "saveFailed": "Lưu thông tin nhân viên thất bại",
     "loadRolesFailed": "Tải danh sách vai trò thất bại",
     "loadCompaniesFailed": "Tải danh sách công ty thất bại",
-    "loadDepartmentsFailed": "Tải danh sách phòng ban thất bại"
+    "loadDepartmentsFailed": "Tải danh sách phòng ban thất bại",
+    "sectionContracts": "Lịch sử hợp đồng",
+    "noContracts": "Chưa có hợp đồng nào",
+    "addContract": "Thêm hợp đồng",
+    "contractType": "Loại hợp đồng",
+    "contractTypeProbation": "Thử việc",
+    "contractTypeFixedTerm": "Có thời hạn",
+    "contractTypeIndefinite": "Không xác định thời hạn",
+    "contractSignedDate": "Ngày ký",
+    "contractExpiredDate": "Ngày hết hạn",
+    "contractExpiredDateHint": "Để trống nếu không xác định thời hạn",
+    "contractNotes": "Ghi chú",
+    "deleteContract": "Xóa hợp đồng",
+    "deleteContractConfirm": "Xóa hợp đồng #{number} ({type})? Hành động này không thể hoàn tác.",
+    "loadContractsFailed": "Tải danh sách hợp đồng thất bại",
+    "saveContractFailed": "Lưu hợp đồng thất bại",
+    "deleteContractFailed": "Xóa hợp đồng thất bại",
+    "editContract": "Sửa hợp đồng",
+    "updateContractFailed": "Cập nhật hợp đồng thất bại",
+    "contractExpiryReminderDays": "Nhắc nhở hết hạn (ngày)",
+    "contractExpiryReminderDaysHint": "Gửi thông báo trước {days} ngày khi hợp đồng hết hạn",
+    "sectionLeave": "Nghỉ phép & Hợp đồng",
+    "loadUserFailed": "Không thể tải thông tin nhân viên"
   },
   "companies": {
     "title": "Công ty",

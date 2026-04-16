@@ -164,6 +164,27 @@
           </div>
         </template>
 
+        <!-- Contract type -->
+        <template #item.contract_type="{ item }">
+          <v-chip
+            v-if="item.contract_type"
+            size="x-small"
+            :color="getContractTypeColor(item.contract_type)"
+            variant="tonal"
+          >
+            {{ getContractTypeLabel(item.contract_type) }}
+          </v-chip>
+          <span v-else class="text-caption text-medium-emphasis">—</span>
+        </template>
+
+        <!-- Contract count -->
+        <template #item.contract_count="{ item }">
+          <span v-if="item.contract_count != null" class="text-body-2">
+            {{ item.contract_count }}
+          </span>
+          <span v-else class="text-caption text-medium-emphasis">—</span>
+        </template>
+
         <!-- Join date -->
         <template #item.join_date="{ item }">
           <span class="text-body-2">{{
@@ -398,6 +419,7 @@ const headers = computed(() => [
   { title: t('departments.title'), key: 'departments', sortable: false },
   { title: t('profile.roles'), key: 'roles', sortable: false },
   { title: t('profile.contractType'), key: 'contract_type', sortable: true },
+  { title: t('profile.count'), key: 'contract_count', sortable: true },
   { title: t('profile.joinDate'), key: 'join_date' },
   { title: t('users.permanentRemote'), key: 'permanent_remote', sortable: false },
   { title: t('common.schedule'), key: 'schedule', sortable: false },
@@ -454,6 +476,20 @@ function getHighestRole(roles: string[]): string | null {
   return roles.reduce((highest, role) => {
     return getRolePriority(role) > getRolePriority(highest) ? role : highest
   })
+}
+
+function getContractTypeColor(type: string): string {
+  if (type === 'probation') return 'warning'
+  if (type === 'fixed_term') return 'info'
+  if (type === 'indefinite') return 'success'
+  return 'default'
+}
+
+function getContractTypeLabel(type: string): string {
+  if (type === 'probation') return String(t('users.contractTypeProbation'))
+  if (type === 'fixed_term') return String(t('users.contractTypeFixedTerm'))
+  if (type === 'indefinite') return String(t('users.contractTypeIndefinite'))
+  return type
 }
 
 function formatDateOnly(value: string): string {
