@@ -238,6 +238,8 @@
     "contractSignedDate": "契約締結日",
     "contractExpiredDate": "契約満了日",
     "contractCount": "契約回数",
+    "annualLeaveHours": "年間有給時間",
+    "remainingLeaveHours": "残り有給時間",
     "username": "ユーザー名",
     "roles": "ロール",
     "slackId": "Slack ID",
@@ -429,7 +431,11 @@
     "noCustomSchedules": "カスタムスケジュールなし — 会社のデフォルトを使用中",
     "scheduleActive": "有効",
     "scheduleExpired": "期限切れ",
-    "deleteConfirm": "{name}を削除してもよろしいですか？この操作は元に戻せず、関連するすべてのデータが完全に削除されます。"
+    "deleteConfirm": "{name}を削除してもよろしいですか？この操作は元に戻せず、関連するすべてのデータが完全に削除されます。",
+    "saveFailed": "従業員情報の保存に失敗しました",
+    "loadRolesFailed": "ロール一覧の読み込みに失敗しました",
+    "loadCompaniesFailed": "会社一覧の読み込みに失敗しました",
+    "loadDepartmentsFailed": "部署一覧の読み込みに失敗しました"
   },
   "companies": {
     "title": "会社",

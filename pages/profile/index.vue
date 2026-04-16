@@ -198,6 +198,24 @@
               <v-list-item-subtitle>{{ $t('profile.contractCount') }}</v-list-item-subtitle>
               <v-list-item-title>{{ user?.contract_count ?? '—' }}</v-list-item-title>
             </v-list-item>
+            <v-list-item>
+              <template #prepend>
+                <v-icon size="16" color="medium-emphasis" class="mr-3"
+                  >mdi-clock-time-eight-outline</v-icon
+                >
+              </template>
+              <v-list-item-subtitle>{{ $t('profile.annualLeaveHours') }}</v-list-item-subtitle>
+              <v-list-item-title>{{ user?.annual_leave_hours ?? '—' }}</v-list-item-title>
+            </v-list-item>
+            <v-list-item>
+              <template #prepend>
+                <v-icon size="16" color="medium-emphasis" class="mr-3"
+                  >mdi-clock-check-outline</v-icon
+                >
+              </template>
+              <v-list-item-subtitle>{{ $t('profile.remainingLeaveHours') }}</v-list-item-subtitle>
+              <v-list-item-title>{{ user?.remaining_leave_hours ?? '—' }}</v-list-item-title>
+            </v-list-item>
           </v-list>
         </v-card>
       </v-col>

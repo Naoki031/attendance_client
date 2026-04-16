@@ -238,6 +238,8 @@
     "contractSignedDate": "Contract Signed Date",
     "contractExpiredDate": "Contract Expired Date",
     "contractCount": "Contract Count",
+    "annualLeaveHours": "Annual Leave Hours",
+    "remainingLeaveHours": "Remaining Leave Hours",
     "username": "Username",
     "roles": "Roles",
     "slackId": "Slack ID",
@@ -429,7 +431,11 @@
     "noCustomSchedules": "No custom schedules — using company default",
     "scheduleActive": "Active",
     "scheduleExpired": "Expired",
-    "deleteConfirm": "Are you sure you want to delete {name}? This action cannot be undone and all associated data will be permanently removed."
+    "deleteConfirm": "Are you sure you want to delete {name}? This action cannot be undone and all associated data will be permanently removed.",
+    "saveFailed": "Failed to save user",
+    "loadRolesFailed": "Failed to load roles",
+    "loadCompaniesFailed": "Failed to load companies",
+    "loadDepartmentsFailed": "Failed to load departments"
   },
   "companies": {
     "title": "Companies",

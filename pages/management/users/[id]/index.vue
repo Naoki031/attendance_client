@@ -117,6 +117,22 @@
                   <div class="info-label">{{ $t('profile.expiredDate').toUpperCase() }}</div>
                   <div class="info-value">{{ user.contract_expired_date ?? '—' }}</div>
                 </v-col>
+                <v-col cols="6">
+                  <div class="info-label">{{ $t('profile.annualLeaveHours').toUpperCase() }}</div>
+                  <div class="info-value">
+                    {{ user.annual_leave_hours != null ? String(user.annual_leave_hours) : '—' }}
+                  </div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">
+                    {{ $t('profile.remainingLeaveHours').toUpperCase() }}
+                  </div>
+                  <div class="info-value">
+                    {{
+                      user.remaining_leave_hours != null ? String(user.remaining_leave_hours) : '—'
+                    }}
+                  </div>
+                </v-col>
               </v-row>
             </div>
           </v-card>

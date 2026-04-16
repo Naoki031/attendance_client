@@ -238,6 +238,8 @@
     "contractSignedDate": "Ngày ký hợp đồng",
     "contractExpiredDate": "Ngày hết hạn hợp đồng",
     "contractCount": "Số lần ký hợp đồng",
+    "annualLeaveHours": "Số giờ phép năm",
+    "remainingLeaveHours": "Số giờ phép còn lại",
     "username": "Tên đăng nhập",
     "roles": "Vai trò",
     "slackId": "Slack ID",
@@ -429,7 +431,11 @@
     "noCustomSchedules": "Không có lịch tùy chỉnh — đang dùng lịch mặc định công ty",
     "scheduleActive": "Đang hoạt động",
     "scheduleExpired": "Hết hạn",
-    "deleteConfirm": "Bạn có chắc chắn muốn xóa {name} không? Hành động này không thể hoàn tác và tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn."
+    "deleteConfirm": "Bạn có chắc chắn muốn xóa {name} không? Hành động này không thể hoàn tác và tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn.",
+    "saveFailed": "Lưu thông tin nhân viên thất bại",
+    "loadRolesFailed": "Tải danh sách vai trò thất bại",
+    "loadCompaniesFailed": "Tải danh sách công ty thất bại",
+    "loadDepartmentsFailed": "Tải danh sách phòng ban thất bại"
   },
   "companies": {
     "title": "Công ty",

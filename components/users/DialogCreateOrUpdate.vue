@@ -391,6 +391,36 @@
               ></v-text-field>
             </v-col>
 
+            <!-- Annual Leave Hours -->
+            <v-col cols="12" md="6">
+              <div class="field-label">{{ $t('profile.annualLeaveHours').toUpperCase() }}</div>
+              <v-text-field
+                v-model="annual_leave_hours"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                type="number"
+                :error-messages="errors.annual_leave_hours"
+                autocomplete="off"
+              ></v-text-field>
+            </v-col>
+
+            <!-- Remaining Leave Hours -->
+            <v-col cols="12" md="6">
+              <div class="field-label">{{ $t('profile.remainingLeaveHours').toUpperCase() }}</div>
+              <v-text-field
+                v-model="remaining_leave_hours"
+                variant="filled"
+                rounded="lg"
+                flat
+                density="comfortable"
+                type="number"
+                :error-messages="errors.remaining_leave_hours"
+                autocomplete="off"
+              ></v-text-field>
+            </v-col>
+
             <!-- Contract Signed Date -->
             <v-col cols="12" md="6">
               <div class="field-label">{{ $t('profile.contractSignedDate').toUpperCase() }}</div>
@@ -535,6 +565,7 @@ import DepartmentService from '@/services/DepartmentService'
 import UserDepartmentService from '@/services/UserDepartmentService'
 import PermissionGroupService from '@/services/PermissionGroupService'
 import type { UserFormType } from '@/types/index'
+import { useAppNotifications } from '@/composables/useAppNotifications'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -573,6 +604,8 @@ const form: UserFormType = {
   contract_expired_date: null,
   contract_type: null,
   contract_count: null,
+  annual_leave_hours: null,
+  remaining_leave_hours: null,
   slack_id: null,
   device_user_id: null,
   skip_attendance: false,
@@ -583,6 +616,7 @@ const form: UserFormType = {
 
 /** START DEFINE VALIDATE */
 const { t } = useI18n()
+const { notifyError } = useAppNotifications()
 
 const schema = computed(() =>
   Yup.object().shape({
@@ -624,6 +658,8 @@ const schema = computed(() =>
     contract_expired_date: Yup.string().nullable(),
     contract_type: Yup.string().nullable(),
     contract_count: Yup.number().nullable(),
+    annual_leave_hours: Yup.number().nullable(),
+    remaining_leave_hours: Yup.number().nullable(),
     slack_id: Yup.string().nullable(),
     device_user_id: Yup.number().nullable(),
     skip_attendance: Yup.boolean().default(false),
@@ -663,6 +699,8 @@ const { value: contract_signed_date } = useField<string | null>('contract_signed
 const { value: contract_expired_date } = useField<string | null>('contract_expired_date')
 const { value: contract_type } = useField<string | null>('contract_type')
 const { value: contract_count } = useField<number | null>('contract_count')
+const { value: annual_leave_hours } = useField<number | null>('annual_leave_hours')
+const { value: remaining_leave_hours } = useField<number | null>('remaining_leave_hours')
 const { value: slack_id } = useField<string | null>('slack_id')
 const { value: device_user_id } = useField<number | null>('device_user_id')
 const { value: skip_attendance } = useField<boolean>('skip_attendance')
@@ -690,12 +728,19 @@ const menuContractExpiredDate = ref(false)
 /** START DEFINE HELPERS */
 const { moment } = useMoment()
 
+// Normalize a date or datetime value from the API (e.g. '1998-02-06T00:00:00.000Z') to 'YYYY-MM-DD'
+const toDateOnly = (value: string | null | undefined): string | null => {
+  if (!value) return null
+  return moment.utc(value).format('YYYY-MM-DD')
+}
+
 const toPickerDate = (dateString: string | null | undefined): Date | undefined => {
   if (!dateString) return undefined
   return moment(dateString, 'YYYY-MM-DD').toDate()
 }
 
-const formatDate = (date: Date): string => {
+const formatDate = (date: Date | null | undefined): string | null => {
+  if (!date) return null
   return moment(date).format('YYYY-MM-DD')
 }
 /* END DEFINE HELPERS */
@@ -725,8 +770,8 @@ const loadRoles = async () => {
     } else {
       setFieldValue('permission_group_ids', currentIds)
     }
-  } catch (error) {
-    console.error('Failed to load roles:', error)
+  } catch {
+    notifyError(t('users.loadRolesFailed'))
   } finally {
     isLoadingRoles.value = false
   }
@@ -736,8 +781,8 @@ const loadCompanies = async () => {
   try {
     isLoadingCompanies.value = true
     availableCompanies.value = await CompanyService.getAll()
-  } catch (error) {
-    console.error('Failed to load companies:', error)
+  } catch {
+    notifyError(t('users.loadCompaniesFailed'))
   } finally {
     isLoadingCompanies.value = false
   }
@@ -747,8 +792,8 @@ const loadDepartments = async () => {
   try {
     isLoadingDepartments.value = true
     availableDepartments.value = await DepartmentService.getAll()
-  } catch (error) {
-    console.error('Failed to load departments:', error)
+  } catch {
+    notifyError(t('users.loadDepartmentsFailed'))
   } finally {
     isLoadingDepartments.value = false
   }
@@ -771,7 +816,12 @@ const handleCreate = handleSubmit(async (form: UserFormType) => {
   }
   if (!valid) return
 
-  await UserService.create(form)
+  const createPayload = {
+    ...form,
+    permission_group_ids:
+      form.permission_group_ids?.filter((id): id is number => id != null) ?? null,
+  }
+  await UserService.create(createPayload)
     .then(async (result: UserModel) => {
       await UserDepartmentService.create({
         user_id: result.id,
@@ -784,13 +834,18 @@ const handleCreate = handleSubmit(async (form: UserFormType) => {
       if (error?.response?.status === 409) {
         setFieldError('email', t('validation.emailAlreadyTaken'))
       } else {
-        console.error('Failed to add user:', error)
+        notifyError(t('users.saveFailed'))
       }
     })
 })
 
 const handleUpdate = handleSubmit(async (form) => {
-  await UserService.update(props.item?.id as number, form)
+  const updatePayload = {
+    ...form,
+    permission_group_ids:
+      form.permission_group_ids?.filter((id): id is number => id != null) ?? null,
+  }
+  await UserService.update(props.item?.id as number, updatePayload)
     .then((result: UserModel) => {
       emit('confirm', result)
     })
@@ -798,7 +853,7 @@ const handleUpdate = handleSubmit(async (form) => {
       if (error?.response?.status === 409) {
         setFieldError('email', t('validation.emailAlreadyTaken'))
       } else {
-        console.error('Failed to update user:', error)
+        notifyError(t('users.saveFailed'))
       }
     })
 })
@@ -882,12 +937,14 @@ watch(
           address: item.address ?? null,
           is_active: item.is_activated ?? item.is_active ?? false,
           permission_group_ids: item.permission_group_ids ?? [],
-          date_of_birth: item.date_of_birth ?? null,
-          join_date: item.join_date ?? null,
-          contract_signed_date: item.contract_signed_date ?? null,
-          contract_expired_date: item.contract_expired_date ?? null,
+          date_of_birth: toDateOnly(item.date_of_birth),
+          join_date: toDateOnly(item.join_date),
+          contract_signed_date: toDateOnly(item.contract_signed_date),
+          contract_expired_date: toDateOnly(item.contract_expired_date),
           contract_type: item.contract_type ?? null,
           contract_count: item.contract_count ?? null,
+          annual_leave_hours: item.annual_leave_hours ?? null,
+          remaining_leave_hours: item.remaining_leave_hours ?? null,
           slack_id: item.slack_id ?? null,
           device_user_id: item.device_user_id ?? null,
           skip_attendance: item.skip_attendance ?? false,

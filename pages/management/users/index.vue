@@ -109,16 +109,15 @@
 
         <!-- Roles -->
         <template #item.roles="{ item }">
-          <div class="d-flex flex-wrap ga-1 py-1">
+          <div class="py-1">
             <v-chip
-              v-for="role in item.roles"
-              :key="role"
+              v-if="getHighestRole(item.roles ?? [])"
               size="x-small"
-              color="primary"
-              variant="outlined"
-              >{{ role }}</v-chip
+              :color="getRoleColor(getHighestRole(item.roles ?? [])!)"
+              variant="tonal"
+              >{{ getHighestRole(item.roles ?? []) }}</v-chip
             >
-            <span v-if="!item.roles?.length" class="text-medium-emphasis text-caption">—</span>
+            <span v-else class="text-medium-emphasis text-caption">—</span>
           </div>
         </template>
 
@@ -163,6 +162,13 @@
               item.is_activated ? $t('common.active') : $t('common.inactive')
             }}</span>
           </div>
+        </template>
+
+        <!-- Join date -->
+        <template #item.join_date="{ item }">
+          <span class="text-body-2">{{
+            item.join_date ? formatDateOnly(item.join_date) : '—'
+          }}</span>
         </template>
 
         <!-- Last seen -->
@@ -348,6 +354,7 @@ definePageMeta({
 /* END  DEFINE */
 
 /** START DEFINE STATE */
+const { moment } = useMoment()
 const users = ref<UserModel[]>([])
 const isLoading = ref<boolean>(false)
 const availableCompanies = ref<CompanyModel[]>([])
@@ -424,6 +431,35 @@ const isFilterActive = computed(() => activeFilterCount.value > 0)
 /* END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+function normalizeRole(role: string): string {
+  return role.toLowerCase().replace(/[\s_]+/g, '')
+}
+
+function getRolePriority(role: string): number {
+  const normalized = normalizeRole(role)
+  if (normalized === 'superadmin' || normalized === 'super') return 3
+  if (normalized === 'admin') return 2
+  return 1
+}
+
+function getRoleColor(role: string): string {
+  const priority = getRolePriority(role)
+  if (priority === 3) return 'error'
+  if (priority === 2) return 'warning'
+  return 'primary'
+}
+
+function getHighestRole(roles: string[]): string | null {
+  if (!roles.length) return null
+  return roles.reduce((highest, role) => {
+    return getRolePriority(role) > getRolePriority(highest) ? role : highest
+  })
+}
+
+function formatDateOnly(value: string): string {
+  return moment.utc(value).format('YYYY-MM-DD')
+}
+
 function formatLastSeenUser(dateString: string): string {
   const date = new Date(dateString)
   const now = new Date()
