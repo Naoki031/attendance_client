@@ -31,8 +31,14 @@
       <v-tooltip
         v-for="calDay in calendarDays"
         :key="calDay.dateStr"
-        :text="calDay.hostEntry ? calDay.hostEntry.name : ''"
-        :disabled="!calDay.hostEntry"
+        :text="
+          calDay.hostEntry
+            ? calDay.hostEntry.name
+            : calDay.pendingEntry
+              ? calDay.pendingEntry.userName
+              : ''
+        "
+        :disabled="!calDay.hostEntry && !calDay.pendingEntry"
         location="top"
       >
         <template #activator="{ props: tooltipProps }">
@@ -44,12 +50,17 @@
               'cal-day-cell--today': calDay.isToday,
               'cal-day-cell--has-host': !!calDay.hostEntry,
               'cal-day-cell--interactive': interactive && !!calDay.hostEntry && !calDay.isPast,
+              'cal-day-cell--drop-target': draggingOverDate === calDay.dateStr && !calDay.isPast,
+              'cal-day-cell--has-pending': !!calDay.pendingEntry && !calDay.hostEntry,
             }"
             @click="
               interactive && calDay.hostEntry && !calDay.isPast
                 ? emit('date-click', calDay.dateStr, calDay.hostEntry)
                 : undefined
             "
+            @dragover.prevent="!calDay.isPast ? (draggingOverDate = calDay.dateStr) : undefined"
+            @dragleave="onDragLeave"
+            @drop.prevent="!calDay.isPast ? onDrop(calDay.dateStr, $event) : undefined"
           >
             <span class="cal-day-num">{{ calDay.day }}</span>
             <v-avatar
@@ -60,6 +71,15 @@
             >
               <v-img v-if="calDay.hostEntry.avatar" :src="calDay.hostEntry.avatar" cover />
               <span v-else class="cal-host-initials">{{ calDay.hostEntry.initials }}</span>
+            </v-avatar>
+            <!-- Pending drop avatar (ghosted) -->
+            <v-avatar
+              v-else-if="calDay.pendingEntry"
+              color="primary"
+              size="22"
+              class="cal-host-avatar cal-host-avatar--pending"
+            >
+              <span class="cal-host-initials">{{ getInitials(calDay.pendingEntry.userName) }}</span>
             </v-avatar>
           </div>
         </template>
@@ -90,17 +110,21 @@ import type {
   MeetingHostSchedule,
   HostScheduleType,
 } from '@/interfaces/models/MeetingHostScheduleModel'
+import type { PendingDrop } from '@/types/meeting/HostSchedule'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
+
 const props = defineProps<{
   schedules: MeetingHostSchedule[]
   meetingHostId: number
   interactive?: boolean
+  pendingDrops?: PendingDrop[]
 }>()
 
 const emit = defineEmits<{
   'date-click': [date: string, hostEntry: HostEntry]
+  'drop-user': [payload: PendingDrop]
 }>()
 /** END DEFINE PROPERTY AND EMITS */
 
@@ -108,6 +132,7 @@ const emit = defineEmits<{
 const { locale } = useI18n()
 const currentYear = ref(moment().year())
 const currentMonth = ref(moment().month())
+const draggingOverDate = ref<string | null>(null)
 
 const SCHEDULE_TYPE_PRIORITY: Record<HostScheduleType, number> = {
   one_time: 4,
@@ -149,6 +174,7 @@ interface CalendarDay {
   isToday: boolean
   isPast: boolean
   hostEntry: HostEntry | null
+  pendingEntry: PendingDrop | null
 }
 
 const calendarDays = computed((): CalendarDay[] => {
@@ -157,6 +183,11 @@ const calendarDays = computed((): CalendarDay[] => {
   const lastDay = firstDay.clone().endOf('month')
   const leadingDays = firstDay.day()
   const days: CalendarDay[] = []
+
+  const pendingMap = new Map<string, PendingDrop>()
+  for (const drop of props.pendingDrops ?? []) {
+    pendingMap.set(drop.date, drop)
+  }
 
   for (let offset = leadingDays - 1; offset >= 0; offset--) {
     const dayMoment = firstDay.clone().subtract(offset + 1, 'days')
@@ -168,6 +199,7 @@ const calendarDays = computed((): CalendarDay[] => {
       isToday: dateString === today,
       isPast: dateString < today,
       hostEntry: resolveHostForDate(dateString),
+      pendingEntry: pendingMap.get(dateString) ?? null,
     })
   }
 
@@ -184,6 +216,7 @@ const calendarDays = computed((): CalendarDay[] => {
       isToday: dateString === today,
       isPast: dateString < today,
       hostEntry: resolveHostForDate(dateString),
+      pendingEntry: pendingMap.get(dateString) ?? null,
     })
   }
 
@@ -199,6 +232,7 @@ const calendarDays = computed((): CalendarDay[] => {
       isToday: dateString === today,
       isPast: dateString < today,
       hostEntry: resolveHostForDate(dateString),
+      pendingEntry: pendingMap.get(dateString) ?? null,
     })
   }
 
@@ -298,6 +332,27 @@ function getInitials(name: string): string {
 function hostColor(userId: number): string {
   const colorIndex = userColorIndexMap.value.get(userId) ?? 0
   return HOST_COLORS[colorIndex]!
+}
+
+function onDrop(dateString: string, event: DragEvent) {
+  draggingOverDate.value = null
+  const raw = event.dataTransfer?.getData('text/plain')
+  if (!raw) return
+  try {
+    const { userId, userName } = JSON.parse(raw) as { userId: number; userName: string }
+    if (!userId || !userName) return
+    emit('drop-user', { userId, userName, date: dateString })
+  } catch {
+    // ignore malformed drag data
+  }
+}
+
+function onDragLeave(event: DragEvent) {
+  // Only clear if leaving the cell entirely (not entering a child element)
+  const related = event.relatedTarget as Element | null
+  if (!related || !(event.currentTarget as Element).contains(related)) {
+    draggingOverDate.value = null
+  }
 }
 
 function previousMonth() {
@@ -402,5 +457,21 @@ function nextMonth() {
   font-size: 7px;
   font-weight: 700;
   color: white;
+}
+
+.cal-day-cell--drop-target {
+  background: rgba(var(--v-theme-primary), 0.15) !important;
+  outline: 2px dashed rgba(var(--v-theme-primary), 0.6);
+  outline-offset: -2px;
+}
+
+.cal-day-cell--has-pending {
+  background: rgba(var(--v-theme-primary), 0.06);
+}
+
+.cal-host-avatar--pending {
+  opacity: 0.55;
+  outline: 1px dashed rgba(var(--v-theme-primary), 0.7);
+  outline-offset: 1px;
 }
 </style>

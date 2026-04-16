@@ -86,7 +86,7 @@ const props = defineProps<{
 
 /** START DEFINE STATE */
 const { locale } = useI18n()
-const { hostScheduleChangedUuid } = useMeetingEvents()
+const { hostScheduleChangedEvent } = useMeetingEvents()
 const schedules = ref<MeetingHostSchedule[]>([])
 const todayHostId = ref<number | null>(null)
 const hasScheduleToday = ref(false)
@@ -202,8 +202,8 @@ async function load() {
 /** END DEFINE METHOD */
 
 /** START DEFINE WATCHER */
-watch(hostScheduleChangedUuid, (uuid) => {
-  if (uuid === props.meetingUuid) load()
+watch(hostScheduleChangedEvent, (event) => {
+  if (event?.meetingUuid === props.meetingUuid) load()
 })
 /** END DEFINE WATCHER */
 

@@ -1345,7 +1345,11 @@
       "swapSelectSecond": "Đã chọn {date} ({name}). Bây giờ chọn ngày muốn hoán đổi.",
       "swapConfirmTitle": "Xác nhận hoán đổi host",
       "swapConfirmBody": "Hai người này sẽ đổi lịch host cho nhau vào hai ngày tương ứng.",
-      "swapConfirmButton": "Hoán đổi"
+      "swapConfirmButton": "Hoán đổi",
+      "searchUsers": "Tìm người dùng",
+      "dragDropHint": "Kéo người dùng vào ngày trên lịch để đặt lịch",
+      "createSchedules": "Tạo {count} lịch",
+      "clearPending": "Xóa"
     },
     "coHost": {
       "label": "Đồng chủ trì",

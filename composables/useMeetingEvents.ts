@@ -5,15 +5,24 @@
  */
 import { ref, readonly } from 'vue'
 
-const _hostScheduleChangedUuid = ref<string | null>(null)
+interface HostScheduleChangedEvent {
+  meetingUuid: string
+  /** Monotonically increasing counter so that repeated changes to the same
+   *  meeting UUID always produce a new object reference and trigger watchers. */
+  seq: number
+}
+
+let _seq = 0
+const _hostScheduleChangedEvent = ref<HostScheduleChangedEvent | null>(null)
 
 export function useMeetingEvents() {
   function notifyHostScheduleChanged(meetingUuid: string) {
-    _hostScheduleChangedUuid.value = meetingUuid
+    _seq += 1
+    _hostScheduleChangedEvent.value = { meetingUuid, seq: _seq }
   }
 
   return {
-    hostScheduleChangedUuid: readonly(_hostScheduleChangedUuid),
+    hostScheduleChangedEvent: readonly(_hostScheduleChangedEvent),
     notifyHostScheduleChanged,
   }
 }

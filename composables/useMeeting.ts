@@ -1,6 +1,7 @@
 import moment from 'moment'
 import { io } from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
+import { useMeetingEvents } from '@/composables/useMeetingEvents'
 import { Room, RoomEvent, ParticipantEvent, Track, VideoPresets } from 'livekit-client'
 import type {
   Participant,
@@ -438,6 +439,13 @@ export function useMeeting(
         userName: data.userName,
         result: data.result as 'accepted' | 'declined' | 'missed',
       }
+    })
+
+    // Host schedule changed — relay to useMeetingEvents so HostScheduleSummary
+    // components embedded inside the meeting room can reload their data.
+    const { notifyHostScheduleChanged } = useMeetingEvents()
+    socket.on('host_schedule_changed', (data: { meetingUuid: string }) => {
+      notifyHostScheduleChanged(data.meetingUuid)
     })
 
     // Purge expired markers (older than 8s)

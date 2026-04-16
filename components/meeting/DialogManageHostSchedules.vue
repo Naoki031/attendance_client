@@ -37,6 +37,47 @@
         <template v-else>
           <!-- Calendar view -->
           <template v-if="viewMode === 'calendar'">
+            <!-- User search + draggable chips panel -->
+            <div class="drag-panel mb-3">
+              <v-text-field
+                v-model="userSearch"
+                :placeholder="$t('meetings.hostSchedule.searchUsers')"
+                density="compact"
+                variant="outlined"
+                rounded="lg"
+                hide-details
+                prepend-inner-icon="mdi-magnify"
+                clearable
+                class="mb-2"
+                autocomplete="off"
+              />
+              <div v-if="isSearchingUsers" class="d-flex align-center ga-2 py-1">
+                <v-progress-circular size="14" width="2" indeterminate color="primary" />
+                <span class="text-caption text-disabled">{{ $t('common.loading') }}</span>
+              </div>
+              <div v-else-if="availableUsers.length > 0" class="drag-chips">
+                <div
+                  v-for="user in availableUsers"
+                  :key="user.id"
+                  class="drag-chip"
+                  draggable="true"
+                  @dragstart="onDragStart(user, $event)"
+                >
+                  <v-avatar size="20" color="primary" variant="tonal">
+                    <v-img v-if="user.avatar" :src="user.avatar" cover />
+                    <span v-else class="drag-chip-initials">{{
+                      getUserInitials(user.full_name)
+                    }}</span>
+                  </v-avatar>
+                  <span class="text-body-2">{{ user.full_name }}</span>
+                </div>
+              </div>
+              <div class="text-caption text-disabled mt-1">
+                <v-icon size="12" class="mr-1">mdi-gesture-tap-hold</v-icon>
+                {{ $t('meetings.hostSchedule.dragDropHint') }}
+              </div>
+            </div>
+
             <!-- Swap mode banner -->
             <v-alert
               v-if="swapState"
@@ -64,8 +105,10 @@
             <MeetingHostCalendar
               :schedules="schedules"
               :meeting-host-id="meeting?.host_id ?? 0"
+              :pending-drops="pendingDrops"
               interactive
               @date-click="onCalendarDateClick"
+              @drop-user="onDropUser"
             />
           </template>
 
@@ -140,21 +183,45 @@
       </v-card-text>
 
       <!-- Footer -->
-      <div class="d-flex justify-space-between align-center px-6 py-4">
+      <div class="d-flex justify-space-between align-center px-6 py-4 gap-2 flex-wrap">
         <div v-if="resolvedHostLabel" class="text-body-2 text-medium-emphasis">
           <v-icon size="16" class="mr-1">mdi-crown-outline</v-icon>
           {{ $t('meetings.hostSchedule.todayHost') }}: <strong>{{ resolvedHostLabel }}</strong>
         </div>
         <div v-else />
-        <v-btn
-          color="primary"
-          variant="elevated"
-          rounded="lg"
-          prepend-icon="mdi-plus"
-          @click="showCreateDialog = true"
-        >
-          {{ $t('meetings.hostSchedule.addSchedule') }}
-        </v-btn>
+        <div class="d-flex align-center ga-2">
+          <!-- Pending drops batch create -->
+          <template v-if="pendingDrops.length > 0">
+            <v-btn
+              variant="text"
+              color="default"
+              rounded="lg"
+              size="small"
+              @click="pendingDrops = []"
+            >
+              {{ $t('meetings.hostSchedule.clearPending') }}
+            </v-btn>
+            <v-btn
+              color="success"
+              variant="elevated"
+              rounded="lg"
+              :loading="isBatchCreating"
+              prepend-icon="mdi-calendar-check"
+              @click="createPendingSchedules"
+            >
+              {{ $t('meetings.hostSchedule.createSchedules', { count: pendingDrops.length }) }}
+            </v-btn>
+          </template>
+          <v-btn
+            color="primary"
+            variant="elevated"
+            rounded="lg"
+            prepend-icon="mdi-plus"
+            @click="showCreateDialog = true"
+          >
+            {{ $t('meetings.hostSchedule.addSchedule') }}
+          </v-btn>
+        </div>
       </div>
     </v-card>
 
@@ -304,11 +371,15 @@
 /** START IMPORT */
 import moment from 'moment'
 import MeetingHostScheduleService from '@/services/MeetingHostScheduleService'
+import MeetingService from '@/services/MeetingService'
+import { useMeetingEvents } from '@/composables/useMeetingEvents'
 import type {
   MeetingHostSchedule,
   HostScheduleType,
 } from '@/interfaces/models/MeetingHostScheduleModel'
 import type { Meeting } from '@/interfaces/models/MeetingModel'
+import type { UserModel } from '@/interfaces/models/UserModel'
+import type { PendingDrop } from '@/types/meeting/HostSchedule'
 /** END IMPORT */
 
 /** START DEFINE PROPERTY AND EMITS */
@@ -325,6 +396,7 @@ const emit = defineEmits<{
 
 /** START DEFINE STATE */
 const { t } = useI18n()
+const { hostScheduleChangedEvent } = useMeetingEvents()
 const isLoading = ref(false)
 const isDeleting = ref(false)
 const isDateActionLoading = ref(false)
@@ -335,6 +407,12 @@ const showDeleteConfirm = ref(false)
 const editingSchedule = ref<MeetingHostSchedule | null>(null)
 const deletingSchedule = ref<MeetingHostSchedule | null>(null)
 const resolvedHostName = ref<string | null>(null)
+
+// Drag-and-drop state
+const pendingDrops = ref<PendingDrop[]>([])
+const userSearch = ref('')
+const availableUsers = ref<UserModel[]>([])
+const isBatchCreating = ref(false)
 
 // Date action state
 interface SelectedDateInfo {
@@ -362,6 +440,8 @@ const swapState = ref<SwapState | null>(null)
 /** START DEFINE COMPUTED */
 const resolvedHostLabel = computed(() => resolvedHostName.value)
 
+const isSearchingUsers = ref(false)
+
 const dateConfirmTitle = computed(() => {
   if (dateConfirmAction.value === 'truncate') {
     return t('meetings.hostSchedule.truncateConfirmTitle')
@@ -380,6 +460,68 @@ const dateConfirmBody = computed(() => {
 /** END DEFINE COMPUTED */
 
 /** START DEFINE METHOD */
+function getUserInitials(fullName: string): string {
+  return fullName
+    .split(' ')
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+function onDragStart(user: UserModel, event: DragEvent) {
+  event.dataTransfer?.setData(
+    'text/plain',
+    JSON.stringify({ userId: user.id, userName: user.full_name }),
+  )
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
+}
+
+function onDropUser(payload: PendingDrop) {
+  const exists = pendingDrops.value.some(
+    (drop) => drop.userId === payload.userId && drop.date === payload.date,
+  )
+  if (!exists) pendingDrops.value.push(payload)
+}
+
+async function createPendingSchedules() {
+  isBatchCreating.value = true
+  const results: MeetingHostSchedule[] = []
+  for (const drop of pendingDrops.value) {
+    try {
+      const saved = await MeetingHostScheduleService.create(props.meetingUuid, {
+        user_id: drop.userId,
+        schedule_type: 'one_time',
+        date: drop.date,
+      })
+      results.push(saved)
+    } catch {
+      // date conflict — skip silently
+    }
+  }
+  results.forEach((saved) => {
+    const index = schedules.value.findIndex((item) => item.id === saved.id)
+    if (index >= 0) schedules.value[index] = saved
+    else schedules.value.unshift(saved)
+  })
+  pendingDrops.value = []
+  isBatchCreating.value = false
+}
+
+async function searchUsers(query: string) {
+  if (!query.trim()) {
+    availableUsers.value = []
+    return
+  }
+  isSearchingUsers.value = true
+  try {
+    availableUsers.value = await MeetingService.getUsersForMeeting(props.meetingUuid, query.trim())
+  } catch {
+    // non-critical
+  } finally {
+    isSearchingUsers.value = false
+  }
+}
+
 function scheduleTypeColor(type: HostScheduleType): string {
   const colorMap: Record<HostScheduleType, string> = {
     one_time: 'teal',
@@ -596,7 +738,10 @@ async function executeSwap() {
 async function load() {
   isLoading.value = true
   try {
-    schedules.value = await MeetingHostScheduleService.findAll(props.meetingUuid)
+    const [fetchedSchedules] = await Promise.all([
+      MeetingHostScheduleService.findAll(props.meetingUuid),
+    ])
+    schedules.value = fetchedSchedules
 
     const today = moment().format('YYYY-MM-DD')
     const resolved = await MeetingHostScheduleService.resolve(props.meetingUuid, today)
@@ -634,12 +779,32 @@ watch(
       showDateActionDialog.value = false
       showDateConfirmDialog.value = false
       showSwapConfirmDialog.value = false
+      // Reset drag-and-drop state
+      pendingDrops.value = []
+      userSearch.value = ''
+      availableUsers.value = []
+      isSearchingUsers.value = false
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer)
+        searchDebounceTimer = null
+      }
     }
   },
 )
 
 watch(showCreateDialog, (isOpen) => {
   if (!isOpen) editingSchedule.value = null
+})
+
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+watch(userSearch, (query) => {
+  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
+  searchDebounceTimer = setTimeout(() => searchUsers(query), 300)
+})
+
+// Reload when an external actor changes the host schedule for this meeting
+watch(hostScheduleChangedEvent, (event) => {
+  if (event?.meetingUuid === props.meetingUuid && props.modelValue) load()
 })
 /** END DEFINE WATCHER */
 </script>
@@ -657,5 +822,51 @@ watch(showCreateDialog, (isOpen) => {
   border-radius: 8px;
   padding: 8px 12px;
   text-align: center;
+}
+
+.drag-panel {
+  background: rgba(var(--v-theme-on-surface), 0.03);
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.08);
+  border-radius: 10px;
+  padding: 10px 12px 8px;
+}
+
+.drag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.drag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.15);
+  background: rgb(var(--v-theme-surface));
+  cursor: grab;
+  user-select: none;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.drag-chip:hover {
+  background: rgba(var(--v-theme-primary), 0.08);
+  border-color: rgba(var(--v-theme-primary), 0.4);
+  box-shadow: 0 1px 4px rgba(var(--v-theme-on-surface), 0.1);
+}
+
+.drag-chip:active {
+  cursor: grabbing;
+}
+
+.drag-chip-initials {
+  font-size: 7px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
 }
 </style>

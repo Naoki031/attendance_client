@@ -38,8 +38,8 @@ export default class MeetingService {
     await apiClient.delete(`/meetings/${uuid}`)
   }
 
-  public static async getUsersForMeeting(uuid: string): Promise<UserModel[]> {
-    return apiClient.get<UserModel[]>(`meetings/${uuid}/users`)
+  public static async getUsersForMeeting(uuid: string, search: string): Promise<UserModel[]> {
+    return apiClient.get<UserModel[]>(`meetings/${uuid}/users?search=${encodeURIComponent(search)}`)
   }
 
   public static async pin(uuid: string): Promise<void> {

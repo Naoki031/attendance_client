@@ -230,7 +230,7 @@ const props = defineProps({
 /** START DEFINE EMITS */
 const emit = defineEmits<{
   close: []
-  'new-message': []
+  'new-message': [payload: { senderName: string; content: string }]
 }>()
 /* END DEFINE EMITS */
 
@@ -382,8 +382,12 @@ watch(
       if (isNearBottom) {
         scrollToBottom()
       }
-      // Notify parent so it can show the unread badge when the panel is hidden
-      emit('new-message')
+      // Notify parent so it can show the unread badge and ticker when the panel is hidden
+      const lastMessage = messages.value[newLength - 1]
+      emit('new-message', {
+        senderName: lastMessage?.username ?? '',
+        content: lastMessage?.content ?? '',
+      })
     }
   },
 )

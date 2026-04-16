@@ -1345,7 +1345,11 @@
       "swapSelectSecond": "Selected {date} ({name}). Now click the date to swap with.",
       "swapConfirmTitle": "Confirm host swap",
       "swapConfirmBody": "These two hosts will exchange their scheduled dates.",
-      "swapConfirmButton": "Swap"
+      "swapConfirmButton": "Swap",
+      "searchUsers": "Search users",
+      "dragDropHint": "Drag users onto calendar dates to schedule",
+      "createSchedules": "Create {count} schedule(s)",
+      "clearPending": "Clear"
     },
     "coHost": {
       "label": "Co-Host",

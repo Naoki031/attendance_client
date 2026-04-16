@@ -1345,7 +1345,11 @@
       "swapSelectSecond": "{date}（{name}）を選択しました。次に交換する日付をクリックしてください。",
       "swapConfirmTitle": "ホスト入れ替えの確認",
       "swapConfirmBody": "この2人のホストは互いの担当日を交換します。",
-      "swapConfirmButton": "入れ替え"
+      "swapConfirmButton": "入れ替え",
+      "searchUsers": "ユーザーを検索",
+      "dragDropHint": "ユーザーをカレンダーの日付にドラッグしてスケジュール設定",
+      "createSchedules": "{count}件のスケジュールを作成",
+      "clearPending": "クリア"
     },
     "coHost": {
       "label": "共同ホスト",

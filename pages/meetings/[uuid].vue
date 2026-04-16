@@ -273,6 +273,7 @@
               @marker-place="sendScreenMarker($event.x, $event.y)"
               @markers-clear="clearScreenMarkers"
             />
+            <MeetingChatTicker :items="tickerQueue" @item-done="onTickerItemDone" />
           </div>
           <!-- <div
             class="meeting-room__subtitles"
@@ -702,6 +703,7 @@ import type MeetingVideoGrid from '@/components/meeting/VideoGrid.vue'
 import type { MediaDeviceItem } from '@/types/meeting/MediaDeviceItem'
 import { apiClient } from '@/utils/apiClient'
 import MeetingService from '@/services/MeetingService'
+import type { TickerItem } from '@/types/meeting/ChatTicker'
 // END IMPORT
 
 definePageMeta({ layout: false })
@@ -723,6 +725,9 @@ const localUserId = ref(0)
 const localUsername = ref('')
 const showChatPanel = ref(false)
 const chatUnreadCount = ref(0)
+
+let _tickerSeq = 0
+const tickerQueue = ref<TickerItem[]>([])
 
 // Password step state
 const meetingPassword = ref('')
@@ -1319,11 +1324,24 @@ function handleToggleChatPanel() {
   }
 }
 
-function onNewChatMessage() {
+function onNewChatMessage(payload: { senderName: string; content: string }) {
   // Only increment badge when the chat panel is hidden — if it's open, user already sees the message
   if (!showChatPanel.value) {
     chatUnreadCount.value++
   }
+  // Always push to ticker so all participants see the message scroll by
+  if (payload.content.trim()) {
+    _tickerSeq++
+    tickerQueue.value.push({
+      id: _tickerSeq,
+      senderName: payload.senderName,
+      content: payload.content,
+    })
+  }
+}
+
+function onTickerItemDone(id: number) {
+  tickerQueue.value = tickerQueue.value.filter((item) => item.id !== id)
 }
 
 function handleCreateVote(payload: {
@@ -1524,6 +1542,7 @@ function onFullscreenChange() {
   flex: 1;
   overflow: hidden;
   min-width: 0;
+  position: relative;
 }
 
 .meeting-room__subtitles {

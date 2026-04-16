@@ -33,5 +33,13 @@ export function useAppNotifications() {
     if (index !== -1) items.value.splice(index, 1)
   }
 
-  return { notifications: readonly(items), push, dismiss }
+  function notifyError(title: string): void {
+    push({ icon: 'mdi-alert-circle-outline', iconColor: 'error', title, timeout: 4000 })
+  }
+
+  function notifySuccess(title: string): void {
+    push({ icon: 'mdi-check-circle-outline', iconColor: 'success', title, timeout: 4000 })
+  }
+
+  return { notifications: readonly(items), push, dismiss, notifyError, notifySuccess }
 }
