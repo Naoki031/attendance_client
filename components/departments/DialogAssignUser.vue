@@ -139,7 +139,9 @@ let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 const onUserSearch = (query: string) => {
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
   if (!query || query.length < 2) {
-    searchedUsers.value = []
+    // Keep selected user in list so Vuetify can display name instead of raw id
+    const selected = searchedUsers.value.find((user) => user.id === userId.value)
+    searchedUsers.value = selected ? [selected] : []
 
     return
   }

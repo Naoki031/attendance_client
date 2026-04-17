@@ -115,6 +115,8 @@
     "home": "Home",
     "profile": "Profile",
     "myRequests": "My Requests",
+    "myBugReports": "My Bug Reports",
+    "notifications": "Notifications",
     "management": "Management",
     "organization": "Organization",
     "users": "Users",
@@ -163,6 +165,19 @@
     "passwordRequired": "Password is required",
     "passwordMinLength": "Password must be at least 4 characters",
     "loginFailed": "Login failed. Please try again."
+  },
+  "notifications": {
+    "queueProgress": "{current} of {total}",
+    "next": "Next",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications"
+  },
+  "contractReminder": {
+    "title": "Contract Expiry Reminder",
+    "employee": "Employee",
+    "expiryDate": "Expiry Date",
+    "daysRemaining": "Days Remaining",
+    "days": "{days} day(s)"
   },
   "home": {
     "kycBanner": {
@@ -923,7 +938,9 @@
     "submittedBy": "Submitted by",
     "submittedAt": "Submitted at",
     "viewScreenshot": "View Screenshot",
-    "reportedAt": "Reported at"
+    "reportedAt": "Reported at",
+    "loadFailed": "Failed to load bug reports",
+    "noReports": "No reports yet"
   },
   "validation": {
     "leaveTypeRequired": "Leave type is required",
@@ -1603,5 +1620,18 @@
     "saveFailed": "Failed to save email template",
     "loadKeysFailed": "Failed to load template keys",
     "loadCompaniesFailed": "Failed to load companies"
+  },
+  "birthday": {
+    "title": "Month {month} Birthdays",
+    "today": "Today",
+    "loadFailed": "Failed to load birthday list",
+    "dayFormat": "MMM D",
+    "others": "This month",
+    "wish": "Happy Birthday!",
+    "modal": {
+      "title": "Today's Birthdays! 🎂",
+      "subtitle": "Let's celebrate with your colleagues!",
+      "close": "Close"
+    }
   }
 }

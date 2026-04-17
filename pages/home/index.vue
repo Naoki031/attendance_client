@@ -1,5 +1,8 @@
 <template>
   <v-container class="py-8" max-width="1100">
+    <!-- Birthday highlight board -->
+    <HomeBirthdayHighlight />
+
     <!-- KYC banner -->
     <v-alert
       v-if="kycBanner && featureFaceCheckin"
@@ -616,6 +619,9 @@
     <v-dialog v-model="faceCheckinOpen" max-width="480" persistent>
       <FaceCheckin @success="onFaceCheckinSuccess" @close="faceCheckinOpen = false" />
     </v-dialog>
+
+    <!-- Birthday notification modal -->
+    <HomeBirthdayNotificationModal />
   </v-container>
 </template>
 

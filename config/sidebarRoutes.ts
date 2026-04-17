@@ -24,6 +24,12 @@ const userRoutes: RouteItem[] = [
     textKey: 'nav.myRequests',
     name: 'requests.index',
   },
+  {
+    icon: 'mdi-bug-check-outline',
+    link: '/bug-reports',
+    textKey: 'nav.myBugReports',
+    name: 'bug-reports.index',
+  },
   { icon: 'mdi-account', link: '/profile', textKey: 'nav.profile' },
   { icon: 'mdi-cog-outline', link: '/settings', textKey: 'nav.settings' },
 ]

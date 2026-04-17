@@ -115,6 +115,8 @@
     "home": "Trang chủ",
     "profile": "Hồ sơ",
     "myRequests": "Đơn của tôi",
+    "myBugReports": "Bug của tôi",
+    "notifications": "Thông báo",
     "management": "Quản lý",
     "organization": "Tổ chức",
     "users": "Người dùng",
@@ -163,6 +165,19 @@
     "passwordRequired": "Mật khẩu là bắt buộc",
     "passwordMinLength": "Mật khẩu phải có ít nhất 4 ký tự",
     "loginFailed": "Đăng nhập thất bại. Vui lòng thử lại."
+  },
+  "notifications": {
+    "queueProgress": "{current} / {total}",
+    "next": "Tiếp theo",
+    "markAllRead": "Đánh dấu tất cả đã đọc",
+    "empty": "Không có thông báo"
+  },
+  "contractReminder": {
+    "title": "Nhắc nhở hợp đồng sắp hết hạn",
+    "employee": "Nhân viên",
+    "expiryDate": "Ngày hết hạn",
+    "daysRemaining": "Số ngày còn lại",
+    "days": "{days} ngày"
   },
   "home": {
     "kycBanner": {
@@ -923,7 +938,9 @@
     "submittedBy": "Được gửi bởi",
     "submittedAt": "Gửi vào lúc",
     "viewScreenshot": "Xem Ảnh Chụp",
-    "reportedAt": "Thời gian gửi"
+    "reportedAt": "Thời gian gửi",
+    "loadFailed": "Không thể tải danh sách bug report",
+    "noReports": "Chưa có báo cáo nào"
   },
   "validation": {
     "leaveTypeRequired": "Loại nghỉ phép là bắt buộc",
@@ -1603,5 +1620,18 @@
     "saveFailed": "Lưu mẫu email thất bại",
     "loadKeysFailed": "Tải danh sách khóa mẫu thất bại",
     "loadCompaniesFailed": "Tải danh sách công ty thất bại"
+  },
+  "birthday": {
+    "title": "Sinh nhật tháng {month}",
+    "today": "Hôm nay",
+    "loadFailed": "Không thể tải danh sách sinh nhật",
+    "dayFormat": "D/MM",
+    "others": "Trong tháng",
+    "wish": "Chúc mừng sinh nhật!",
+    "modal": {
+      "title": "Sinh nhật hôm nay! 🎂",
+      "subtitle": "Hãy cùng chúc mừng đồng nghiệp của bạn!",
+      "close": "Đóng"
+    }
   }
 }

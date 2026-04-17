@@ -1,44 +1,47 @@
 <template>
   <v-container fluid class="py-6 px-6">
-    <!-- Page header -->
-    <div class="d-flex align-center ga-3 mb-6">
+    <!-- Back navigation -->
+    <div class="mb-4">
       <v-btn icon variant="text" size="small" to="/management/users">
         <v-icon>mdi-arrow-left</v-icon>
       </v-btn>
+    </div>
 
-      <v-skeleton-loader
-        v-if="isLoading"
-        type="list-item-avatar"
-        class="flex-grow-1"
-      ></v-skeleton-loader>
-
-      <div v-else-if="user" class="d-flex align-center ga-4 flex-grow-1" style="min-width: 0">
-        <v-avatar size="52" color="primary" class="flex-shrink-0">
-          <span class="text-subtitle-1 text-white font-weight-bold">{{ getInitials(user) }}</span>
+    <!-- Profile banner -->
+    <v-skeleton-loader v-if="isLoading" type="card" rounded="xl" height="100" class="mb-6" />
+    <v-card v-else-if="user" rounded="xl" elevation="0" border class="mb-6">
+      <div class="px-6 py-5 d-flex align-center ga-5">
+        <v-avatar size="72" color="primary" class="flex-shrink-0">
+          <v-img v-if="user.avatar" :src="user.avatar" cover />
+          <span v-else class="text-h6 font-weight-bold text-white">{{ getInitials(user) }}</span>
         </v-avatar>
         <div class="flex-grow-1" style="min-width: 0">
-          <div class="text-h5 font-weight-bold text-truncate">{{ user.full_name }}</div>
+          <div class="d-flex align-center flex-wrap ga-2 mb-1">
+            <span class="text-h5 font-weight-bold text-truncate">{{ user.full_name }}</span>
+            <v-chip
+              :color="user.is_activated ? 'success' : 'default'"
+              size="x-small"
+              variant="tonal"
+              class="flex-shrink-0"
+            >
+              {{ user.is_activated ? $t('common.active') : $t('common.inactive') }}
+            </v-chip>
+          </div>
           <div class="text-body-2 text-medium-emphasis text-truncate">
             {{ [user.position, user.email].filter(Boolean).join(' · ') }}
           </div>
         </div>
-        <v-chip
-          :color="user.is_activated ? 'success' : 'default'"
-          size="small"
-          variant="tonal"
-          class="flex-shrink-0"
-        >
-          {{ user.is_activated ? $t('common.active') : $t('common.inactive') }}
-        </v-chip>
       </div>
-    </div>
+    </v-card>
 
     <!-- Loading skeleton cards -->
     <v-row v-if="isLoading">
-      <v-col cols="12" md="7">
+      <v-col cols="12" md="8">
+        <v-skeleton-loader type="card" rounded="xl" class="mb-4"></v-skeleton-loader>
         <v-skeleton-loader type="card" rounded="xl"></v-skeleton-loader>
       </v-col>
-      <v-col cols="12" md="5">
+      <v-col cols="12" md="4">
+        <v-skeleton-loader type="card" rounded="xl" class="mb-4"></v-skeleton-loader>
         <v-skeleton-loader type="card" rounded="xl"></v-skeleton-loader>
       </v-col>
     </v-row>
@@ -46,7 +49,7 @@
     <template v-else-if="user">
       <v-row>
         <!-- Left column: basic info + contract history -->
-        <v-col cols="12" md="7">
+        <v-col cols="12" md="8">
           <!-- Basic information -->
           <v-card rounded="xl" elevation="0" border class="mb-4">
             <div class="px-5 pt-5 pb-2">
@@ -67,6 +70,14 @@
                   <div class="info-value">{{ user.email }}</div>
                 </v-col>
                 <v-col cols="6">
+                  <div class="info-label">{{ $t('profile.username').toUpperCase() }}</div>
+                  <div class="info-value">{{ user.username ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
+                  <div class="info-label">{{ $t('profile.joinDate').toUpperCase() }}</div>
+                  <div class="info-value">{{ user.join_date ?? '—' }}</div>
+                </v-col>
+                <v-col cols="6">
                   <div class="info-label">{{ $t('common.phone').toUpperCase() }}</div>
                   <div class="info-value">{{ user.phone_number ?? '—' }}</div>
                 </v-col>
@@ -82,10 +93,6 @@
                   <div class="info-label">{{ $t('profile.slackId').toUpperCase() }}</div>
                   <div class="info-value">{{ user.slack_id ?? '—' }}</div>
                 </v-col>
-                <v-col cols="6">
-                  <div class="info-label">{{ $t('profile.joinDate').toUpperCase() }}</div>
-                  <div class="info-value">{{ user.join_date ?? '—' }}</div>
-                </v-col>
               </v-row>
             </div>
           </v-card>
@@ -93,37 +100,35 @@
           <!-- Contract History -->
           <v-card rounded="xl" elevation="0" border>
             <div class="px-5 pt-5 pb-4">
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div class="text-subtitle-2 font-weight-bold text-primary">
-                  {{ $t('users.sectionContracts').toUpperCase() }}
-                </div>
-                <div class="d-flex align-center ga-2">
-                  <!-- Expiry reminder days -->
-                  <div class="d-flex align-center ga-1" style="min-width: 180px">
-                    <v-text-field
-                      v-model.number="editReminderDays"
-                      :label="$t('users.contractExpiryReminderDays')"
-                      variant="outlined"
-                      density="compact"
-                      rounded="lg"
-                      type="number"
-                      min="1"
-                      max="365"
-                      hide-details
-                      style="max-width: 160px"
-                      @blur="saveReminderDays"
-                      @keydown.enter="saveReminderDays"
-                    />
-                    <v-tooltip location="bottom">
-                      <template #activator="{ props: tooltipProps }">
-                        <v-icon v-bind="tooltipProps" size="16" color="medium-emphasis">
-                          mdi-information-outline
-                        </v-icon>
-                      </template>
-                      {{ $t('users.contractExpiryReminderDaysHint', { days: editReminderDays }) }}
-                    </v-tooltip>
-                  </div>
-                </div>
+              <!-- Section title -->
+              <div class="text-subtitle-2 font-weight-bold text-primary mb-3">
+                {{ $t('users.sectionContracts').toUpperCase() }}
+              </div>
+
+              <!-- Expiry reminder days (below title, not inline with it) -->
+              <div class="d-flex align-center ga-2 mb-4">
+                <v-text-field
+                  v-model.number="editReminderDays"
+                  :label="$t('users.contractExpiryReminderDays')"
+                  variant="outlined"
+                  density="compact"
+                  rounded="lg"
+                  type="number"
+                  min="1"
+                  max="365"
+                  hide-details
+                  style="max-width: 220px"
+                  @blur="saveReminderDays"
+                  @keydown.enter="saveReminderDays"
+                />
+                <v-tooltip location="bottom">
+                  <template #activator="{ props: tooltipProps }">
+                    <v-icon v-bind="tooltipProps" size="16" color="medium-emphasis">
+                      mdi-information-outline
+                    </v-icon>
+                  </template>
+                  {{ $t('users.contractExpiryReminderDaysHint', { days: editReminderDays }) }}
+                </v-tooltip>
               </div>
 
               <!-- Loading state -->
@@ -135,52 +140,47 @@
                 <!-- Contract list -->
                 <div v-if="contracts.length > 0" class="mb-4">
                   <div v-for="contract in contracts" :key="contract.id" class="contract-row">
-                    <!-- View mode -->
-                    <div
-                      v-if="editingContractId !== contract.id"
-                      class="d-flex align-center ga-2 py-2"
-                    >
-                      <v-chip size="small" color="primary" variant="tonal" class="flex-shrink-0">
-                        #{{ contract.contract_number }}
-                      </v-chip>
-                      <v-chip
-                        size="small"
-                        :color="contractTypeColor(contract.contract_type)"
-                        variant="tonal"
-                        class="flex-shrink-0"
-                      >
-                        {{ contractTypeLabel(contract.contract_type) }}
-                      </v-chip>
-                      <span class="text-body-2 flex-shrink-0">{{ contract.signed_date }}</span>
-                      <span class="text-body-2 text-medium-emphasis flex-shrink-0">
-                        →
+                    <!-- View mode: two-line layout -->
+                    <div v-if="editingContractId !== contract.id" class="py-2">
+                      <!-- Line 1: chips + action buttons -->
+                      <div class="d-flex align-center ga-1 mb-1">
+                        <v-chip size="small" color="primary" variant="tonal">
+                          #{{ contract.contract_number }}
+                        </v-chip>
+                        <v-chip
+                          size="small"
+                          :color="contractTypeColor(contract.contract_type)"
+                          variant="tonal"
+                        >
+                          {{ contractTypeLabel(contract.contract_type) }}
+                        </v-chip>
+                        <v-spacer />
+                        <v-btn
+                          icon
+                          variant="text"
+                          size="x-small"
+                          color="default"
+                          @click="startEdit(contract)"
+                        >
+                          <v-icon size="16">mdi-pencil-outline</v-icon>
+                        </v-btn>
+                        <v-btn
+                          icon
+                          variant="text"
+                          size="x-small"
+                          color="error"
+                          @click="confirmDelete(contract)"
+                        >
+                          <v-icon size="16">mdi-delete-outline</v-icon>
+                        </v-btn>
+                      </div>
+                      <!-- Line 2: dates + notes -->
+                      <div class="text-body-2 text-medium-emphasis pl-1">
+                        {{ contract.signed_date }}
+                        <span class="mx-1">→</span>
                         {{ contract.expired_date ?? $t('users.contractTypeIndefinite') }}
-                      </span>
-                      <span
-                        v-if="contract.notes"
-                        class="text-body-2 text-medium-emphasis flex-grow-1 text-truncate"
-                      >
-                        · {{ contract.notes }}
-                      </span>
-                      <v-spacer />
-                      <v-btn
-                        icon
-                        variant="text"
-                        size="x-small"
-                        color="default"
-                        @click="startEdit(contract)"
-                      >
-                        <v-icon size="16">mdi-pencil-outline</v-icon>
-                      </v-btn>
-                      <v-btn
-                        icon
-                        variant="text"
-                        size="x-small"
-                        color="error"
-                        @click="confirmDelete(contract)"
-                      >
-                        <v-icon size="16">mdi-delete-outline</v-icon>
-                      </v-btn>
+                        <span v-if="contract.notes"> · {{ contract.notes }}</span>
+                      </div>
                     </div>
 
                     <!-- Edit mode -->
@@ -449,7 +449,7 @@
         </v-col>
 
         <!-- Right column -->
-        <v-col cols="12" md="5">
+        <v-col cols="12" md="4">
           <!-- Contract summary (auto-updated from contracts) -->
           <v-card rounded="xl" elevation="0" border class="mb-4">
             <div class="px-5 pt-5 pb-2">

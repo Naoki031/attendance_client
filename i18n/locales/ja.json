@@ -115,6 +115,8 @@
     "home": "ホーム",
     "profile": "プロフィール",
     "myRequests": "申請一覧",
+    "myBugReports": "バグ報告履歴",
+    "notifications": "通知",
     "management": "管理",
     "organization": "組織",
     "users": "ユーザー",
@@ -163,6 +165,19 @@
     "passwordRequired": "パスワードは必須です",
     "passwordMinLength": "パスワードは4文字以上必要です",
     "loginFailed": "ログインに失敗しました。もう一度お試しください。"
+  },
+  "notifications": {
+    "queueProgress": "{current} / {total}",
+    "next": "次へ",
+    "markAllRead": "すべて既読にする",
+    "empty": "通知はありません"
+  },
+  "contractReminder": {
+    "title": "契約期限切れリマインダー",
+    "employee": "従業員",
+    "expiryDate": "有効期限",
+    "daysRemaining": "残り日数",
+    "days": "{days}日"
   },
   "home": {
     "kycBanner": {
@@ -923,7 +938,9 @@
     "submittedBy": "報告者",
     "submittedAt": "送信日時",
     "viewScreenshot": "スクリーンショットを表示",
-    "reportedAt": "報告日時"
+    "reportedAt": "報告日時",
+    "loadFailed": "バグ報告の読み込みに失敗しました",
+    "noReports": "まだ報告はありません"
   },
   "validation": {
     "leaveTypeRequired": "休暇種別は必須です",
@@ -1603,5 +1620,18 @@
     "saveFailed": "メールテンプレートの保存に失敗しました",
     "loadKeysFailed": "テンプレートキーの読み込みに失敗しました",
     "loadCompaniesFailed": "企業リストの読み込みに失敗しました"
+  },
+  "birthday": {
+    "title": "{month}の誕生日",
+    "today": "今日",
+    "loadFailed": "誕生日リストの読み込みに失敗しました",
+    "dayFormat": "M月D日",
+    "others": "今月",
+    "wish": "お誕生日おめでとう!",
+    "modal": {
+      "title": "本日のお誕生日！🎂",
+      "subtitle": "同僚の誕生日をお祝いしましょう！",
+      "close": "閉じる"
+    }
   }
 }

@@ -384,6 +384,7 @@
               <div class="text-caption text-medium-emphasis mb-1">
                 {{ $t('emailTemplates.bodyHtml') }}
               </div>
+              <!-- eslint-disable-next-line vue/no-v-html -->
               <div class="sample-body text-body-2" v-html="sanitizedSampleBodyHtml" />
             </div>
           </v-card>

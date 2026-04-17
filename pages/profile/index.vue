@@ -37,13 +37,12 @@
               </div>
               <div class="d-flex flex-wrap ga-1 mt-2">
                 <v-chip
-                  v-for="role in user?.roles"
-                  :key="role"
+                  v-if="getHighestRole(user?.roles ?? [])"
                   size="x-small"
-                  color="primary"
+                  :color="getRoleColor(getHighestRole(user?.roles ?? [])!)"
                   variant="tonal"
                 >
-                  {{ role }}
+                  {{ getHighestRole(user?.roles ?? []) }}
                 </v-chip>
 
                 <!-- Face approved badge — visible once KYC is approved -->
@@ -177,22 +176,23 @@
                     size="x-small"
                     :color="contractTypeColor(user.contract_type)"
                     variant="tonal"
-                    class="mr-1"
                   >
                     {{ contractTypeLabel(user.contract_type) }}
                   </v-chip>
-                  <span class="text-caption text-medium-emphasis">
-                    #{{ user.contract_count }}
-                    <template v-if="user.contract_signed_date">
-                      · {{ formatDate(user.contract_signed_date) }}
-                      <template v-if="user.contract_expired_date">
-                        → {{ formatDate(user.contract_expired_date) }}
-                      </template>
-                    </template>
-                  </span>
                 </template>
                 <span v-else>—</span>
               </v-list-item-title>
+              <v-list-item-subtitle v-if="user?.contract_count || user?.contract_signed_date">
+                <span class="text-caption">
+                  #{{ user.contract_count }}
+                  <template v-if="user.contract_signed_date">
+                    · {{ formatDate(user.contract_signed_date) }}
+                    <template v-if="user.contract_expired_date">
+                      → {{ formatDate(user.contract_expired_date) }}
+                    </template>
+                  </template>
+                </span>
+              </v-list-item-subtitle>
             </v-list-item>
             <v-list-item>
               <template #prepend>
@@ -374,6 +374,31 @@ const yearOptions = Array.from({ length: 3 }, (_, index) => now.year() - index)
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+function normalizeRole(role: string): string {
+  return role.toLowerCase().replace(/[\s_]+/g, '')
+}
+
+function getRolePriority(role: string): number {
+  const normalized = normalizeRole(role)
+  if (normalized === 'superadmin' || normalized === 'super') return 3
+  if (normalized === 'admin') return 2
+  return 1
+}
+
+function getHighestRole(roles: string[]): string | null {
+  if (!roles.length) return null
+  return roles.reduce((highest, role) => {
+    return getRolePriority(role) > getRolePriority(highest) ? role : highest
+  })
+}
+
+function getRoleColor(role: string): string {
+  const priority = getRolePriority(role)
+  if (priority === 3) return 'error'
+  if (priority === 2) return 'warning'
+  return 'primary'
+}
+
 const loadAttendanceLogs = async () => {
   if (isLoadingAttendance.value) return
 

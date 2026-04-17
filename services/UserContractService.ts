@@ -1,7 +1,14 @@
 import { apiClient } from '@/utils/apiClient'
 import type { UserContractModel } from '@/interfaces/models/UserContractModel'
+import type { PendingContractReminder } from '@/types/contracts'
+
+export type { PendingContractReminder }
 
 export default class UserContractService {
+  public static async getPendingReminders(): Promise<PendingContractReminder[]> {
+    return await apiClient.get<PendingContractReminder[]>('user-contracts/pending-reminders')
+  }
+
   public static async getByUser(userId: number): Promise<UserContractModel[]> {
     return await apiClient.get<UserContractModel[]>(`user-contracts/user/${userId}`)
   }

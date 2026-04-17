@@ -58,6 +58,101 @@
         </v-tooltip>
       </template>
 
+      <!-- Notification bell — always visible -->
+      <v-menu v-model="notifMenuOpen" :close-on-content-click="false" location="bottom end">
+        <template #activator="{ props: menuProps }">
+          <v-tooltip :text="$t('nav.notifications')" location="bottom">
+            <template #activator="{ props: tooltipProps }">
+              <v-btn
+                v-bind="{ ...menuProps, ...tooltipProps }"
+                icon
+                variant="text"
+                class="text-white"
+              >
+                <v-badge
+                  v-if="notificationsStore.unreadCount > 0"
+                  :content="
+                    notificationsStore.unreadCount > 99 ? '99+' : notificationsStore.unreadCount
+                  "
+                  color="error"
+                >
+                  <v-icon icon="mdi-bell-outline"></v-icon>
+                </v-badge>
+                <v-icon v-else icon="mdi-bell-outline"></v-icon>
+              </v-btn>
+            </template>
+          </v-tooltip>
+        </template>
+
+        <v-card min-width="360" max-width="420" rounded="lg" elevation="8">
+          <div class="d-flex align-center px-4 pt-3 pb-2">
+            <span class="text-subtitle-2 font-weight-bold flex-grow-1">
+              {{ $t('nav.notifications') }}
+            </span>
+            <v-btn
+              v-if="notificationsStore.hasUnread"
+              size="x-small"
+              variant="text"
+              color="primary"
+              @click="markAllRead"
+            >
+              {{ $t('notifications.markAllRead') }}
+            </v-btn>
+          </div>
+          <v-divider />
+
+          <v-list
+            v-if="notificationsStore.items.length > 0"
+            density="comfortable"
+            class="pa-0"
+            max-height="400"
+            style="overflow-y: auto"
+          >
+            <template v-for="(notif, index) in notificationsStore.items" :key="notif.id">
+              <v-divider v-if="index > 0" />
+              <v-list-item
+                class="px-4 py-2"
+                :class="notif.is_read ? '' : 'notif-unread'"
+                @click="handleNotifClick(notif)"
+              >
+                <template #prepend>
+                  <v-avatar
+                    size="36"
+                    :color="notif.icon_color ?? 'primary'"
+                    variant="tonal"
+                    class="mr-3 flex-shrink-0"
+                  >
+                    <v-icon :icon="notif.icon ?? 'mdi-bell-outline'" size="18" />
+                  </v-avatar>
+                </template>
+                <div style="min-width: 0">
+                  <div class="d-flex align-center justify-space-between ga-2">
+                    <span
+                      class="text-body-2 text-truncate"
+                      :class="notif.is_read ? 'text-medium-emphasis' : 'font-weight-bold'"
+                    >
+                      {{ notif.title }}
+                    </span>
+                    <span class="text-caption text-medium-emphasis flex-shrink-0">
+                      {{ formatNotifTime(notif.created_at) }}
+                    </span>
+                  </div>
+                  <div v-if="notif.body" class="text-caption text-medium-emphasis text-truncate">
+                    {{ notif.body }}
+                  </div>
+                </div>
+                <template v-if="!notif.is_read" #append>
+                  <div class="notif-dot ml-2" />
+                </template>
+              </v-list-item>
+            </template>
+          </v-list>
+          <div v-else class="text-center text-medium-emphasis text-body-2 py-6">
+            {{ $t('notifications.empty') }}
+          </div>
+        </v-card>
+      </v-menu>
+
       <!-- Chat — always visible -->
       <v-menu v-model="chatMenuOpen" :close-on-content-click="false" location="bottom end">
         <template #activator="{ props: menuProps }">
@@ -280,6 +375,8 @@ import { useApprovalsStore } from '@/stores/approvals'
 import { useKycStore } from '@/stores/kyc'
 import { useMoment } from '@/composables/useMoment'
 import { useChatUnread } from '@/composables/useChatUnread'
+import { useNotificationsStore } from '@/stores/notifications'
+import type { NotificationModel } from '@/interfaces/models/NotificationModel'
 /* END IMPORT */
 
 /** START DEFINE STATE */
@@ -306,6 +403,9 @@ const toggleTheme = () => {
 const kycStore = useKycStore()
 const drawer = useDrawer()
 const route = useRoute()
+const router = useRouter()
+const notificationsStore = useNotificationsStore()
+const notifMenuOpen = ref(false)
 const chatMenuOpen = ref(false)
 const chatTab = ref<'unread' | 'read'>('unread')
 const { totalUnread, unreadMessages, readMessages, fetchUnreadCounts } = useChatUnread()
@@ -326,6 +426,30 @@ const sortedReadMessages = computed(() =>
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+async function handleNotifClick(notif: NotificationModel) {
+  notifMenuOpen.value = false
+  await notificationsStore.markAsRead(notif.id)
+  if (notif.route) {
+    await router.push(notif.route)
+  }
+}
+
+async function markAllRead() {
+  await notificationsStore.markAllAsRead()
+}
+
+function formatNotifTime(createdAt: string): string {
+  const date = momentInstance.utc(createdAt).local()
+  if (!date.isValid()) return ''
+  const now = momentInstance()
+  const diffMinutes = now.diff(date, 'minutes')
+  if (diffMinutes < 1) return 'now'
+  if (diffMinutes < 60) return `${diffMinutes}m`
+  const diffHours = now.diff(date, 'hours')
+  if (diffHours < 24) return `${diffHours}h`
+  return date.format('MMM D')
+}
+
 async function changeLanguage(code: string) {
   await setLocale(code as 'en' | 'vi' | 'ja')
   await userStore.updateLanguage(code)
@@ -424,3 +548,17 @@ watch(chatMenuOpen, (isOpen) => {
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
+
+<style scoped>
+.notif-unread {
+  background: rgba(var(--v-theme-primary), 0.04);
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(var(--v-theme-primary));
+  flex-shrink: 0;
+}
+</style>

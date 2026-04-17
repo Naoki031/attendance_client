@@ -76,4 +76,8 @@ export default class UserService {
   public static async delete(userId: number): Promise<boolean> {
     return (await apiClient.delete(`/users/${userId}`)) as boolean
   }
+
+  public static async getBirthdaysThisMonth(): Promise<UserModel[]> {
+    return apiClient.get<UserModel[]>('users/birthdays-this-month')
+  }
 }

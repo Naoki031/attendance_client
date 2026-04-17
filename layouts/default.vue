@@ -16,6 +16,13 @@
     <!-- Unified notification stack: missed calls + real-time alerts -->
     <LayoutNotificationStack />
 
+    <!-- Global notification queue modal (persistent, reads through multiple alerts) -->
+    <LayoutGlobalNotificationQueue
+      ref="notificationQueue"
+      @dismissed="onNotificationDismissed"
+      @dismissed-all="onAllNotificationsDismissed"
+    />
+
     <!-- Scheduled meeting RSVP dialog (global — shows from any page) -->
     <MeetingDialogScheduledRsvp
       :dialog="scheduledRsvpDialog"
@@ -44,6 +51,11 @@ import MeetingScheduledParticipantService from '@/services/MeetingScheduledParti
 import type { MeetingScheduledParticipantModel } from '@/interfaces/models/MeetingScheduledParticipantModel'
 import type { MeetingAutoCallConfigModel } from '@/interfaces/models/MeetingAutoCallConfigModel'
 import { useScheduledParticipantsStore } from '@/stores/scheduled-participants'
+import UserContractService from '@/services/UserContractService'
+import moment from 'moment-timezone'
+import { useNotificationsStore } from '@/stores/notifications'
+import type { NotificationModel } from '@/interfaces/models/NotificationModel'
+import type { GlobalNotificationItem } from '@/types/notifications'
 /* END IMPORT */
 
 /** START DEFINE STATE */
@@ -51,6 +63,7 @@ const userStore = useUserStore()
 const approvalsStore = useApprovalsStore()
 const invitesStore = useMeetingInvitesStore()
 const scheduledParticipantsStore = useScheduledParticipantsStore()
+const notificationsStore = useNotificationsStore()
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
@@ -62,9 +75,100 @@ let meetingSocket: Socket | null = null
 
 const scheduledRsvpDialog = ref(false)
 const scheduledRsvpInvites = ref<MeetingScheduledParticipantModel[]>([])
+const notificationQueue = ref<{
+  push: (item: Omit<GlobalNotificationItem, 'id'>) => string
+} | null>(null)
+const contractReminderQueueMap = new Map<string, number>()
 /* END DEFINE STATE */
 
 /** START DEFINE METHOD */
+function getContractReminderAckKey(): string {
+  return `contract_reminder_ack_${moment().format('YYYY-MM-DD')}`
+}
+
+function getAcknowledgedUserIds(): Set<number> {
+  try {
+    const raw = localStorage.getItem(getContractReminderAckKey())
+    const parsed = raw ? (JSON.parse(raw) as number[]) : []
+    return new Set(parsed)
+  } catch {
+    return new Set()
+  }
+}
+
+function acknowledgeContractReminder(userId: number): void {
+  try {
+    const acknowledged = getAcknowledgedUserIds()
+    acknowledged.add(userId)
+    localStorage.setItem(getContractReminderAckKey(), JSON.stringify([...acknowledged]))
+  } catch {
+    // localStorage unavailable — fail silently
+  }
+}
+
+function onNotificationDismissed(queueId: string): void {
+  const userId = contractReminderQueueMap.get(queueId)
+  if (userId !== undefined) {
+    acknowledgeContractReminder(userId)
+    contractReminderQueueMap.delete(queueId)
+  }
+}
+
+function onAllNotificationsDismissed(ids: string[]): void {
+  for (const queueId of ids) {
+    const userId = contractReminderQueueMap.get(queueId)
+    if (userId !== undefined) {
+      acknowledgeContractReminder(userId)
+      contractReminderQueueMap.delete(queueId)
+    }
+  }
+}
+
+function pushContractReminderNotification(data: {
+  userId: number
+  employeeName: string
+  expiredDate: string
+  daysRemaining: number
+}): void {
+  const queueId = notificationQueue.value?.push({
+    icon: 'mdi-file-alert-outline',
+    iconColor: 'warning',
+    title: t('contractReminder.title'),
+    rows: [
+      { label: t('contractReminder.employee'), value: data.employeeName },
+      { label: t('contractReminder.expiryDate'), value: data.expiredDate },
+      {
+        label: t('contractReminder.daysRemaining'),
+        value: t('contractReminder.days', { days: data.daysRemaining }),
+        chip: { color: data.daysRemaining <= 7 ? 'error' : 'warning' },
+      },
+    ],
+    actions: [
+      {
+        label: t('common.view'),
+        primary: true,
+        handler: () => router.push(`/management/users/${data.userId}`),
+      },
+    ],
+  })
+  if (queueId) contractReminderQueueMap.set(queueId, data.userId)
+}
+
+async function loadPendingContractReminders(): Promise<void> {
+  if (!userStore.isCompanyAdmin) return
+  try {
+    const reminders = await UserContractService.getPendingReminders()
+    const acknowledged = getAcknowledgedUserIds()
+    for (const reminder of reminders) {
+      if (!acknowledged.has(reminder.userId)) {
+        pushContractReminderNotification(reminder)
+      }
+    }
+  } catch {
+    // Fail silently — non-critical feature
+  }
+}
+
 async function loadScheduledRsvpInvites() {
   try {
     scheduledRsvpInvites.value = await MeetingScheduledParticipantService.getMyPendingInvites()
@@ -99,9 +203,15 @@ function getRequestTypeLabel(type: string | undefined): string {
 /* END DEFINE METHOD */
 
 /** START DEFINE LIFE CYCLE HOOK */
-onMounted(() => {
+onMounted(async () => {
   if (userStore.isAuthenticated) {
-    userStore.getUser()
+    await userStore.getUser()
+
+    // Load notification history (bell icon badge + dropdown)
+    notificationsStore.load()
+
+    // Show any contract expiry reminders from today that the user hasn't acknowledged yet
+    loadPendingContractReminders()
 
     // Connect to meeting namespace to receive invite notifications globally
     const config = useRuntimeConfig()
@@ -251,32 +361,21 @@ useSocketEvent<EmployeeRequestModel>('request:updated', (request) => {
   }
 })
 
-// Notify company admins when an employee's contract is about to expire
-useSocketEvent<{
-  userId: number
-  employeeName: string
-  contractType: string
-  expiredDate: string
-  daysRemaining: number
-}>('contract:expiry_reminder', (data) => {
-  if (!userStore.isAdmin) return
+// Real-time notification from server — update badge and show modal queue
+useSocketEvent<NotificationModel>('notification:new', (notification) => {
+  notificationsStore.pushFromSocket(notification)
 
-  push({
-    icon: 'mdi-file-alert-outline',
-    iconColor: 'warning',
-    title: t('home.notificationContractExpiry', {
-      name: data.employeeName,
-      days: data.daysRemaining,
-    }),
-    timeout: 8000,
-    actions: [
-      {
-        label: t('common.view'),
-        handler: () => router.push(`/management/users/${data.userId}`),
-        dismissOnClick: true,
-      },
-    ],
-  })
+  // For contract expiry reminders, also show the persistent modal
+  if (notification.type === 'contract_expiry_reminder' && notification.data) {
+    const data = notification.data as {
+      userId: number
+      employeeName: string
+      contractType: string
+      expiredDate: string
+      daysRemaining: number
+    }
+    pushContractReminderNotification(data)
+  }
 })
 
 onUnmounted(() => {

@@ -60,6 +60,20 @@ export const useUserStore = defineStore('user', {
       return role === 'super_admin' || role === 'admin'
     },
 
+    /** True if the user is in an Admin or Manager department but not a super admin. Used to gate contract reminders. */
+    isCompanyAdmin(state): boolean {
+      const isSuper = state.user?.user_group_permissions?.some(
+        (ugp) => ugp.permission_group?.name?.toLowerCase() === 'super',
+      )
+      if (isSuper) return false
+      const adminDepts = ['admin', 'manager']
+      return (
+        state.user?.user_departments?.some((ud) =>
+          adminDepts.includes(ud.department?.name?.toLowerCase() ?? ''),
+        ) ?? false
+      )
+    },
+
     /** IANA timezone from the user's company country. Falls back to Asia/Ho_Chi_Minh. */
     timezone(state): string {
       return state.user?.user_departments?.[0]?.company?.country?.timezone ?? DEFAULT_TIMEZONE

@@ -88,6 +88,7 @@
                 <div class="text-caption text-medium-emphasis mb-1">
                   {{ $t('emailTemplates.bodyHtml') }}
                 </div>
+                <!-- eslint-disable-next-line vue/no-v-html -->
                 <div class="text-body-2" v-html="sanitizeHtml(item.body_html)" />
               </div>
             </td>
