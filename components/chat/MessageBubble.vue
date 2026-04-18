@@ -113,7 +113,11 @@
         :class="{ 'message-text--single-emoji': isSingleEmoji }"
       >
         <!-- eslint-disable-next-line vue/no-v-html -->
-        <div class="chat-rendered-markdown" v-html="renderedContent"></div>
+        <div
+          class="chat-rendered-markdown"
+          @click="handleMarkdownClick"
+          v-html="renderedContent"
+        ></div>
       </div>
 
       <!-- Edit mode -->
@@ -278,6 +282,33 @@
   </v-dialog>
 
   <DialogUserProfile v-model="profileDialogOpen" :user="profileUser" />
+
+  <!-- Photo preview lightbox -->
+  <v-overlay
+    v-model="photoPreviewOpen"
+    class="chat-photo-lightbox"
+    scrim="rgba(0,0,0,0.88)"
+    @click="photoPreviewOpen = false"
+  >
+    <div class="chat-photo-lightbox__wrap" @click.stop>
+      <v-btn
+        icon
+        size="small"
+        variant="text"
+        color="white"
+        class="chat-photo-lightbox__close"
+        @click="photoPreviewOpen = false"
+      >
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+      <img
+        v-if="photoPreviewUrl"
+        :src="photoPreviewUrl"
+        alt="preview"
+        class="chat-photo-lightbox__img"
+      />
+    </div>
+  </v-overlay>
 </template>
 
 <script setup lang="ts">
@@ -350,6 +381,8 @@ const reactionMenuOpen = ref(false)
 const profileDialogOpen = ref(false)
 const profileUser = ref<UserProfileData | null>(null)
 const deleteDialogOpen = ref(false)
+const photoPreviewOpen = ref(false)
+const photoPreviewUrl = ref<string | null>(null)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -454,6 +487,18 @@ function startEdit() {
 function cancelEdit() {
   isEditing.value = false
   editContent.value = ''
+}
+
+function handleMarkdownClick(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  const card = target.closest('.memories-photo-card') as HTMLElement | null
+  if (!card) return
+  const img = card.querySelector('img') as HTMLImageElement | null
+  const fullUrl = img?.dataset['full'] ?? img?.src
+  if (fullUrl) {
+    photoPreviewUrl.value = fullUrl
+    photoPreviewOpen.value = true
+  }
 }
 
 function saveEdit() {
@@ -746,6 +791,78 @@ watch(
   padding: 0 4px;
   font-weight: 500;
   cursor: default;
+}
+
+/* Photo preview lightbox */
+.chat-photo-lightbox {
+  z-index: 9999 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-photo-lightbox__wrap {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-photo-lightbox__close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+}
+
+.chat-photo-lightbox__img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* Memories photo card */
+.chat-rendered-markdown :deep(.memories-photo-card) {
+  display: inline-block;
+  max-width: 280px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  background: rgba(var(--v-theme-surface), 1);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.chat-rendered-markdown :deep(.memories-photo-card__img) {
+  width: 100%;
+  max-width: 280px;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-rendered-markdown :deep(.memories-photo-card__caption) {
+  display: block;
+  padding: 6px 10px 2px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgb(var(--v-theme-on-surface));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-rendered-markdown :deep(.memories-photo-card__message) {
+  display: block;
+  padding: 2px 10px 8px;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Reactions */

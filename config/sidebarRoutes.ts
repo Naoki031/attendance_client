@@ -19,6 +19,12 @@ const userRoutes: RouteItem[] = [
   { icon: 'mdi-chat-outline', link: '/chat', textKey: 'nav.chat' },
   { icon: 'mdi-video-outline', link: '/meetings', textKey: 'nav.meetings' },
   {
+    icon: 'mdi-image-multiple-outline',
+    link: '/memories',
+    textKey: 'nav.memories',
+    name: 'memories.index',
+  },
+  {
     icon: 'mdi-clipboard-text-clock-outline',
     link: '/requests',
     textKey: 'nav.myRequests',

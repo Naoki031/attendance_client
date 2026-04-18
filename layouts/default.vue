@@ -7,8 +7,8 @@
     </v-main>
     <AppFooter />
 
-    <!-- AI Chatbot widget (hidden on /chat pages to avoid covering submit button) -->
-    <ChatbotWidget v-if="!isChatPage" />
+    <!-- AI Chatbot widget (hidden on /chat pages and when photo viewer is open on mobile) -->
+    <ChatbotWidget v-if="!isChatPage && !photoViewerOpen" />
 
     <!-- Meeting incoming call notification -->
     <MeetingCallNotification />
@@ -69,6 +69,7 @@ const route = useRoute()
 const { t } = useI18n()
 const { push } = useAppNotifications()
 const isChatPage = computed<boolean>(() => route.path.startsWith('/chat'))
+const photoViewerOpen = useState('memoriesPhotoViewerOpen', () => false)
 const { initMessaging } = useFirebaseMessaging()
 
 let meetingSocket: Socket | null = null

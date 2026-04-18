@@ -1,7 +1,12 @@
 <template>
   <div v-if="todayPeople.length > 0 || otherPeople.length > 0" class="birthday-banner mb-6">
     <!-- Left: header + this-month others -->
-    <div class="birthday-banner__left">
+    <div
+      :class="[
+        'birthday-banner__left',
+        { 'birthday-banner__left--full': todayPeople.length === 0 },
+      ]"
+    >
       <div class="birthday-banner__header">
         <span class="birthday-banner__cake-icon">🎂</span>
         <span class="text-body-2 font-weight-bold text-white">
@@ -37,9 +42,9 @@
       <div v-else class="birthday-banner__scroll">
         <div v-for="person in otherPeople" :key="person.id" class="birthday-card">
           <div class="birthday-card__avatar-wrap">
-            <v-avatar size="52" color="primary" rounded="circle">
+            <v-avatar size="44" color="primary" rounded="circle">
               <v-img v-if="person.avatar" :src="person.avatar" cover />
-              <span v-else class="text-body-1 font-weight-bold text-white">
+              <span v-else class="text-caption font-weight-bold text-white">
                 {{ getInitials(person) }}
               </span>
             </v-avatar>
@@ -201,7 +206,7 @@ onMounted(() => {
   box-shadow: 0 4px 20px var(--bday-shadow);
   display: flex;
   align-items: stretch;
-  min-height: 130px;
+  min-height: 160px;
 }
 
 /* ── Left pane: header + others ───────────────────── */
@@ -214,6 +219,12 @@ onMounted(() => {
   gap: 8px;
   min-width: 0;
   border-right: 1px solid var(--bday-white-faint);
+}
+
+.birthday-banner__left--full {
+  flex: 1 1 0;
+  max-width: none;
+  border-right: none;
 }
 
 .birthday-banner__header {

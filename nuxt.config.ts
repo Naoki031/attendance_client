@@ -25,6 +25,10 @@ export default defineNuxtConfig({
         changeOrigin: true,
         prependPath: false,
       },
+      '/uploads': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+      },
     },
   },
 

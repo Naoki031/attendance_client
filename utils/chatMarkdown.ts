@@ -8,6 +8,34 @@ marked.setOptions({
   gfm: true,
 })
 
+/**
+ * Detects [memories_photo](url|thumbnail|caption|message) tokens and replaces them
+ * with an HTML photo card before markdown parsing.
+ */
+function replaceMemoriesPhoto(text: string): string {
+  return text.replace(/\[memories_photo\]\(([^)]+)\)/g, (_match, payload: string) => {
+    const [photoUrl, thumbnailUrl, caption, message] = payload.split('|')
+    const thumb = (thumbnailUrl ?? photoUrl).trim()
+    const source = (photoUrl ?? '').trim()
+    const captionText = (caption ?? '').trim()
+    const messageText = (message ?? '').trim()
+
+    const captionHtml = captionText
+      ? `<span class="memories-photo-card__caption">${escapeHtml(captionText)}</span>`
+      : ''
+    const messageHtml = messageText
+      ? `<span class="memories-photo-card__message">${escapeHtml(messageText)}</span>`
+      : ''
+
+    return (
+      `<div class="memories-photo-card">` +
+      `<img src="${escapeHtml(thumb)}" alt="memories photo" loading="lazy" class="memories-photo-card__img" data-full="${escapeHtml(source)}" />` +
+      `${captionHtml}${messageHtml}` +
+      `</div>`
+    )
+  })
+}
+
 /** Tags and attributes allowed in chat messages after markdown rendering. */
 const ALLOWED_TAGS = [
   'p',
@@ -25,8 +53,9 @@ const ALLOWED_TAGS = [
   'blockquote',
   'span',
   'img',
+  'div',
 ]
-const ALLOWED_ATTR = ['class', 'src', 'alt', 'loading']
+const ALLOWED_ATTR = ['class', 'src', 'alt', 'loading', 'data-full']
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -90,14 +119,20 @@ const ALLOWED_URI_REGEXP = /^\/[^/]/
  * - ALLOWED_URI_REGEXP restricts img src to same-origin paths, blocking external tracking pixels.
  */
 export function renderChatMarkdown(content: string, members?: ChatRoomMemberModel[]): string {
-  const withEmoji = replaceCustomEmoji(content)
+  const withPhotoCards = replaceMemoriesPhoto(content)
+  const withEmoji = replaceCustomEmoji(withPhotoCards)
   const rawHtml = marked.parse(withEmoji) as string
 
   // DOMPurify requires a DOM — only available on the client side.
   // Chat messages are never SSR-rendered (fetched after auth), so this guard is safe.
   const sanitizedHtml =
     typeof window !== 'undefined'
-      ? DOMPurify.sanitize(rawHtml, { ALLOWED_TAGS, ALLOWED_ATTR, ALLOWED_URI_REGEXP })
+      ? DOMPurify.sanitize(rawHtml, {
+          ALLOWED_TAGS,
+          ALLOWED_ATTR,
+          ALLOWED_URI_REGEXP,
+          ALLOW_DATA_ATTR: true,
+        })
       : rawHtml
 
   return highlightMentions(sanitizedHtml, members)
