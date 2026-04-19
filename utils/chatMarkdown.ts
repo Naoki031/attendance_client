@@ -174,3 +174,19 @@ export function renderChatMarkdown(content: string, members?: ChatRoomMemberMode
 
   return highlightMentions(sanitizedHtml, members)
 }
+
+/**
+ * Renders plain comment text with custom emoji support only (no markdown).
+ * Escapes all user HTML first, then replaces :emoji: tokens with <img> tags.
+ * Safe without DOMPurify because the HTML is built entirely from escaped input + known-safe URLs.
+ */
+export function renderCommentText(text: string): string {
+  const escaped = escapeHtml(text)
+  return escaped.replace(/(:[a-z0-9-]+:)/g, (match) => {
+    if (!isCustomEmoji(match)) return match
+    const url = getCustomEmojiUrl(match)
+    if (!url) return match
+    const label = getCustomEmojiLabel(match)
+    return `<img src="${url}" alt="${escapeHtml(label)}" class="chat-custom-emoji" loading="lazy" />`
+  })
+}

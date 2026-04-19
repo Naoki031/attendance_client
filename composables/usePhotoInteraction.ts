@@ -221,6 +221,13 @@ export function usePhotoInteraction() {
           ? { ...result.data, reactions: {}, detectedLanguage: null, user: optimistic.user }
           : comment,
       )
+      // Deduplicate: socket may have pushed real comment before HTTP response arrived
+      const seen = new Set<string>()
+      comments.value[photoId] = comments.value[photoId]!.filter((item) => {
+        if (seen.has(item.id)) return false
+        seen.add(item.id)
+        return true
+      })
     } catch {
       comments.value[photoId] = existing
       commentCounts.value[photoId] = Math.max(0, (commentCounts.value[photoId] ?? 1) - 1)

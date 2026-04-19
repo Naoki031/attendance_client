@@ -16,6 +16,7 @@
 
     <template v-else-if="currentAlbum">
       <MemoriesPhotoGrid
+        ref="photoGridReference"
         :album="currentAlbum"
         :photos="photos"
         :loading="loading"
@@ -289,6 +290,7 @@ import { useMemories } from '@/composables/useMemories'
 import { useAppNotifications } from '@/composables/useAppNotifications'
 import { useUserStore } from '@/stores/user'
 import UserService from '@/services/UserService'
+import type MemoriesPhotoGrid from '@/components/memories/MemoriesPhotoGrid.vue'
 /* END IMPORT */
 
 /** START DEFINE NAME COMPONENT */
@@ -301,6 +303,7 @@ definePageMeta({
 /** START DEFINE STATE */
 const { t } = useI18n()
 const route = useRoute()
+const router = useRouter()
 const {
   currentAlbum,
   photos,
@@ -318,6 +321,9 @@ const { notifySuccess, notifyError } = useAppNotifications()
 
 const albumId = computed(() => route.params.id as string)
 
+const photoGridReference = ref<InstanceType<typeof MemoriesPhotoGrid> | null>(null)
+const pendingOpenNotes = ref(false)
+const pendingScrollCommentId = ref<string | null>(null)
 const shareDialog = ref(false)
 const shareAlbumDialog = ref(false)
 const editAlbumDialog = ref(false)
@@ -470,7 +476,62 @@ watch(forbidden, (value) => {
 
 watch(selectedPhoto, (value) => {
   photoViewerOpen.value = value !== null
+  // Remove photoId from URL when photo is closed so the next notification click re-triggers
+  if (!value && route.query.photoId) {
+    const query = { ...route.query }
+    delete query['photoId']
+    void router.replace({ query })
+  }
 })
+
+watch(
+  () => route.query.photoId as string | undefined,
+  (photoId) => {
+    if (!photoId || !photos.value.length) return
+    const match = photos.value.find((photo) => photo.id === photoId)
+    if (match) selectedPhoto.value = match
+  },
+)
+
+function triggerOpenNotes(grid: InstanceType<typeof MemoriesPhotoGrid>, commentId: string | null) {
+  if (commentId) {
+    void grid.scrollToComment(commentId)
+  } else {
+    void grid.openNotes()
+  }
+}
+
+// Fire openNotes as soon as MemoriesPhotoGrid is mounted and there is a pending request
+watch(
+  photoGridReference,
+  (value) => {
+    if (!value) return
+    if (pendingOpenNotes.value) {
+      triggerOpenNotes(value, pendingScrollCommentId.value)
+      pendingOpenNotes.value = false
+      pendingScrollCommentId.value = null
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () => route.query.openNotes,
+  (value) => {
+    if (value !== '1') return
+    const commentId = (route.query.commentId as string | undefined) ?? null
+    const query = { ...route.query }
+    delete query['openNotes']
+    delete query['commentId']
+    void router.replace({ query })
+    if (photoGridReference.value) {
+      triggerOpenNotes(photoGridReference.value, commentId)
+    } else {
+      pendingOpenNotes.value = true
+      pendingScrollCommentId.value = commentId
+    }
+  },
+)
 
 watch(
   () => currentAlbum.value?.privacy,
@@ -492,8 +553,30 @@ watch(inviteDialog, (opened) => {
 /* END DEFINE WATCHER */
 
 /** START DEFINE LIFE CYCLE HOOK */
-onMounted(() => {
-  fetchAlbum(albumId.value)
+onMounted(async () => {
+  await fetchAlbum(albumId.value)
+
+  // Auto-open photo when navigated from a notification link (?photoId=...)
+  const targetPhotoId = route.query.photoId as string | undefined
+  if (targetPhotoId) {
+    const match = photos.value.find((photo) => photo.id === targetPhotoId)
+    if (match) selectedPhoto.value = match
+  }
+
+  // Auto-open album notes panel when navigated from an album comment notification
+  if (route.query.openNotes === '1') {
+    const commentId = (route.query.commentId as string | undefined) ?? null
+    const query = { ...route.query }
+    delete query['openNotes']
+    delete query['commentId']
+    void router.replace({ query })
+    if (photoGridReference.value) {
+      triggerOpenNotes(photoGridReference.value, commentId)
+    } else {
+      pendingOpenNotes.value = true
+      pendingScrollCommentId.value = commentId
+    }
+  }
 })
 
 onUnmounted(() => {

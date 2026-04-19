@@ -1,5 +1,5 @@
 import { apiClient } from '@/utils/apiClient'
-import type { Album, Photo, EventType, Privacy } from '@/types/memories'
+import type { Album, Photo, EventType, Privacy, AlbumComment } from '@/types/memories'
 import { useMoment } from '@/composables/useMoment'
 
 export interface AlbumFilters {
@@ -44,6 +44,10 @@ export function useMemories() {
   const photosHasMore = ref(false)
   const error = ref<string | null>(null)
   const forbidden = ref(false)
+  const albumComments = ref<AlbumComment[]>([])
+  const albumCommentsLoading = ref(false)
+  const albumCommentTranslations = ref<Record<string, Record<string, string>>>({})
+  const albumCommentTranslating = ref<Record<string, boolean>>({})
   /** END DEFINE STATE */
 
   /** START DEFINE METHOD */
@@ -223,6 +227,116 @@ export function useMemories() {
     }
   }
 
+  async function fetchAlbumComments(albumId: string): Promise<void> {
+    albumCommentsLoading.value = true
+    try {
+      const result = await apiClient.get<{ success: boolean; data: AlbumComment[] }>(
+        `memories/albums/${albumId}/album-comments`,
+      )
+      albumComments.value = result.data
+    } catch {
+      // silently ignore — comments panel shows empty state
+    } finally {
+      albumCommentsLoading.value = false
+    }
+  }
+
+  async function addAlbumComment(albumId: string, text: string): Promise<AlbumComment | null> {
+    const userStore = useUserStore()
+    const name = userStore.user?.full_name ?? ''
+    const optimistic: AlbumComment = {
+      id: `optimistic-${Date.now()}`,
+      albumId,
+      userId: String(userStore.user?.id ?? ''),
+      text: text.trim(),
+      detectedLanguage: null,
+      createdAt: moment().toISOString(),
+      updatedAt: moment().toISOString(),
+      user: {
+        id: userStore.user?.id ?? 0,
+        name,
+        avatar: (userStore.user as { avatar?: string } | null)?.avatar ?? null,
+      },
+    }
+
+    albumComments.value.push(optimistic)
+
+    try {
+      const result = await apiClient.post<{ success: boolean; data: AlbumComment }>(
+        `memories/albums/${albumId}/album-comments`,
+        { text: text.trim() } as Record<string, unknown>,
+      )
+
+      // Replace optimistic entry with real response
+      const index = albumComments.value.findIndex((item) => item.id === optimistic.id)
+      if (index !== -1) {
+        albumComments.value[index] = { ...result.data, user: optimistic.user }
+      }
+      // Deduplicate: socket may have already pushed the real comment before HTTP response
+      const seen = new Set<string>()
+      albumComments.value = albumComments.value.filter((item) => {
+        if (seen.has(item.id)) return false
+        seen.add(item.id)
+        return true
+      })
+
+      // Re-fetch after 2s to pick up async language detection result
+      setTimeout(() => {
+        fetchAlbumComments(albumId).catch(() => {})
+      }, 2000)
+
+      return result.data
+    } catch {
+      // Roll back optimistic entry on failure
+      albumComments.value = albumComments.value.filter((item) => item.id !== optimistic.id)
+      return null
+    }
+  }
+
+  async function updateAlbumComment(commentId: string, text: string): Promise<boolean> {
+    try {
+      await apiClient.patch(`memories/album-comments/${commentId}`, { text } as Record<
+        string,
+        unknown
+      >)
+      const comment = albumComments.value.find((item) => item.id === commentId)
+      if (comment) comment.text = text
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  async function translateAlbumComment(commentId: string): Promise<void> {
+    if (albumCommentTranslations.value[commentId] || albumCommentTranslating.value[commentId])
+      return
+
+    albumCommentTranslating.value[commentId] = true
+    try {
+      const result = await apiClient.post<{ success: boolean; data: Record<string, string> }>(
+        `memories/album-comments/${commentId}/translate`,
+        {},
+      )
+      albumCommentTranslations.value[commentId] = result.data
+    } catch {
+      // silently fail — user stays on original text
+    } finally {
+      albumCommentTranslating.value[commentId] = false
+    }
+  }
+
+  async function deleteAlbumComment(commentId: string): Promise<boolean> {
+    const previous = [...albumComments.value]
+    albumComments.value = albumComments.value.filter((item) => item.id !== commentId)
+    try {
+      await apiClient.delete(`memories/album-comments/${commentId}`)
+      return true
+    } catch {
+      albumComments.value = previous
+      return false
+    }
+  }
+
   async function deletePhoto(id: string, updateCount = true): Promise<boolean> {
     error.value = null
 
@@ -275,6 +389,10 @@ export function useMemories() {
     photosHasMore,
     error,
     forbidden,
+    albumComments,
+    albumCommentsLoading,
+    albumCommentTranslations,
+    albumCommentTranslating,
     fetchAlbums,
     fetchAlbum,
     loadMorePhotos,
@@ -283,6 +401,11 @@ export function useMemories() {
     updateMembers,
     deleteAlbum,
     deletePhoto,
+    fetchAlbumComments,
+    addAlbumComment,
+    updateAlbumComment,
+    deleteAlbumComment,
+    translateAlbumComment,
     getPrivacyLabel,
     getEventTypeLabel,
     formatDate,

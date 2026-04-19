@@ -71,6 +71,17 @@ export interface Comment {
   updatedAt: string
 }
 
+export interface AlbumComment {
+  id: string
+  albumId: string
+  userId: string
+  user: { id: number; name: string; avatar?: string | null }
+  text: string
+  detectedLanguage?: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 export interface SharePayload {
   photoId: string
   albumId: string

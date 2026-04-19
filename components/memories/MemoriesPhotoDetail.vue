@@ -123,7 +123,8 @@
         <!-- 1. Header: uploader + time -->
         <div class="photo-detail__header">
           <v-avatar size="36" color="primary-lighten">
-            <span class="photo-detail__avatar-initials">{{ uploaderInitials }}</span>
+            <v-img v-if="photo.uploadedByAvatar" :src="photo.uploadedByAvatar" cover />
+            <span v-else class="photo-detail__avatar-initials">{{ uploaderInitials }}</span>
           </v-avatar>
 
           <div class="photo-detail__header-info">
@@ -240,7 +241,8 @@
 
           <div v-for="comment in currentComments" :key="comment.id" class="comment-item">
             <v-avatar size="28" color="primary-lighten" class="comment-item__avatar">
-              <span class="comment-item__initials">{{ comment.user.initials }}</span>
+              <v-img v-if="comment.user?.avatar" :src="comment.user.avatar" cover />
+              <span v-else class="comment-item__initials">{{ comment.user?.initials ?? '' }}</span>
             </v-avatar>
 
             <div class="comment-item__body">
@@ -271,10 +273,13 @@
               <!-- Normal display mode -->
               <template v-else>
                 <div class="comment-item__bubble">
-                  <span class="comment-item__author">{{ comment.user.name }}</span>
-                  <span class="comment-item__text">{{
-                    commentDisplayText(comment.id, comment.text)
-                  }}</span>
+                  <span class="comment-item__author">{{ comment.user?.name ?? '' }}</span>
+                  <!-- eslint-disable vue/no-v-html -->
+                  <span
+                    class="comment-item__text chat-rendered-markdown"
+                    v-html="renderCommentText(commentDisplayText(comment.id, comment.text))"
+                  />
+                  <!-- eslint-enable vue/no-v-html -->
                 </div>
                 <div class="comment-item__footer">
                   <span class="comment-item__time">{{ formatCommentTime(comment.createdAt) }}</span>
@@ -392,7 +397,8 @@
           :class="{ 'photo-detail__input-row--mobile-open': showMobileComments }"
         >
           <v-avatar size="28" color="primary-lighten">
-            <span style="font-size: 0.55rem; font-weight: 700">
+            <v-img v-if="userStore.user?.avatar" :src="userStore.user.avatar" cover />
+            <span v-else style="font-size: 0.55rem; font-weight: 700">
               {{ currentUserInitials }}
             </span>
           </v-avatar>
@@ -408,13 +414,27 @@
             @keydown.enter.prevent="submitComment"
           />
 
+          <v-menu v-model="showEmojiPicker" location="top end" :close-on-content-click="false">
+            <template #activator="{ props: menuProps }">
+              <v-btn
+                icon="mdi-emoticon-outline"
+                size="small"
+                variant="text"
+                density="compact"
+                v-bind="menuProps"
+              />
+            </template>
+            <EmojiPicker @select="insertEmoji" />
+          </v-menu>
+
           <v-btn
             icon="mdi-send"
             size="small"
-            :color="newComment.trim() ? 'primary' : undefined"
-            :variant="newComment.trim() ? 'flat' : 'text'"
+            :color="newComment.trim() && !commentSubmitting ? 'primary' : undefined"
+            :variant="newComment.trim() && !commentSubmitting ? 'flat' : 'text'"
             density="compact"
-            :disabled="!newComment.trim()"
+            :disabled="!newComment.trim() || commentSubmitting"
+            :loading="commentSubmitting"
             @click="submitComment"
           />
         </div>
@@ -473,6 +493,8 @@
 /** START IMPORT */
 import type { PropType } from 'vue'
 import type { Photo, Album, Comment, CommentReactionEntry, ReactionType } from '@/types/memories'
+import EmojiPicker from '@/components/chat/EmojiPicker.vue'
+import { renderCommentText } from '@/utils/chatMarkdown'
 import { useDisplay } from 'vuetify'
 import { useMoment } from '@/composables/useMoment'
 import { usePhotoInteraction } from '@/composables/usePhotoInteraction'
@@ -529,6 +551,8 @@ const { notifySuccess, notifyError } = useAppNotifications()
 const userStore = useUserStore()
 
 const newComment = ref('')
+const commentSubmitting = ref(false)
+const showEmojiPicker = ref(false)
 const showMobileComments = ref(false)
 const commentListReference = ref<HTMLElement | null>(null)
 const viewerReference = ref<HTMLElement | null>(null)
@@ -620,6 +644,20 @@ const formattedTime = computed(() => {
 
 const currentComments = computed(() => (props.photo ? (comments.value[props.photo.id] ?? []) : []))
 
+function scrollCommentsToBottom(): void {
+  const doScroll = () => {
+    const list = commentListReference.value
+    if (list) list.scrollTop = list.scrollHeight
+  }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      doScroll()
+      // Re-scroll after emoji images finish loading (async)
+      setTimeout(doScroll, 300)
+    })
+  })
+}
+
 function reactionCount(type: ReactionType): number {
   if (!props.photo) return 0
   return reactionCounts.value[props.photo.id]?.[type] ?? 0
@@ -694,7 +732,7 @@ async function handleToggleCommentTranslation(commentId: string): Promise<void> 
 }
 
 function formatCommentTime(iso: string): string {
-  return moment.utc(iso).local().format('HH:mm · DD/MM')
+  return moment.utc(iso).local().fromNow()
 }
 
 function confirmDelete(): void {
@@ -707,17 +745,22 @@ function handleDelete(): void {
   deleteConfirming.value = false
 }
 
+function insertEmoji(emoji: string): void {
+  newComment.value += emoji
+  showEmojiPicker.value = false
+}
+
 async function submitComment(): Promise<void> {
   const text = newComment.value.trim()
-  if (!text || !props.photo) return
+  if (!text || !props.photo || commentSubmitting.value) return
 
   newComment.value = ''
-
-  await addComment(props.photo.id, text)
-
-  await nextTick()
-  if (commentListReference.value) {
-    commentListReference.value.scrollTop = commentListReference.value.scrollHeight
+  commentSubmitting.value = true
+  try {
+    await addComment(props.photo.id, text)
+    scrollCommentsToBottom()
+  } finally {
+    commentSubmitting.value = false
   }
 }
 
@@ -884,9 +927,6 @@ watch(
     pinchScale.value = 1
     zoomOrigin.value = 'center center'
 
-    // Reset comment scroll to top when switching photos
-    if (commentListReference.value) commentListReference.value.scrollTop = 0
-
     dataLoading.value = true
     const toFetch: Promise<void>[] = []
     if (!reactionCounts.value[newPhoto.id]) toFetch.push(fetchReactions(newPhoto.id))
@@ -894,6 +934,7 @@ watch(
     if (!comments.value[newPhoto.id] && !xs.value) toFetch.push(fetchComments(newPhoto.id))
     if (toFetch.length) await Promise.all(toFetch)
     dataLoading.value = false
+    scrollCommentsToBottom()
 
     prefetchNeighbors()
   },
@@ -912,14 +953,44 @@ function handleFullscreenChange(): void {
   isFullscreen.value = !!document.fullscreenElement
 }
 
+function handleSocketPhotoCommentNew(event: Event) {
+  const { photoId, comment } = (event as CustomEvent<{ photoId: string; comment: unknown }>).detail
+  if (!comments.value[photoId]) return
+  const typed = comment as (typeof comments.value)[string][number]
+  const exists = comments.value[photoId]!.some((item) => item.id === typed.id)
+  if (!exists) comments.value[photoId]!.push(typed)
+}
+
+function handleSocketPhotoCommentUpdated(event: Event) {
+  const { photoId, commentId, text } = (
+    event as CustomEvent<{ photoId: string; commentId: string; text: string }>
+  ).detail
+  const comment = (comments.value[photoId] ?? []).find((item) => item.id === commentId)
+  if (comment) comment.text = text
+}
+
+function handleSocketPhotoCommentDeleted(event: Event) {
+  const { photoId, commentId } = (event as CustomEvent<{ photoId: string; commentId: string }>)
+    .detail
+  if (comments.value[photoId]) {
+    comments.value[photoId] = comments.value[photoId]!.filter((item) => item.id !== commentId)
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
   document.addEventListener('fullscreenchange', handleFullscreenChange)
+  window.addEventListener('memories:photo_comment_new', handleSocketPhotoCommentNew)
+  window.addEventListener('memories:photo_comment_updated', handleSocketPhotoCommentUpdated)
+  window.addEventListener('memories:photo_comment_deleted', handleSocketPhotoCommentDeleted)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
   document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  window.removeEventListener('memories:photo_comment_new', handleSocketPhotoCommentNew)
+  window.removeEventListener('memories:photo_comment_updated', handleSocketPhotoCommentUpdated)
+  window.removeEventListener('memories:photo_comment_deleted', handleSocketPhotoCommentDeleted)
   if (document.fullscreenElement) document.exitFullscreen()
 })
 /* END DEFINE LIFE CYCLE HOOK */

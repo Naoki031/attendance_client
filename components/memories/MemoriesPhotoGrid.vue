@@ -506,7 +506,7 @@
     </div>
 
     <!-- ── Notes FAB (always visible, notes accessible anywhere on page) ── -->
-    <div v-if="firstPhotoId && !photoViewing" class="cin-notes-wrap">
+    <div v-if="!photoViewing" class="cin-notes-wrap">
       <Teleport to="body">
         <transition name="cin-backdrop">
           <div v-if="notesOpen" class="cin-notes-backdrop" @click="notesOpen = false" />
@@ -533,19 +533,30 @@
             </div>
 
             <!-- Body: empty state or comment list -->
-            <div class="notes-panel__body">
+            <div ref="notesPanelBodyReference" class="notes-panel__body">
               <div v-if="albumComments.length === 0" class="notes-panel__empty">
                 <v-icon size="36">mdi-chat-outline</v-icon>
                 <p>{{ t('memories.firstComment') }}</p>
               </div>
 
-              <ul v-else class="notes-panel__list">
-                <li v-for="comment in albumComments" :key="comment.id" class="notes-comment">
+              <ul v-else ref="notesListReference" class="notes-panel__list">
+                <li
+                  v-for="comment in albumComments"
+                  :key="comment.id"
+                  :data-comment-id="comment.id"
+                  class="notes-comment"
+                >
                   <div
+                    v-if="comment.user?.avatar"
+                    class="notes-comment__avatar notes-comment__avatar--img"
+                    :style="{ backgroundImage: `url(${comment.user.avatar})` }"
+                  />
+                  <div
+                    v-else
                     class="notes-comment__avatar"
                     :style="{ background: avatarColorForUser(comment.userId) }"
                   >
-                    {{ comment.user.initials }}
+                    {{ memberInitials(comment.user?.name ?? '') }}
                   </div>
 
                   <div class="notes-comment__content">
@@ -585,6 +596,7 @@
                             !comment.id.startsWith('optimistic-')
                           "
                           location="bottom end"
+                          :z-index="10002"
                         >
                           <template #activator="{ props: menuProps }">
                             <button v-bind="menuProps" class="notes-comment__menu-btn">
@@ -607,9 +619,14 @@
                           </v-list>
                         </v-menu>
                       </div>
-                      <p class="notes-comment__text">
-                        {{ commentDisplayText(comment.id, comment.text) }}
-                      </p>
+                      <!-- eslint-disable vue/no-v-html -->
+                      <p
+                        class="notes-comment__text chat-rendered-markdown"
+                        v-html="
+                          renderCommentText(albumCommentDisplayText(comment.id, comment.text))
+                        "
+                      />
+                      <!-- eslint-enable vue/no-v-html -->
                       <button
                         v-if="
                           !comment.id.startsWith('optimistic-') &&
@@ -617,24 +634,24 @@
                           comment.detectedLanguage !== userLanguage
                         "
                         class="cin-translate-btn"
-                        :disabled="commentTranslating[comment.id]"
-                        @click="handleToggleCommentTranslation(comment.id)"
+                        :disabled="albumCommentTranslating[comment.id]"
+                        @click="handleToggleAlbumCommentTranslation(comment.id)"
                       >
                         <v-progress-circular
-                          v-if="commentTranslating[comment.id]"
+                          v-if="albumCommentTranslating[comment.id]"
                           indeterminate
                           size="10"
                           width="1.5"
                         />
                         <v-icon v-else size="12">
                           {{
-                            commentShowTranslation[comment.id]
+                            albumCommentShowTranslation[comment.id]
                               ? 'mdi-translate-off'
                               : 'mdi-translate'
                           }}
                         </v-icon>
                         <span>{{
-                          commentShowTranslation[comment.id]
+                          albumCommentShowTranslation[comment.id]
                             ? t('memories.showOriginal')
                             : t('memories.showTranslated')
                         }}</span>
@@ -649,15 +666,31 @@
             <div class="notes-panel__footer">
               <div class="notes-panel__input-wrap">
                 <input
+                  ref="commentInputReference"
                   v-model="commentDraft"
                   class="notes-panel__input"
                   :placeholder="t('memories.commentPlaceholder')"
                   @keydown.enter.prevent="submitComment"
                 />
+                <v-menu
+                  v-model="showEmojiPicker"
+                  location="top end"
+                  :close-on-content-click="false"
+                  :z-index="10002"
+                >
+                  <template #activator="{ props: menuProps }">
+                    <button class="notes-panel__emoji-btn" v-bind="menuProps">
+                      <v-icon size="14">mdi-emoticon-outline</v-icon>
+                    </button>
+                  </template>
+                  <EmojiPicker @select="insertEmoji" />
+                </v-menu>
                 <button
                   class="notes-panel__send"
-                  :class="{ 'notes-panel__send--active': commentDraft.trim() }"
-                  :disabled="!commentDraft.trim()"
+                  :class="{
+                    'notes-panel__send--active': commentDraft.trim() && !commentSubmitting,
+                  }"
+                  :disabled="!commentDraft.trim() || commentSubmitting"
                   :aria-label="t('memories.send')"
                   @click="submitComment"
                 >
@@ -718,10 +751,14 @@
 /** START IMPORT */
 import type { PropType } from 'vue'
 import { useTheme } from 'vuetify'
-import type { Album, Photo, Comment } from '@/types/memories'
+import type { Album, Photo } from '@/types/memories'
+import EmojiPicker from '@/components/chat/EmojiPicker.vue'
+import { renderCommentText } from '@/utils/chatMarkdown'
 import { useMoment } from '@/composables/useMoment'
 import { usePhotoInteraction } from '@/composables/usePhotoInteraction'
 import { useAppNotifications } from '@/composables/useAppNotifications'
+import { useMemories } from '@/composables/useMemories'
+import { useMemoriesSocket } from '@/composables/useMemoriesSocket'
 import { apiClient } from '@/utils/apiClient'
 /* END IMPORT */
 
@@ -780,21 +817,24 @@ const { t } = useI18n()
 const { moment } = useMoment()
 const {
   reactionCounts,
-  comments,
   commentCounts,
   userReactions,
-  commentTranslations,
-  commentTranslating,
   fetchBulkReactions,
   fetchBulkCommentCounts,
-  fetchComments,
   toggleReaction,
-  addComment,
-  editComment,
-  deleteComment,
-  translateComment,
 } = usePhotoInteraction()
 const { notifyError, notifySuccess } = useAppNotifications()
+const {
+  albumComments,
+  albumCommentsLoading,
+  albumCommentTranslations,
+  albumCommentTranslating,
+  fetchAlbumComments,
+  addAlbumComment,
+  updateAlbumComment: updateAlbumCommentApi,
+  deleteAlbumComment: deleteAlbumCommentApi,
+  translateAlbumComment,
+} = useMemories()
 const userStore = useUserStore()
 
 const MOSAIC_TONES = [
@@ -831,6 +871,9 @@ const isDarkPage = computed(() => currentVuetifyTheme.value.dark)
 
 const activeFilter = ref<FilterKey>('all')
 const commentDraft = ref('')
+const commentSubmitting = ref(false)
+const showEmojiPicker = ref(false)
+const commentInputReference = ref<HTMLInputElement | null>(null)
 const editingCommentId = ref<string | null>(null)
 const editingText = ref('')
 const deletingAlbumCommentId = ref<string | null>(null)
@@ -844,6 +887,8 @@ const deleteConfirming = ref(false)
 const fabWrapReference = ref<HTMLElement | null>(null)
 const fabPanelReference = ref<HTMLElement | null>(null)
 const notesOpen = ref(false)
+const notesPanelBodyReference = ref<HTMLElement | null>(null)
+const notesListReference = ref<HTMLElement | null>(null)
 const fileInputReference = ref<HTMLInputElement | null>(null)
 
 interface PendingUpload {
@@ -860,8 +905,6 @@ let pendingUidCounter = 0
 const pendingFiles = ref<PendingUpload[]>([])
 
 const isDownloading = ref(false)
-// Tracks photo IDs whose reactions + comments have already been fetched
-const fetchedPhotoIds = new Set<string>()
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -870,24 +913,6 @@ const MAX_VISIBLE_MEMBERS = 5
 const currentUserId = computed(() => String(userStore.user?.id ?? ''))
 
 const userLanguage = computed(() => userStore.user?.preferred_language ?? 'en')
-
-// commentId → true when showing translation (toggled per comment)
-const commentShowTranslation = ref<Record<string, boolean>>({})
-
-function commentDisplayText(commentId: string, original: string): string {
-  if (!commentShowTranslation.value[commentId]) return original
-  return commentTranslations.value[commentId]?.[userLanguage.value] ?? original
-}
-
-async function handleToggleCommentTranslation(commentId: string): Promise<void> {
-  if (!commentTranslations.value[commentId]) {
-    await translateComment(commentId)
-  }
-  const hasTranslation = !!commentTranslations.value[commentId]?.[userLanguage.value]
-  if (hasTranslation) {
-    commentShowTranslation.value[commentId] = !commentShowTranslation.value[commentId]
-  }
-}
 
 const _currentUserInitials = computed(() => {
   const name = userStore.user?.full_name ?? ''
@@ -988,11 +1013,7 @@ const totalReactionsAll = computed(() =>
 )
 
 const totalCommentsAll = computed(() =>
-  props.photos.reduce(
-    (total, photo) =>
-      total + (commentCounts.value[photo.id] ?? comments.value[photo.id]?.length ?? 0),
-    0,
-  ),
+  props.photos.reduce((total, photo) => total + (commentCounts.value[photo.id] ?? 0), 0),
 )
 
 const stats = computed(() => [
@@ -1006,13 +1027,6 @@ const stats = computed(() => [
     label: t('memories.statsDays'),
   },
 ])
-
-const firstPhotoId = computed(() => props.photos[0]?.id ?? null)
-
-const albumComments = computed((): Comment[] => {
-  if (!firstPhotoId.value) return []
-  return comments.value[firstPhotoId.value] ?? []
-})
 
 /* END DEFINE COMPUTED */
 
@@ -1028,18 +1042,55 @@ function avatarColorForUser(userId: string): string {
 }
 
 function formatCommentTime(dateString: string): string {
-  return moment(dateString).fromNow()
+  return moment.utc(dateString).local().fromNow()
 }
 
 async function handleToggleReaction(photoId: string): Promise<void> {
   await toggleReaction(photoId, 'heart')
 }
 
+function insertEmoji(emoji: string): void {
+  const input = commentInputReference.value
+  if (!input) {
+    commentDraft.value += emoji
+    return
+  }
+  const start = input.selectionStart ?? commentDraft.value.length
+  const end = input.selectionEnd ?? commentDraft.value.length
+  commentDraft.value = commentDraft.value.slice(0, start) + emoji + commentDraft.value.slice(end)
+  showEmojiPicker.value = false
+  nextTick(() => {
+    input.focus()
+    const cursor = start + emoji.length
+    input.setSelectionRange(cursor, cursor)
+  })
+}
+
+function scrollNotesToBottom(): void {
+  const doScroll = () => {
+    const body = notesPanelBodyReference.value
+    if (body) body.scrollTop = body.scrollHeight
+  }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      doScroll()
+      // Re-scroll after emoji images finish loading (async)
+      setTimeout(doScroll, 300)
+    })
+  })
+}
+
 async function submitComment(): Promise<void> {
-  if (!commentDraft.value.trim() || !firstPhotoId.value) return
+  if (!commentDraft.value.trim() || commentSubmitting.value) return
   const text = commentDraft.value.trim()
   commentDraft.value = ''
-  await addComment(firstPhotoId.value, text)
+  commentSubmitting.value = true
+  try {
+    await addAlbumComment(props.album.id, text)
+    scrollNotesToBottom()
+  } finally {
+    commentSubmitting.value = false
+  }
 }
 
 function startEditComment(commentId: string, currentText: string): void {
@@ -1054,9 +1105,11 @@ function cancelEditComment(): void {
 
 async function handleSaveEditComment(commentId: string): Promise<void> {
   const text = editingText.value.trim()
-  if (!text || !firstPhotoId.value) return
+  if (!text) return
   cancelEditComment()
-  await editComment(firstPhotoId.value, commentId, text)
+  // Clear translation cache since text changed
+  albumCommentTranslations.value[commentId] = {}
+  await updateAlbumCommentApi(commentId, text)
 }
 
 function confirmDeleteAlbumComment(commentId: string): void {
@@ -1064,10 +1117,27 @@ function confirmDeleteAlbumComment(commentId: string): void {
 }
 
 async function handleDeleteAlbumComment(): Promise<void> {
-  if (!firstPhotoId.value || !deletingAlbumCommentId.value) return
+  if (!deletingAlbumCommentId.value) return
   const commentId = deletingAlbumCommentId.value
   deletingAlbumCommentId.value = null
-  await deleteComment(firstPhotoId.value, commentId)
+  await deleteAlbumCommentApi(commentId)
+}
+
+const albumCommentShowTranslation = ref<Record<string, boolean>>({})
+
+function albumCommentDisplayText(commentId: string, original: string): string {
+  if (!albumCommentShowTranslation.value[commentId]) return original
+  return albumCommentTranslations.value[commentId]?.[userLanguage.value] ?? original
+}
+
+async function handleToggleAlbumCommentTranslation(commentId: string): Promise<void> {
+  if (!albumCommentTranslations.value[commentId]) {
+    await translateAlbumComment(commentId)
+  }
+  const hasTranslation = !!albumCommentTranslations.value[commentId]?.[userLanguage.value]
+  if (hasTranslation) {
+    albumCommentShowTranslation.value[commentId] = !albumCommentShowTranslation.value[commentId]
+  }
 }
 
 function toggleSelectMode(): void {
@@ -1259,19 +1329,20 @@ watch(
   () => props.photos,
   async (newPhotos) => {
     if (newPhotos.length === 0) return
-
-    // Bulk fetch replaces N individual reaction + comment requests
+    // Bulk fetch reactions + comment counts for all photos
     await Promise.all([fetchBulkReactions(props.album.id), fetchBulkCommentCounts(props.album.id)])
-
-    // Full comment thread only for the first photo (album comment wall)
-    const firstId = newPhotos[0]?.id
-    if (firstId && !fetchedPhotoIds.has(firstId)) {
-      fetchedPhotoIds.add(firstId)
-      await fetchComments(firstId)
-    }
   },
   { immediate: true },
 )
+
+watch(notesOpen, async (value) => {
+  if (!value) return
+  if (albumComments.value.length === 0 && !albumCommentsLoading.value) {
+    await fetchAlbumComments(props.album.id)
+  }
+  await nextTick()
+  scrollNotesToBottom()
+})
 
 /* END DEFINE WATCHER */
 
@@ -1282,14 +1353,69 @@ function onWindowScroll(): void {
   if (scrolled >= 0.7) emit('load-more')
 }
 
+const { connect: connectSocket, disconnect: disconnectSocket } = useMemoriesSocket({
+  onAlbumCommentNew(data) {
+    const comment = data.comment as (typeof albumComments.value)[number]
+    const exists = albumComments.value.some((item) => item.id === comment.id)
+    if (!exists) albumComments.value.push(comment)
+  },
+  onAlbumCommentUpdated(data) {
+    const comment = albumComments.value.find((item) => item.id === data.commentId)
+    if (comment) comment.text = data.text
+  },
+  onAlbumCommentDeleted(data) {
+    albumComments.value = albumComments.value.filter((item) => item.id !== data.commentId)
+  },
+  onPhotoCommentNew(data) {
+    window.dispatchEvent(new CustomEvent('memories:photo_comment_new', { detail: data }))
+  },
+  onPhotoCommentUpdated(data) {
+    window.dispatchEvent(new CustomEvent('memories:photo_comment_updated', { detail: data }))
+  },
+  onPhotoCommentDeleted(data) {
+    window.dispatchEvent(new CustomEvent('memories:photo_comment_deleted', { detail: data }))
+  },
+})
+
 onMounted(() => {
   document.addEventListener('mousedown', onDocumentMousedown)
   window.addEventListener('scroll', onWindowScroll, { passive: true })
+  connectSocket(props.album.id)
 })
 
 onUnmounted(() => {
   document.removeEventListener('mousedown', onDocumentMousedown)
   window.removeEventListener('scroll', onWindowScroll)
+  disconnectSocket(props.album.id)
+})
+
+defineExpose({
+  async openNotes() {
+    notesOpen.value = true
+    await nextTick()
+    if (albumComments.value.length === 0) {
+      await fetchAlbumComments(props.album.id)
+      await nextTick()
+    }
+    scrollNotesToBottom()
+  },
+  async scrollToComment(commentId: string) {
+    notesOpen.value = true
+    // Wait for panel to render and comments to load
+    await nextTick()
+    if (albumComments.value.length === 0) {
+      await fetchAlbumComments(props.album.id)
+      await nextTick()
+    }
+    const item = notesListReference.value?.querySelector<HTMLElement>(
+      `[data-comment-id="${commentId}"]`,
+    )
+    if (item && notesPanelBodyReference.value) {
+      item.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      item.classList.add('notes-comment--highlight')
+      setTimeout(() => item.classList.remove('notes-comment--highlight'), 2000)
+    }
+  },
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
@@ -3243,6 +3369,11 @@ onUnmounted(() => {
   background: rgba(var(--v-theme-on-surface), 0.03);
 }
 
+.notes-comment--highlight {
+  background: rgba(var(--v-theme-primary), 0.1);
+  transition: background 0.3s;
+}
+
 .notes-comment__avatar {
   width: 30px;
   height: 30px;
@@ -3255,6 +3386,11 @@ onUnmounted(() => {
   font-weight: 700;
   color: #fff;
   margin-top: 1px;
+}
+
+.notes-comment__avatar--img {
+  background-size: cover;
+  background-position: center;
 }
 
 .notes-comment__content {
@@ -3318,6 +3454,12 @@ onUnmounted(() => {
 
 .notes-comment__menu-btn:hover {
   background: rgba(var(--v-theme-on-surface), 0.08);
+}
+
+@media (hover: none) {
+  .notes-comment__menu-btn {
+    opacity: 1;
+  }
 }
 
 .notes-comment__edit {
@@ -3417,6 +3559,28 @@ onUnmounted(() => {
 
 .notes-panel__input::placeholder {
   color: rgba(var(--v-theme-on-surface), 0.35);
+}
+
+.notes-panel__emoji-btn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  color: rgba(var(--v-theme-on-surface), 0.45);
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.notes-panel__emoji-btn:hover {
+  color: rgb(var(--v-theme-on-surface));
+  background: rgba(var(--v-theme-on-surface), 0.06);
 }
 
 .notes-panel__send {
