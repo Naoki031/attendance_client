@@ -1668,6 +1668,18 @@
     "deleteSuccess": "写真を削除しました",
     "uploadDone": "アップロード完了",
     "pendingUpload": "アップロード待ち: {count}件",
+    "shareAlbumPanel": {
+      "title": "アルバムをシェア",
+      "subtitle": "このアルバムをチャットルームでシェアする",
+      "selectRoom": "ルームを選択",
+      "memberCount": "{count}人のメンバー",
+      "messageLabel": "メッセージを追加（任意）",
+      "messagePlaceholder": "メッセージを入力...",
+      "noRooms": "まだチャットルームに参加していません",
+      "roomRequired": "シェアする前にルームを選択してください",
+      "send": "シェア",
+      "successMessage": "アルバムをシェアしました！"
+    },
     "sharePanel": {
       "title": "写真をシェア",
       "subtitle": "この思い出をチャットルームでシェアする",
@@ -1705,6 +1717,7 @@
       "uploadPartial": "一部のファイルのアップロードに失敗しました",
       "copyLink": "リンクのコピーに失敗しました",
       "share": "写真のシェアに失敗しました",
+      "shareAlbum": "アルバムのシェアに失敗しました",
       "noPhotosToDownload": "ダウンロードする写真がありません",
       "downloadFailed": "アルバムのダウンロードに失敗しました",
       "loadMembers": "メンバーリストの読み込みに失敗しました",
@@ -1732,6 +1745,7 @@
     "inviteSuccess": "メンバーを更新しました",
     "gallery": "フォトギャラリー",
     "slideshow": "スライドショー",
+    "shareAlbum": "アルバムをシェア",
     "downloadAlbum": "アルバムをダウンロード",
     "downloadStarted": "ダウンロードを準備中...",
     "sharePhoto": "写真をシェア",
@@ -1767,7 +1781,12 @@
     "privateDesc": "招待されたメンバーのみ閲覧できます",
     "downloading": "ZIPを準備中...",
     "downloadComplete": "アルバムをダウンロードしました",
-    "addReaction": "リアクション"
+    "addReaction": "リアクション",
+    "imageLoadError": "画像を読み込めませんでした",
+    "fullscreen": "全画面表示",
+    "exitFullscreen": "全画面解除",
+    "editAlbum": "アルバムを編集",
+    "editAlbumSuccess": "アルバムを更新しました"
   },
   "birthday": {
     "title": "{month}の誕生日",

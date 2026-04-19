@@ -36,6 +36,42 @@ function replaceMemoriesPhoto(text: string): string {
   })
 }
 
+/**
+ * Detects [memories_album](albumId|coverUrl|title|photoCount|eventType|message) tokens
+ * and replaces them with a clickable album card div before markdown parsing.
+ */
+function replaceMemoriesAlbum(text: string): string {
+  return text.replace(/\[memories_album\]\(([^)]+)\)/g, (_match, payload: string) => {
+    const [albumId, coverUrl, title, photoCount, eventType, message] = payload.split('|')
+    const id = (albumId ?? '').trim()
+    const cover = (coverUrl ?? '').trim()
+    const titleText = (title ?? '').trim()
+    const countText = (photoCount ?? '0').trim()
+    const eventText = (eventType ?? '').trim()
+    const messageText = (message ?? '').trim()
+
+    const coverHtml = cover
+      ? `<img src="${escapeHtml(cover)}" alt="album cover" loading="lazy" class="memories-album-card__cover" />`
+      : `<div class="memories-album-card__cover-placeholder"></div>`
+
+    const countLabel = `${escapeHtml(countText)} photos${eventText ? ' · ' + escapeHtml(eventText.replace(/_/g, ' ')) : ''}`
+    const messageHtml = messageText
+      ? `<span class="memories-album-card__message">${escapeHtml(messageText)}</span>`
+      : ''
+
+    return (
+      `<div class="memories-album-card" data-album-id="${escapeHtml(id)}">` +
+      `${coverHtml}` +
+      `<div class="memories-album-card__meta">` +
+      `<span class="memories-album-card__title">${escapeHtml(titleText)}</span>` +
+      `<span class="memories-album-card__count">${countLabel}</span>` +
+      `</div>` +
+      `${messageHtml}` +
+      `</div>`
+    )
+  })
+}
+
 /** Tags and attributes allowed in chat messages after markdown rendering. */
 const ALLOWED_TAGS = [
   'p',
@@ -55,7 +91,7 @@ const ALLOWED_TAGS = [
   'img',
   'div',
 ]
-const ALLOWED_ATTR = ['class', 'src', 'alt', 'loading', 'data-full']
+const ALLOWED_ATTR = ['class', 'src', 'alt', 'loading', 'data-full', 'data-album-id']
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -119,7 +155,8 @@ const ALLOWED_URI_REGEXP = /^\/[^/]/
  * - ALLOWED_URI_REGEXP restricts img src to same-origin paths, blocking external tracking pixels.
  */
 export function renderChatMarkdown(content: string, members?: ChatRoomMemberModel[]): string {
-  const withPhotoCards = replaceMemoriesPhoto(content)
+  const withAlbumCards = replaceMemoriesAlbum(content)
+  const withPhotoCards = replaceMemoriesPhoto(withAlbumCards)
   const withEmoji = replaceCustomEmoji(withPhotoCards)
   const rawHtml = marked.parse(withEmoji) as string
 

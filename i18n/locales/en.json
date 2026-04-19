@@ -1668,6 +1668,18 @@
     "deleteSuccess": "Photos deleted successfully",
     "uploadDone": "Upload complete",
     "pendingUpload": "Ready to upload: {count} file(s)",
+    "shareAlbumPanel": {
+      "title": "Share Album",
+      "subtitle": "Share this album to a chat room",
+      "selectRoom": "Select a room",
+      "memberCount": "{count} members",
+      "messageLabel": "Add a message (optional)",
+      "messagePlaceholder": "Write something...",
+      "noRooms": "You haven't joined any chat rooms yet",
+      "roomRequired": "Please select a room before sharing",
+      "send": "Share",
+      "successMessage": "Album shared successfully!"
+    },
     "sharePanel": {
       "title": "Share Photo",
       "subtitle": "Share this memory to a chat room",
@@ -1705,6 +1717,7 @@
       "uploadPartial": "Some files failed to upload",
       "copyLink": "Failed to copy link",
       "share": "Failed to share photo",
+      "shareAlbum": "Failed to share album",
       "inviteMembers": "Failed to update members",
       "noPhotosToDownload": "No photos to download",
       "downloadFailed": "Failed to download album",
@@ -1732,6 +1745,7 @@
     "inviteSuccess": "Members updated successfully",
     "gallery": "Photo Gallery",
     "slideshow": "Slideshow",
+    "shareAlbum": "Share album",
     "downloadAlbum": "Download album",
     "downloadStarted": "Preparing download...",
     "sharePhoto": "Share photo",
@@ -1767,7 +1781,12 @@
     "privateDesc": "Only invited members can view this album",
     "downloading": "Preparing zip...",
     "downloadComplete": "Album downloaded successfully",
-    "addReaction": "React"
+    "addReaction": "React",
+    "imageLoadError": "Image could not be loaded",
+    "fullscreen": "Fullscreen",
+    "exitFullscreen": "Exit fullscreen",
+    "editAlbum": "Edit album",
+    "editAlbumSuccess": "Album updated successfully"
   },
   "birthday": {
     "title": "Month {month} Birthdays",

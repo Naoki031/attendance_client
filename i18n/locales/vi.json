@@ -1668,6 +1668,18 @@
     "deleteSuccess": "Đã xóa ảnh thành công",
     "uploadDone": "Tải lên thành công",
     "pendingUpload": "Sẵn sàng tải: {count} file",
+    "shareAlbumPanel": {
+      "title": "Chia sẻ album",
+      "subtitle": "Chia sẻ album này vào phòng chat",
+      "selectRoom": "Chọn phòng chat",
+      "memberCount": "{count} thành viên",
+      "messageLabel": "Thêm tin nhắn (không bắt buộc)",
+      "messagePlaceholder": "Viết gì đó...",
+      "noRooms": "Bạn chưa tham gia phòng chat nào",
+      "roomRequired": "Vui lòng chọn phòng trước khi chia sẻ",
+      "send": "Chia sẻ",
+      "successMessage": "Đã chia sẻ album thành công!"
+    },
     "sharePanel": {
       "title": "Chia sẻ ảnh",
       "subtitle": "Chia sẻ kỷ niệm này vào phòng chat",
@@ -1705,6 +1717,7 @@
       "uploadPartial": "Một số file tải lên thất bại",
       "copyLink": "Không thể sao chép link",
       "share": "Không thể chia sẻ ảnh",
+      "shareAlbum": "Không thể chia sẻ album",
       "inviteMembers": "Không thể cập nhật thành viên",
       "noPhotosToDownload": "Không có ảnh để tải",
       "downloadFailed": "Tải album thất bại",
@@ -1732,6 +1745,7 @@
     "inviteSuccess": "Cập nhật thành viên thành công",
     "gallery": "Thư viện ảnh",
     "slideshow": "Trình chiếu",
+    "shareAlbum": "Chia sẻ album",
     "downloadAlbum": "Tải album",
     "downloadStarted": "Đang chuẩn bị tải về...",
     "sharePhoto": "Chia sẻ ảnh",
@@ -1767,7 +1781,12 @@
     "privateDesc": "Chỉ những thành viên được mời mới có thể xem",
     "downloading": "Đang nén file...",
     "downloadComplete": "Tải album thành công",
-    "addReaction": "Thả cảm xúc"
+    "addReaction": "Thả cảm xúc",
+    "imageLoadError": "Không thể tải ảnh này",
+    "fullscreen": "Toàn màn hình",
+    "exitFullscreen": "Thoát toàn màn hình",
+    "editAlbum": "Chỉnh sửa album",
+    "editAlbumSuccess": "Cập nhật album thành công"
   },
   "birthday": {
     "title": "Sinh nhật tháng {month}",

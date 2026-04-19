@@ -25,6 +25,14 @@
         <button
           v-if="isCreator"
           class="cin-icon-btn"
+          :aria-label="t('memories.editAlbum')"
+          @click="emit('edit-album')"
+        >
+          <v-icon size="16">mdi-pencil-outline</v-icon>
+        </button>
+        <button
+          v-if="isCreator"
+          class="cin-icon-btn"
           :aria-label="t('memories.changePrivacy')"
           @click="emit('change-privacy')"
         >
@@ -120,8 +128,12 @@
               <v-icon size="14">mdi-play</v-icon>
               {{ t('memories.slideshow') }}
             </button>
+            <button class="cin-btn cin-btn--ghost" @click="emit('share-album')">
+              <v-icon size="14">mdi-share-variant-outline</v-icon>
+              {{ t('memories.shareAlbum') }}
+            </button>
             <button
-              v-if="album.privacy === 'public'"
+              v-if="canUpload"
               class="cin-btn cin-btn--ghost"
               :disabled="isDownloading"
               @click="downloadAlbum"
@@ -754,6 +766,8 @@ const emit = defineEmits<{
   back: []
   'change-privacy': []
   'invite-member': []
+  'share-album': []
+  'edit-album': []
   'share-photo': [photo: Photo]
   'open-photo': [photo: Photo]
   'delete-photos': [ids: string[]]
@@ -1101,17 +1115,24 @@ async function downloadAlbum(): Promise<void> {
       {},
     )
 
-    // Step 2: navigate browser directly to the download URL — no JS memory buffering
+    // Step 2: fetch the ZIP — await the full response so errors are caught in JS
     const runtimeConfig = useRuntimeConfig()
     const baseUrl = (runtimeConfig.public as Record<string, unknown>)['apiBaseUrl'] as string
     const downloadUrl = `${baseUrl}/memories/albums/${props.album.id}/download?token=${tokenData.token}`
 
+    const response = await fetch(downloadUrl)
+    if (!response.ok) throw new Error('Download failed')
+
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+
     const anchor = document.createElement('a')
-    anchor.href = downloadUrl
+    anchor.href = objectUrl
     anchor.download = `${props.album.title}.zip`
     document.body.appendChild(anchor)
     anchor.click()
     document.body.removeChild(anchor)
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
 
     notifySuccess(t('memories.downloadComplete'))
   } catch {

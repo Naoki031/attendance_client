@@ -26,6 +26,8 @@
         @back="navigateTo('/memories')"
         @change-privacy="privacyDialog = true"
         @invite-member="inviteDialog = true"
+        @share-album="shareAlbumDialog = true"
+        @edit-album="editAlbumDialog = true"
         @share-photo="handleSharePhoto"
         @open-photo="handleOpenPhoto"
         @delete-photos="handleDeletePhotos"
@@ -45,13 +47,28 @@
         @delete="handleDeleteFromDetail"
       />
 
-      <!-- Share panel -->
+      <!-- Share photo panel -->
       <MemoriesSharePanel
         v-if="photoToShare"
         v-model="shareDialog"
         :photo="photoToShare"
         :album="currentAlbum"
         @shared="shareDialog = false"
+      />
+
+      <!-- Share album panel -->
+      <MemoriesShareAlbumPanel
+        v-model="shareAlbumDialog"
+        :album="currentAlbum"
+        @shared="shareAlbumDialog = false"
+      />
+
+      <!-- Edit album modal -->
+      <MemoriesEditAlbumModal
+        :album="currentAlbum"
+        :dialog="editAlbumDialog"
+        @updated="editAlbumDialog = false"
+        @close-modal="editAlbumDialog = false"
       />
 
       <!-- Invite member dialog -->
@@ -290,6 +307,7 @@ const {
   loading,
   photosLoading,
   photosHasMore,
+  forbidden,
   fetchAlbum,
   loadMorePhotos,
   updateAlbum,
@@ -301,6 +319,8 @@ const { notifySuccess, notifyError } = useAppNotifications()
 const albumId = computed(() => route.params.id as string)
 
 const shareDialog = ref(false)
+const shareAlbumDialog = ref(false)
+const editAlbumDialog = ref(false)
 const photoToShare = ref<Photo | null>(null)
 const selectedPhoto = ref<Photo | null>(null)
 const photoViewerOpen = useState('memoriesPhotoViewerOpen', () => false)
@@ -444,6 +464,10 @@ async function handleInviteMembers(): Promise<void> {
 /* END DEFINE METHOD */
 
 /** START DEFINE WATCHER */
+watch(forbidden, (value) => {
+  if (value) navigateTo('/memories')
+})
+
 watch(selectedPhoto, (value) => {
   photoViewerOpen.value = value !== null
 })

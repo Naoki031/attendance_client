@@ -12,8 +12,42 @@
   >
     <div v-if="photo" class="photo-detail">
       <!-- ── Left: image viewer ──────────────────────────────── -->
-      <div class="photo-detail__viewer">
-        <img :src="photo.url" :alt="photo.caption ?? ''" class="photo-detail__image" />
+      <div
+        ref="viewerReference"
+        class="photo-detail__viewer"
+        @touchstart.passive="handleTouchStart"
+        @touchmove.passive="handleTouchMove"
+        @touchend="handleTouchEnd"
+      >
+        <!-- #4 #6 Fade-in only on photo change, error state, pinch zoom, double-click -->
+        <v-progress-circular
+          v-if="!imgLoaded && !imgError"
+          indeterminate
+          color="primary"
+          size="40"
+          class="photo-detail__img-spinner"
+        />
+        <img
+          v-if="!imgError"
+          :key="photo.id"
+          :src="photo.url"
+          :alt="photo.caption ?? ''"
+          class="photo-detail__image"
+          :class="{ 'photo-detail__image--hidden': !imgLoaded }"
+          :style="{ transform: `scale(${pinchScale})`, transformOrigin: zoomOrigin }"
+          @load="handleImgLoad"
+          @error="imgError = true"
+          @dblclick="handleDoubleClick"
+        />
+        <div v-if="imgError" class="photo-detail__img-error">
+          <v-icon size="52" color="grey-lighten-1">mdi-image-broken-variant</v-icon>
+          <span>{{ t('memories.imageLoadError') }}</span>
+        </div>
+
+        <!-- #7 Double-click heart animation -->
+        <transition name="heart-pop">
+          <div v-if="showHeartPop" class="photo-detail__heart-pop">❤️</div>
+        </transition>
 
         <!-- Prev / Next navigation -->
         <button
@@ -38,6 +72,16 @@
         <div v-if="allPhotos.length > 1" class="photo-detail__indicator">
           {{ currentIndex + 1 }} / {{ allPhotos.length }}
         </div>
+
+        <!-- Fullscreen button — desktop only, top-left corner -->
+        <button
+          v-if="!xs"
+          class="photo-detail__fullscreen-btn"
+          :aria-label="isFullscreen ? t('memories.exitFullscreen') : t('memories.fullscreen')"
+          @click="toggleFullscreen"
+        >
+          <v-icon size="18">{{ isFullscreen ? 'mdi-fullscreen-exit' : 'mdi-fullscreen' }}</v-icon>
+        </button>
 
         <!-- More actions menu — subtle, top-right corner of image -->
         <v-menu location="bottom end">
@@ -104,8 +148,15 @@
         <!-- 2. Caption -->
         <p v-if="photo.caption" class="photo-detail__caption">{{ photo.caption }}</p>
 
+        <!-- #1 Skeleton loading -->
+        <div v-if="dataLoading" class="photo-detail__skeleton">
+          <div class="skeleton-pill" />
+          <div class="skeleton-pill skeleton-pill--sm" />
+          <div class="skeleton-pill skeleton-pill--sm" />
+        </div>
+
         <!-- 3. Reaction bar -->
-        <div class="photo-detail__reactions">
+        <div v-else class="photo-detail__reactions">
           <!-- Emoji picker trigger -->
           <v-menu location="top start" :close-delay="120" open-on-hover>
             <template #activator="{ props: menuProps }">
@@ -422,6 +473,7 @@
 /** START IMPORT */
 import type { PropType } from 'vue'
 import type { Photo, Album, Comment, CommentReactionEntry, ReactionType } from '@/types/memories'
+import { useDisplay } from 'vuetify'
 import { useMoment } from '@/composables/useMoment'
 import { usePhotoInteraction } from '@/composables/usePhotoInteraction'
 import { useAppNotifications } from '@/composables/useAppNotifications'
@@ -456,6 +508,7 @@ const emit = defineEmits<{
 /** START DEFINE STATE */
 const { t } = useI18n()
 const { moment } = useMoment()
+const { xs } = useDisplay()
 const {
   reactionCounts,
   photoReactors,
@@ -478,13 +531,32 @@ const userStore = useUserStore()
 const newComment = ref('')
 const showMobileComments = ref(false)
 const commentListReference = ref<HTMLElement | null>(null)
+const viewerReference = ref<HTMLElement | null>(null)
+const isFullscreen = ref(false)
 const deleteConfirming = ref(false)
 const commentShowTranslation = ref<Record<string, boolean>>({})
 const editingCommentId = ref<string | null>(null)
 const editingText = ref('')
 const editTextareaReference = ref<HTMLTextAreaElement | null>(null)
 const deletingCommentId = ref<string | null>(null)
+const dataLoading = ref(false)
 
+// #4 Slide direction: 'next' = from right, 'prev' = from left
+const slideDirection = ref<'next' | 'prev'>('next')
+// #6 Image error / loaded state
+const imgError = ref(false)
+const imgLoaded = ref(false)
+const loadedPhotoIds = new Set<string>()
+// #7 Double-click heart animation
+const showHeartPop = ref(false)
+// #5 Pinch-to-zoom
+const pinchScale = ref(1)
+const pinchStartDistance = ref(0)
+const pinchStartScale = ref(1)
+const zoomOrigin = ref('center center')
+// #2 Swipe gesture
+const touchStartX = ref(0)
+const touchStartY = ref(0)
 /* END DEFINE STATE */
 
 /** START DEFINE COMPUTED */
@@ -660,6 +732,30 @@ async function handleDeleteComment(): Promise<void> {
   await deleteComment(props.photo.id, commentId)
 }
 
+async function toggleFullscreen(): Promise<void> {
+  if (!document.fullscreenElement) {
+    await viewerReference.value?.requestFullscreen()
+  } else {
+    await document.exitFullscreen()
+  }
+}
+
+function handleImgLoad(): void {
+  if (props.photo) loadedPhotoIds.add(props.photo.id)
+  imgLoaded.value = true
+}
+
+function prefetchNeighbors(): void {
+  const index = currentIndex.value
+  const neighbors = [props.allPhotos[index - 1], props.allPhotos[index + 1]].filter(Boolean)
+  for (const neighbor of neighbors) {
+    const img = new Image()
+    img.src = neighbor.url
+    if (!reactionCounts.value[neighbor.id]) fetchReactions(neighbor.id)
+    if (!comments.value[neighbor.id]) fetchComments(neighbor.id)
+  }
+}
+
 async function copyLink(): Promise<void> {
   if (!props.photo) return
 
@@ -673,36 +769,158 @@ async function copyLink(): Promise<void> {
   }
 }
 
+// #3 Skip keyboard nav when focus is inside an input/textarea
 function handleKeydown(event: KeyboardEvent): void {
   if (!props.photo) return
+  const target = event.target as HTMLElement
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
 
   if (event.key === 'ArrowLeft' && hasPrevious.value) emit('prev')
   if (event.key === 'ArrowRight' && hasNext.value) emit('next')
   if (event.key === 'Escape') emit('close')
+}
+
+// #7 Double-click: zoom on desktop, heart animation on mobile
+function handleDoubleClick(event: MouseEvent): void {
+  if (!props.photo) return
+  if (!xs.value) {
+    if (pinchScale.value > 1.05) {
+      // Zoom out: reset to center
+      pinchScale.value = 1
+      zoomOrigin.value = 'center center'
+    } else {
+      // Zoom in at clicked position
+      const target = event.currentTarget as HTMLElement
+      const rect = target.getBoundingClientRect()
+      const xPercent = ((event.clientX - rect.left) / rect.width) * 100
+      const yPercent = ((event.clientY - rect.top) / rect.height) * 100
+      zoomOrigin.value = `${xPercent}% ${yPercent}%`
+      pinchScale.value = 2
+    }
+    return
+  }
+  // Mobile: react with heart + show pop animation
+  if (userReactions.value[props.photo.id] !== 'heart') {
+    toggleReaction(props.photo.id, 'heart')
+  }
+  showHeartPop.value = true
+  setTimeout(() => {
+    showHeartPop.value = false
+  }, 800)
+}
+
+// #5 Pinch-to-zoom helpers
+function getTouchDistance(touches: TouchList): number {
+  const dx = touches[0].clientX - touches[1].clientX
+  const dy = touches[0].clientY - touches[1].clientY
+  return Math.hypot(dx, dy)
+}
+
+// #2 + #5 Touch handlers — skip if touch originates on an interactive element
+function isTouchOnInteractive(event: TouchEvent): boolean {
+  const target = event.target as HTMLElement
+  return !!(target.closest('button') || target.closest('[role="button"]') || target.closest('a'))
+}
+
+function handleTouchStart(event: TouchEvent): void {
+  if (isTouchOnInteractive(event)) return
+  if (event.touches.length === 1) {
+    touchStartX.value = event.touches[0].clientX
+    touchStartY.value = event.touches[0].clientY
+  } else if (event.touches.length === 2) {
+    pinchStartDistance.value = getTouchDistance(event.touches)
+    pinchStartScale.value = pinchScale.value
+  }
+}
+
+function handleTouchMove(event: TouchEvent): void {
+  if (event.touches.length === 2) {
+    const distance = getTouchDistance(event.touches)
+    pinchScale.value = Math.min(
+      4,
+      Math.max(1, pinchStartScale.value * (distance / pinchStartDistance.value)),
+    )
+  }
+}
+
+function handleTouchEnd(event: TouchEvent): void {
+  if (isTouchOnInteractive(event)) return
+  // Only swipe when not zoomed in
+  if (event.changedTouches.length === 1 && pinchScale.value <= 1.05) {
+    const dx = event.changedTouches[0].clientX - touchStartX.value
+    const dy = event.changedTouches[0].clientY - touchStartY.value
+
+    // Swipe down to close (must be more vertical than horizontal)
+    if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
+      emit('close')
+      return
+    }
+
+    // Swipe left/right to navigate
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      if (dx < 0 && hasNext.value) emit('next')
+      else if (dx > 0 && hasPrevious.value) emit('prev')
+    }
+  }
+  if (pinchScale.value < 1.1) pinchScale.value = 1
 }
 /* END DEFINE METHOD */
 
 /** START DEFINE WATCHER */
 watch(
   () => props.photo,
-  async (newPhoto) => {
+  async (newPhoto, oldPhoto) => {
     if (!newPhoto) return
+
+    // Determine slide direction based on index change
+    if (oldPhoto) {
+      const oldIndex = props.allPhotos.findIndex((photo) => photo.id === oldPhoto.id)
+      const newIndex = props.allPhotos.findIndex((photo) => photo.id === newPhoto.id)
+      slideDirection.value = newIndex >= oldIndex ? 'next' : 'prev'
+    }
+
+    imgError.value = false
+    imgLoaded.value = loadedPhotoIds.has(newPhoto.id)
+    pinchScale.value = 1
+    zoomOrigin.value = 'center center'
+
+    // Reset comment scroll to top when switching photos
+    if (commentListReference.value) commentListReference.value.scrollTop = 0
+
+    dataLoading.value = true
     const toFetch: Promise<void>[] = []
     if (!reactionCounts.value[newPhoto.id]) toFetch.push(fetchReactions(newPhoto.id))
-    if (!comments.value[newPhoto.id]) toFetch.push(fetchComments(newPhoto.id))
+    // #8 On mobile, defer comment fetch until panel is opened
+    if (!comments.value[newPhoto.id] && !xs.value) toFetch.push(fetchComments(newPhoto.id))
     if (toFetch.length) await Promise.all(toFetch)
+    dataLoading.value = false
+
+    prefetchNeighbors()
   },
   { immediate: true },
 )
+
+// #8 Lazy-load comments on mobile when panel opens
+watch(showMobileComments, async (opened) => {
+  if (!opened || !props.photo) return
+  if (!comments.value[props.photo.id]) await fetchComments(props.photo.id)
+})
 /* END DEFINE WATCHER */
 
 /** START DEFINE LIFE CYCLE HOOK */
+function handleFullscreenChange(): void {
+  isFullscreen.value = !!document.fullscreenElement
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  if (document.fullscreenElement) document.exitFullscreen()
 })
 /* END DEFINE LIFE CYCLE HOOK */
 </script>
@@ -741,6 +959,19 @@ onUnmounted(() => {
   object-fit: contain;
   display: block;
   user-select: none;
+  transition: opacity 0.15s ease;
+}
+
+.photo-detail__image--hidden {
+  opacity: 0;
+}
+
+.photo-detail__img-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 
 /* Prev / Next buttons */
@@ -788,6 +1019,38 @@ onUnmounted(() => {
   border-radius: 20px;
   backdrop-filter: blur(4px);
 }
+.photo-detail__fullscreen-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.18s;
+  backdrop-filter: blur(4px);
+  z-index: 3;
+}
+.photo-detail__viewer:hover .photo-detail__fullscreen-btn {
+  opacity: 1;
+}
+
+/* When viewer is fullscreen: center image in black letterbox */
+.photo-detail__viewer:fullscreen {
+  background: #000;
+}
+.photo-detail__viewer:fullscreen .photo-detail__image {
+  max-height: 100vh;
+  max-width: 100vw;
+}
+
 .photo-detail__more-btn {
   position: absolute;
   top: 10px;
@@ -1320,6 +1583,93 @@ onUnmounted(() => {
 
   .photo-detail__more-btn {
     opacity: 1;
+  }
+}
+
+/* ── #1 Skeleton loading ────────────────────────────────── */
+.photo-detail__skeleton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton-pill {
+  height: 28px;
+  width: 90px;
+  border-radius: 20px;
+  background: rgba(var(--v-theme-on-surface), 0.1);
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-pill--sm {
+  width: 48px;
+}
+
+/* ── #6 Image error state ───────────────────────────────── */
+.photo-detail__img-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  font-size: 0.8rem;
+}
+
+/* ── #7 Double-click heart pop ──────────────────────────── */
+.photo-detail__heart-pop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 5rem;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+}
+
+.heart-pop-enter-active {
+  animation: heart-burst 0.8s ease-out forwards;
+}
+
+.heart-pop-leave-active {
+  transition: opacity 0.1s;
+}
+
+.heart-pop-leave-to {
+  opacity: 0;
+}
+
+@keyframes heart-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 1;
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -60%) scale(0.8);
+    opacity: 0;
   }
 }
 </style>

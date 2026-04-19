@@ -18,6 +18,9 @@ export interface CreateAlbumPayload {
 
 export interface UpdateAlbumPayload {
   title?: string
+  description?: string
+  eventType?: EventType
+  date?: string
   privacy?: Privacy
   memberIds?: string[]
 }
@@ -40,6 +43,7 @@ export function useMemories() {
   const photosPage = ref(1)
   const photosHasMore = ref(false)
   const error = ref<string | null>(null)
+  const forbidden = ref(false)
   /** END DEFINE STATE */
 
   /** START DEFINE METHOD */
@@ -68,6 +72,7 @@ export function useMemories() {
   async function fetchAlbum(id: string): Promise<void> {
     loading.value = true
     error.value = null
+    forbidden.value = false
     photos.value = []
     photosPage.value = 1
     photosHasMore.value = false
@@ -75,14 +80,21 @@ export function useMemories() {
     try {
       const result = await apiClient.get<ApiResponse<Album>>(`memories/albums/${id}`)
       currentAlbum.value = result.data
-    } catch {
-      error.value = t('memories.errors.loadAlbum')
+    } catch (error_) {
+      const status =
+        (error_ as { statusCode?: number; status?: number })?.statusCode ??
+        (error_ as { statusCode?: number; status?: number })?.status
+      if (status === 403) {
+        forbidden.value = true
+      } else {
+        error.value = t('memories.errors.loadAlbum')
+      }
     } finally {
       loading.value = false
     }
 
     // Load first page of photos immediately after album metadata
-    await fetchPhotosPage(id, 1)
+    if (!forbidden.value) await fetchPhotosPage(id, 1)
   }
 
   async function fetchPhotosPage(albumId: string, page: number): Promise<void> {
@@ -262,6 +274,7 @@ export function useMemories() {
     photosLoading,
     photosHasMore,
     error,
+    forbidden,
     fetchAlbums,
     fetchAlbum,
     loadMorePhotos,

@@ -491,6 +491,14 @@ function cancelEdit() {
 
 function handleMarkdownClick(event: MouseEvent) {
   const target = event.target as HTMLElement
+
+  const albumCard = target.closest('.memories-album-card') as HTMLElement | null
+  if (albumCard) {
+    const albumId = albumCard.dataset['albumId']
+    if (albumId) navigateTo(`/memories/${albumId}`)
+    return
+  }
+
   const card = target.closest('.memories-photo-card') as HTMLElement | null
   if (!card) return
   const img = card.querySelector('img') as HTMLImageElement | null
@@ -858,6 +866,72 @@ watch(
 .chat-rendered-markdown :deep(.memories-photo-card__message) {
   display: block;
   padding: 2px 10px 8px;
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Memories album card */
+.chat-rendered-markdown :deep(.memories-album-card) {
+  display: inline-block;
+  max-width: 280px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
+  background: rgba(var(--v-theme-surface), 1);
+  cursor: pointer;
+  margin-top: 4px;
+  transition: opacity 0.15s;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card:hover) {
+  opacity: 0.85;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card__cover) {
+  width: 100%;
+  max-width: 280px;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card__cover-placeholder) {
+  width: 100%;
+  height: 160px;
+  background: rgba(var(--v-theme-on-surface), 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card__meta) {
+  padding: 8px 10px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card__title) {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgb(var(--v-theme-on-surface));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card__count) {
+  font-size: 0.75rem;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  text-transform: capitalize;
+}
+
+.chat-rendered-markdown :deep(.memories-album-card__message) {
+  display: block;
+  padding: 0 10px 8px;
   font-size: 0.75rem;
   color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
   white-space: nowrap;
