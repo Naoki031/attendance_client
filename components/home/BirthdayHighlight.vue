@@ -121,7 +121,7 @@ const otherPeople = computed(() => {
   return people.value
     .filter((person) => {
       if (!person.date_of_birth) return false
-      return moment(person.date_of_birth).date() !== todayDay
+      return moment(person.date_of_birth).date() > todayDay
     })
     .sort(
       (personA, personB) =>
@@ -438,6 +438,12 @@ onMounted(() => {
 @media (max-width: 600px) {
   .birthday-banner__left {
     display: none;
+  }
+
+  .birthday-banner__left--full {
+    display: flex;
+    width: 100%;
+    border-right: none;
   }
 
   .birthday-banner__spotlight {
