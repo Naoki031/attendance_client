@@ -1786,7 +1786,10 @@
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "editAlbum": "Edit album",
-    "editAlbumSuccess": "Album updated successfully"
+    "editAlbumSuccess": "Album updated successfully",
+    "views": "views",
+    "viewersDialogTitle": "Album Viewers",
+    "noViewersYet": "No one has viewed this album yet"
   },
   "birthday": {
     "title": "Month {month} Birthdays",

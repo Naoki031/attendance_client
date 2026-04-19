@@ -1,5 +1,5 @@
 import { apiClient } from '@/utils/apiClient'
-import type { Album, Photo, EventType, Privacy, AlbumComment } from '@/types/memories'
+import type { Album, Photo, EventType, Privacy, AlbumComment, AlbumViewer } from '@/types/memories'
 import { useMoment } from '@/composables/useMoment'
 
 export interface AlbumFilters {
@@ -361,6 +361,20 @@ export function useMemories() {
     }
   }
 
+  async function fetchAlbumViewers(
+    albumId: string,
+  ): Promise<{ viewCount: number; viewers: AlbumViewer[] } | null> {
+    try {
+      const result = await apiClient.get<{
+        success: boolean
+        data: { viewCount: number; viewers: (AlbumViewer & { viewedAt: string })[] }
+      }>(`memories/albums/${albumId}/viewers`)
+      return result.data
+    } catch {
+      return null
+    }
+  }
+
   /** END DEFINE METHOD */
 
   /** START HELPERS */
@@ -406,6 +420,7 @@ export function useMemories() {
     updateAlbumComment,
     deleteAlbumComment,
     translateAlbumComment,
+    fetchAlbumViewers,
     getPrivacyLabel,
     getEventTypeLabel,
     formatDate,

@@ -73,6 +73,11 @@
           }}</v-icon>
           {{ album.privacy === 'public' ? t('memories.public') : t('memories.private') }}
         </span>
+        <span class="cin-hero-meta-sep" />
+        <button class="cin-hero-meta-item cin-hero-meta-item--btn" @click="openViewersDialog">
+          <v-icon size="12">mdi-eye-outline</v-icon>
+          {{ album.viewCount ?? 0 }} {{ t('memories.views') }}
+        </button>
       </div>
 
       <div class="cin-hero-copy">
@@ -249,20 +254,25 @@
           />
           <div class="cin-photo-overlay">
             <p v-if="photo.caption" class="cin-photo-caption">{{ photo.caption }}</p>
-            <button
-              v-if="!selectMode"
-              :class="[
-                'cin-react-btn',
-                { 'cin-react-btn--liked': userReactions[photo.id] === 'heart' },
-              ]"
-              :aria-label="t('memories.reactions.heart')"
-              @click.stop="handleToggleReaction(photo.id)"
-            >
-              <v-icon size="14">{{
-                userReactions[photo.id] === 'heart' ? 'mdi-heart' : 'mdi-heart-outline'
-              }}</v-icon>
-              <span>{{ totalReactionsForPhoto(photo.id) }}</span>
-            </button>
+            <div v-if="!selectMode" class="cin-photo-stats">
+              <button
+                :class="[
+                  'cin-react-btn',
+                  { 'cin-react-btn--liked': userReactions[photo.id] === 'heart' },
+                ]"
+                :aria-label="t('memories.reactions.heart')"
+                @click.stop="handleToggleReaction(photo.id)"
+              >
+                <v-icon size="14">{{
+                  userReactions[photo.id] === 'heart' ? 'mdi-heart' : 'mdi-heart-outline'
+                }}</v-icon>
+                <span>{{ totalReactionsForPhoto(photo.id) }}</span>
+              </button>
+              <span v-if="photo.viewCount" class="cin-view-stat">
+                <v-icon size="13">mdi-eye-outline</v-icon>
+                {{ photo.viewCount }}
+              </span>
+            </div>
           </div>
           <!-- Select checkbox overlay — only shown for deletable photos -->
           <div v-if="selectMode && canDeletePhoto(photo)" class="cin-select-check">
@@ -317,6 +327,53 @@
             {{ t('common.delete') }}
           </v-btn>
         </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Viewers dialog -->
+    <v-dialog v-model="viewersDialogOpen" max-width="400" scrollable>
+      <v-card rounded="xl">
+        <v-card-title class="pt-5 px-5 text-subtitle-1 font-weight-bold d-flex align-center gap-2">
+          <v-icon size="18">mdi-eye-outline</v-icon>
+          {{ t('memories.viewersDialogTitle') }}
+          <v-chip size="x-small" class="ml-1">{{ viewersDialogData.viewCount }}</v-chip>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            density="compact"
+            class="ml-auto"
+            @click="viewersDialogOpen = false"
+          />
+        </v-card-title>
+        <v-divider />
+        <v-card-text class="pa-0" style="max-height: 400px; overflow-y: auto">
+          <div v-if="viewersDialogLoading" class="d-flex justify-center py-6">
+            <v-progress-circular indeterminate size="28" color="primary" />
+          </div>
+          <v-list v-else-if="viewersDialogData.viewers.length > 0" lines="two">
+            <v-list-item
+              v-for="viewer in viewersDialogData.viewers"
+              :key="viewer.id"
+              :subtitle="viewer.viewedAt ? formatDate(viewer.viewedAt) : ''"
+            >
+              <template #prepend>
+                <v-avatar size="36" color="primary" class="mr-3">
+                  <v-img v-if="viewer.avatar" :src="viewer.avatar" cover />
+                  <span v-else class="text-caption font-weight-bold text-white">{{
+                    viewer.name[0]?.toUpperCase()
+                  }}</span>
+                </v-avatar>
+              </template>
+              <template #title>
+                <span class="text-body-2 font-weight-medium">{{ viewer.name }}</span>
+              </template>
+            </v-list-item>
+          </v-list>
+          <div v-else class="text-center py-8 text-medium-emphasis text-body-2">
+            {{ t('memories.noViewersYet') }}
+          </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
@@ -834,6 +891,8 @@ const {
   updateAlbumComment: updateAlbumCommentApi,
   deleteAlbumComment: deleteAlbumCommentApi,
   translateAlbumComment,
+  fetchAlbumViewers,
+  formatDate,
 } = useMemories()
 const userStore = useUserStore()
 
@@ -884,6 +943,12 @@ const fabOpen = ref(false)
 const selectMode = ref(false)
 const selectedIds = ref<Set<string>>(new Set())
 const deleteConfirming = ref(false)
+const viewersDialogOpen = ref(false)
+const viewersDialogLoading = ref(false)
+const viewersDialogData = ref<{
+  viewCount: number
+  viewers: { id: string; name: string; avatar: string | null; viewedAt: string }[]
+}>({ viewCount: 0, viewers: [] })
 const fabWrapReference = ref<HTMLElement | null>(null)
 const fabPanelReference = ref<HTMLElement | null>(null)
 const notesOpen = ref(false)
@@ -1163,6 +1228,14 @@ function handleDeleteSelected(): void {
   deleteConfirming.value = false
   selectMode.value = false
   selectedIds.value = new Set()
+}
+
+async function openViewersDialog(): Promise<void> {
+  viewersDialogOpen.value = true
+  viewersDialogLoading.value = true
+  const result = await fetchAlbumViewers(props.album.id)
+  if (result) viewersDialogData.value = result
+  viewersDialogLoading.value = false
 }
 
 function startSlideshow(): void {
@@ -1648,6 +1721,22 @@ defineExpose({
   flex-shrink: 0;
 }
 
+.cin-hero-meta-item--btn {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+}
+
+.cin-hero-meta-item--btn:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
 .cin-hero-copy {
   position: relative;
   z-index: 2;
@@ -1762,6 +1851,41 @@ defineExpose({
   color: #f3efe8;
 }
 .cin-members-copy span {
+  font-size: 12px;
+  color: var(--cin-ink-mute);
+}
+
+/* ── View count ──────────────────────────────────────────────── */
+.cin-views {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cin-avatar-stack--sm {
+  display: flex;
+  flex-direction: row-reverse;
+}
+
+.cin-avatar-stack--sm .v-avatar {
+  margin-left: -6px;
+  border: 1.5px solid rgba(0, 0, 0, 0.35);
+}
+
+.cin-avatar-stack--sm .v-avatar:last-child {
+  margin-left: 0;
+}
+
+.cin-avatar-initial--sm {
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.cin-views-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
   color: var(--cin-ink-mute);
 }
@@ -2238,6 +2362,27 @@ defineExpose({
   color: #fff;
   margin: 0 0 10px;
   text-wrap: pretty;
+}
+
+.cin-photo-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+}
+
+.cin-view-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  pointer-events: none;
 }
 
 .cin-react-btn {

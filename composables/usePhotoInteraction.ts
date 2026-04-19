@@ -332,6 +332,14 @@ export function usePhotoInteraction() {
     }
   }
 
+  async function recordPhotoView(photoId: string): Promise<void> {
+    try {
+      await apiClient.post(`memories/photos/${photoId}/view`, {})
+    } catch {
+      // silently ignore — view count is non-critical
+    }
+  }
+
   /** END DEFINE METHOD */
 
   return {
@@ -352,5 +360,6 @@ export function usePhotoInteraction() {
     deleteComment,
     translateComment,
     toggleCommentReaction,
+    recordPhotoView,
   }
 }

@@ -1786,7 +1786,10 @@
     "fullscreen": "全画面表示",
     "exitFullscreen": "全画面解除",
     "editAlbum": "アルバムを編集",
-    "editAlbumSuccess": "アルバムを更新しました"
+    "editAlbumSuccess": "アルバムを更新しました",
+    "views": "閲覧",
+    "viewersDialogTitle": "アルバム閲覧者",
+    "noViewersYet": "まだ誰もこのアルバムを閲覧していません"
   },
   "birthday": {
     "title": "{month}の誕生日",

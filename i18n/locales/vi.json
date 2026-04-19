@@ -1786,7 +1786,10 @@
     "fullscreen": "Toàn màn hình",
     "exitFullscreen": "Thoát toàn màn hình",
     "editAlbum": "Chỉnh sửa album",
-    "editAlbumSuccess": "Cập nhật album thành công"
+    "editAlbumSuccess": "Cập nhật album thành công",
+    "views": "lượt xem",
+    "viewersDialogTitle": "Người đã xem album",
+    "noViewersYet": "Chưa có ai xem album này"
   },
   "birthday": {
     "title": "Sinh nhật tháng {month}",

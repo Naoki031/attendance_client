@@ -8,6 +8,12 @@ export interface AlbumMember {
   avatar?: string | null
 }
 
+export interface AlbumViewer {
+  id: string
+  name: string
+  avatar: string | null
+}
+
 export interface Album {
   id: string
   title: string
@@ -21,6 +27,8 @@ export interface Album {
   memberIds: string[]
   members?: AlbumMember[]
   photoCount: number
+  viewCount?: number
+  recentViewers?: AlbumViewer[]
   createdAt: string
   updatedAt: string
 }
@@ -38,6 +46,7 @@ export interface Photo {
   height?: number
   size: number
   mimeType: string
+  viewCount?: number
   createdAt: string
 }
 

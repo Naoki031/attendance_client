@@ -146,8 +146,12 @@
 
         <v-divider />
 
-        <!-- 2. Caption -->
+        <!-- 2. Caption + view count -->
         <p v-if="photo.caption" class="photo-detail__caption">{{ photo.caption }}</p>
+        <div v-if="photo.viewCount" class="photo-detail__view-count">
+          <v-icon size="13" style="opacity: 0.55">mdi-eye-outline</v-icon>
+          <span>{{ photo.viewCount }}</span>
+        </div>
 
         <!-- #1 Skeleton loading -->
         <div v-if="dataLoading" class="photo-detail__skeleton">
@@ -546,6 +550,7 @@ const {
   deleteComment,
   translateComment,
   toggleCommentReaction,
+  recordPhotoView,
 } = usePhotoInteraction()
 const { notifySuccess, notifyError } = useAppNotifications()
 const userStore = useUserStore()
@@ -936,6 +941,7 @@ watch(
     dataLoading.value = false
     scrollCommentsToBottom()
 
+    void recordPhotoView(newPhoto.id)
     prefetchNeighbors()
   },
   { immediate: true },
@@ -1195,6 +1201,16 @@ onUnmounted(() => {
   color: rgb(var(--v-theme-on-surface));
   line-height: 1.5;
   margin: 0;
+}
+
+/* View count */
+.photo-detail__view-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 14px 8px;
+  font-size: 0.72rem;
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 
 /* Reaction bar */
